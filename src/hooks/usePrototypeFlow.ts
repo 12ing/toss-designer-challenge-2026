@@ -167,7 +167,9 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
 
   const setAttendanceType = useCallback(
     (id: string, type: AttendanceType) => {
-      commit(withAttendanceType(sessionRef.current, id, type), setSession)
+      const current = sessionRef.current
+      if (current.attendanceTypes[id] === type) return
+      commit(withAttendanceType(current, id, type), setSession)
     },
     [],
   )

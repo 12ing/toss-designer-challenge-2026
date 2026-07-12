@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react'
+import { useRef, type KeyboardEvent } from 'react'
 import type { AttendanceType } from '@/types/schedule'
 
 type AttendanceTypeControlProps = {
@@ -7,6 +7,10 @@ type AttendanceTypeControlProps = {
   onChange: (type: AttendanceType) => void
 }
 
+/**
+ * Toss TDS-style segmented control:
+ * each segment is independently selectable; re-clicking selected keeps state.
+ */
 export function AttendanceTypeControl({
   name,
   value,
@@ -18,30 +22,49 @@ export function AttendanceTypeControl({
   ]
   const selectedIndex = value === 'required' ? 0 : 1
   const isRequired = value === 'required'
+  const requiredRef = useRef<HTMLButtonElement>(null)
+  const optionalRef = useRef<HTMLButtonElement>(null)
 
   const select = (type: AttendanceType) => {
-    // Re-selecting the current segment keeps state (no opposite toggle).
+    if (type === value) return
     onChange(type)
   }
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+  const focusOption = (type: AttendanceType) => {
+    const node = type === 'required' ? requiredRef.current : optionalRef.current
+    node?.focus()
+  }
+
+  const onGroupKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowLeft') {
       event.preventDefault()
-      select(value === 'required' ? 'optional' : 'required')
+      select('required')
+      focusOption('required')
       return
     }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      select('optional')
+      focusOption('optional')
+    }
+  }
+
+  const onOptionKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    type: AttendanceType,
+  ) => {
     if (event.key === ' ' || event.key === 'Enter') {
-      // Native button handles Space/Enter on focused segment.
-      return
+      event.preventDefault()
+      select(type)
     }
   }
 
   return (
     <div
       role="radiogroup"
-      aria-label={`${name} 참석 조건`}
-      className="relative flex h-11 w-[120px] shrink-0 rounded-2xl bg-meeting-panel p-0.5 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--meeting-focus)] min-[640px]:h-9"
-      onKeyDown={onKeyDown}
+      aria-label={`${name} 참석 구분`}
+      className="relative flex h-11 w-[120px] shrink-0 rounded-2xl bg-meeting-panel p-0.5 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[color:var(--meeting-focus)] min-[640px]:h-9"
+      onKeyDown={onGroupKeyDown}
     >
       <span
         aria-hidden
@@ -62,13 +85,15 @@ export function AttendanceTypeControl({
         return (
           <button
             key={option.type}
+            ref={option.type === 'required' ? requiredRef : optionalRef}
             type="button"
             role="radio"
             aria-checked={checked}
             tabIndex={checked ? 0 : -1}
             onClick={() => select(option.type)}
+            onKeyDown={(event) => onOptionKeyDown(event, option.type)}
             className={[
-              'relative z-[1] flex h-full w-[60px] flex-1 items-center justify-center rounded-2xl text-[13px] font-semibold leading-5 transition-colors duration-[180ms] focus-visible:outline-none',
+              'relative z-[1] flex h-full min-h-11 w-[60px] flex-1 items-center justify-center rounded-2xl text-[13px] font-semibold leading-5 transition-colors duration-[180ms] focus:outline-none focus-visible:outline-none min-[640px]:min-h-0',
               checked
                 ? 'text-[color:var(--meeting-primary)]'
                 : 'text-meeting-text-secondary hover:text-meeting-text',

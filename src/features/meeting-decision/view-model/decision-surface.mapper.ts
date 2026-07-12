@@ -268,7 +268,7 @@ function buildBlockingRows(
   ]
   if (protectedSlots === 0) {
     rows.push({
-      label: '확인을 요청할 수 있는 보호 시간이 없어요.',
+      label: '확인을 요청할 수 있는 보호 시간도 없어요.',
       value: '',
     })
   }
@@ -320,10 +320,9 @@ export function mapRecommendationToDecisionSurface(params: {
       mode: 'no-option',
       contextLabel: CONTEXT,
       stateLabel:
-        '현재 조건으로는 모두가 가능한 1시간을 찾기 어려워요.',
+        '현재 조건으로는 필수 참석자가 모두 가능한 1시간을 찾기 어려워요.',
       summaryLines: [],
-      supportingLabel:
-        '필수 참석자의 고정 일정이 서로 겹치고, 외근 시간을 피하면 1시간 연속으로 가능한 구간이 남지 않아요.',
+      supportingLabel: '참석 조건을 조정하면 다시 찾아볼게요.',
       participantRows: [],
       requiredRows: [],
       optionalRows: [],

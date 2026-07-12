@@ -8,7 +8,7 @@ import {
 } from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
 import type { MeetingDecisionSession } from '@/features/meeting-decision/connected-flow/connected-flow.types'
 import type { AttendanceType } from '@/features/meeting-decision/engine/decision-engine.types'
-import { withReviewQuery } from './review-mode'
+import { preserveModeQuery, withReviewQuery } from './review-mode'
 import { trackReviewEvent } from './review-analytics'
 
 function persistFresh(session: MeetingDecisionSession): MeetingDecisionSession {
@@ -48,7 +48,8 @@ export function startLabProductSession(
 
 export function organizerPath(sessionId: string, review = true): string {
   const path = `/prototype/session/${sessionId}/organizer`
-  return review ? withReviewQuery(path) : path
+  if (review) return withReviewQuery(path)
+  return preserveModeQuery(path)
 }
 
 export function attendeePath(
@@ -57,7 +58,8 @@ export function attendeePath(
   review = true,
 ): string {
   const path = `/prototype/session/${sessionId}/respond/${requestId}`
-  return review ? withReviewQuery(path) : path
+  if (review) return withReviewQuery(path)
+  return preserveModeQuery(path)
 }
 
 export function completionPath(sessionId: string): string {

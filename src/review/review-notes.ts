@@ -5,7 +5,7 @@ export const reviewNotesByStep: Record<ReviewStep, ReviewNote> = {
     title: '참석 조건',
     problem:
       '참석자는 이미 정해졌지만, 누가 꼭 참석해야 하는지는 회의마다 달라요.',
-    rule: '필수 참석자는 회의 성립 조건으로, 선택 참석자는 참석 가능성을 높이는 조건으로 계산해요.',
+    rule: '필수 참석자는 회의 성립 조건으로, 선택 참석자는 참석 가능성을 높이는 조건으로 계산해요. 이번 플로우는 주최자가 직접 참석하는 회의를 가정해 주최자는 필수 고정이에요.',
     omitted: '사람 검색과 조직도는 이번 문제의 핵심이 아니어서 제외했어요.',
   },
   'time-recommendation': {

@@ -12,53 +12,35 @@ type ParticipantImpactRowProps = {
   accessibleLabel: string
 }
 
+const STATUS_DOT: Record<StatusLabel, string> = {
+  가능: 'bg-meeting-positive',
+  '확인 필요': 'bg-[color:var(--meeting-primary)]',
+  '응답 대기': 'bg-[color:var(--meeting-waiting)]',
+  '참석 어려움': 'bg-meeting-text-tertiary',
+}
+
+const STATUS_TEXT: Record<StatusLabel, string> = {
+  가능: 'text-meeting-text',
+  '확인 필요': 'text-meeting-text',
+  '응답 대기': 'text-meeting-text-secondary',
+  '참석 어려움': 'text-meeting-text-tertiary',
+}
+
 function StatusMark({ statusLabel }: { statusLabel: StatusLabel }) {
-  if (statusLabel === '가능') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold leading-5 text-meeting-text">
-        <span
-          aria-hidden
-          className="size-1.5 shrink-0 rounded-full bg-meeting-positive"
-        />
-        가능
-      </span>
-    )
-  }
-
-  if (statusLabel === '확인 필요') {
-    return (
-      <span
-        className="inline-flex items-center rounded-full px-2 py-0.5 text-[13px] font-semibold leading-5 text-[color:var(--meeting-primary)]"
-        style={{
-          border:
-            '1px solid color-mix(in srgb, var(--meeting-primary) 28%, transparent)',
-        }}
-      >
-        확인 필요
-      </span>
-    )
-  }
-
-  if (statusLabel === '응답 대기') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold leading-5 text-meeting-text-secondary">
-        <span
-          aria-hidden
-          className="size-1.5 shrink-0 rounded-full"
-          style={{ backgroundColor: 'var(--meeting-waiting)' }}
-        />
-        응답 대기
-      </span>
-    )
-  }
-
   return (
-    <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold leading-5 text-meeting-text-tertiary">
+    <span
+      className={[
+        'inline-flex items-center gap-1.5 text-[13px] font-semibold leading-5',
+        STATUS_TEXT[statusLabel],
+      ].join(' ')}
+    >
       <span
         aria-hidden
-        className="size-1.5 shrink-0 rounded-full bg-meeting-text-tertiary"
+        className={['size-1.5 shrink-0 rounded-full', STATUS_DOT[statusLabel]].join(
+          ' ',
+        )}
       />
-      참석 어려움
+      {statusLabel}
     </span>
   )
 }
