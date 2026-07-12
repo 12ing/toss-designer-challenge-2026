@@ -1,21 +1,31 @@
 import { describe, expect, it } from 'vitest'
 import {
-  isIncompleteMeetingText,
-  sanitizeMeetingDisplayText,
+  isMeetingTitleValid,
+  normalizeMeetingLocation,
+  normalizeMeetingTitle,
 } from './meeting-display'
 
-describe('meeting display sanitizer', () => {
-  it('strips incomplete hangul jamo fragments', () => {
-    expect(sanitizeMeetingDisplayText('ㅇㄹ')).toBe('')
-    expect(sanitizeMeetingDisplayText('ㅇ르')).toBe('')
-    expect(isIncompleteMeetingText('ㅇㄹ')).toBe(true)
+describe('meeting title validation', () => {
+  it('accepts any non-whitespace title including jamo and symbols', () => {
+    expect(isMeetingTitleValid('ㅇㄴㅇ')).toBe(true)
+    expect(isMeetingTitleValid('ㅇ르')).toBe(true)
+    expect(isMeetingTitleValid('A')).toBe(true)
+    expect(isMeetingTitleValid('!')).toBe(true)
+    expect(isMeetingTitleValid('😀')).toBe(true)
+    expect(isMeetingTitleValid('  제품 킥오프  ')).toBe(true)
+    expect(normalizeMeetingTitle('  제품 킥오프  ')).toBe('제품 킥오프')
   })
 
-  it('keeps real meeting titles and places', () => {
-    expect(sanitizeMeetingDisplayText('킥오프 미팅')).toBe('킥오프 미팅')
-    expect(sanitizeMeetingDisplayText('4층 A')).toBe('4층 A')
-    expect(sanitizeMeetingDisplayText('  https://meet.example.com/a  ')).toBe(
-      'https://meet.example.com/a',
-    )
+  it('rejects empty and whitespace-only titles', () => {
+    expect(isMeetingTitleValid('')).toBe(false)
+    expect(isMeetingTitleValid('   ')).toBe(false)
+    expect(isMeetingTitleValid('\t')).toBe(false)
+    expect(isMeetingTitleValid('\n')).toBe(false)
+    expect(normalizeMeetingTitle('   ')).toBe('')
+  })
+
+  it('trims location without rejecting content', () => {
+    expect(normalizeMeetingLocation('  4층 A  ')).toBe('4층 A')
+    expect(normalizeMeetingLocation('ㅇㄹ')).toBe('ㅇㄹ')
   })
 })

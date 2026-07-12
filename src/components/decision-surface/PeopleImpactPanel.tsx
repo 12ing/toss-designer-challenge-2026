@@ -169,7 +169,7 @@ export function PeopleImpactPanel({
                   onClick={() => setExpanded(true)}
                   className="!min-h-10 text-[14px] underline"
                 >
-                  6명 상황 보기
+                  참석 상황 보기
                 </TextButton>
               </>
             ) : (

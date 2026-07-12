@@ -123,7 +123,7 @@ async function main() {
     await waitText(page, '이 시간을 고른 이유')
     await shot(page, '06-reason-panel')
     await page.getByRole('button', { name: '참석 상황 보기' }).first().click()
-    await waitText(page, '이 시간의 참석 상황')
+    await waitText(page, '참석 상황')
     await shot(page, '07-people-panel-return')
 
     // 1440 no-scroll check

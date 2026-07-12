@@ -22,6 +22,29 @@ export type DecisionSurfaceProps = {
 type ContextView = 'people' | 'reason'
 type MobileSheet = 'people' | 'reason' | null
 
+const PEOPLE_VIEW_LABEL = '참석 상황 보기'
+const REASON_VIEW_LABEL = '이 시간을 고른 이유'
+const PEOPLE_SHEET_TITLE = '참석 상황'
+const REASON_SHEET_TITLE = '이 시간을 고른 이유'
+
+function useIsDesktopSurface() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 720px)').matches
+      : true,
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 720px)')
+    const onChange = () => setIsDesktop(mq.matches)
+    onChange()
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  return isDesktop
+}
+
 function StateIcon({ mode }: { mode: DecisionSurfaceMode }) {
   if (mode === 'ready' || mode === 'ready-after-confirmation') {
     return (
@@ -118,7 +141,7 @@ function MobileBottomSheet({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end min-[720px]:hidden">
+    <div className="fixed inset-0 z-50 flex items-end">
       <button
         type="button"
         className="absolute inset-0 bg-[rgba(0,27,55,0.28)]"
@@ -148,7 +171,7 @@ function MobileBottomSheet({
             </h3>
             <button
               type="button"
-              className="inline-flex min-h-11 items-center px-2 text-[14px] font-medium text-meeting-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+              className="inline-flex min-h-11 items-center px-2 text-[14px] font-medium text-meeting-text-secondary focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
               onClick={onClose}
             >
               닫기
@@ -173,9 +196,13 @@ export function DecisionSurface({
   onAnimateInEnd,
 }: DecisionSurfaceProps) {
   const vm = mapRecommendationToDecisionSurface({ mode, recommendation })
+  const isDesktop = useIsDesktopSurface()
   const [contextView, setContextView] = useState<ContextView>('people')
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>(null)
-  const reasonTriggerRef = useRef<HTMLButtonElement>(null)
+  const desktopToggleRef = useRef<HTMLButtonElement>(null)
+  const mobilePeopleRef = useRef<HTMLButtonElement>(null)
+  const mobileReasonRef = useRef<HTMLButtonElement>(null)
+  const lastMobileTrigger = useRef<'people' | 'reason' | null>(null)
 
   useEffect(() => {
     if (!animateIn || !onAnimateInEnd) return
@@ -192,11 +219,17 @@ export function DecisionSurface({
     setMobileSheet(null)
   }, [mode, recommendation])
 
+  useEffect(() => {
+    if (isDesktop) setMobileSheet(null)
+  }, [isDesktop])
+
   const canShowReason =
     Boolean(onToggleReason) &&
     vm.reasonRows.length > 0 &&
     mode !== 'waiting' &&
     mode !== 'no-option'
+
+  const showPeopleEntry = mode !== 'no-option'
 
   const openReason = () => {
     setContextView('reason')
@@ -206,6 +239,13 @@ export function DecisionSurface({
   const openPeople = () => {
     setContextView('people')
     if (isReasonExpanded) onToggleReason?.()
+  }
+
+  const closeMobileSheet = () => {
+    const trigger = lastMobileTrigger.current
+    setMobileSheet(null)
+    if (trigger === 'people') mobilePeopleRef.current?.focus()
+    else if (trigger === 'reason') mobileReasonRef.current?.focus()
   }
 
   const peoplePanel = (
@@ -223,7 +263,7 @@ export function DecisionSurface({
 
   const peopleSheetPanel = (
     <PeopleImpactPanel
-      title={vm.peoplePanelTitle}
+      title={PEOPLE_SHEET_TITLE}
       requiredRows={vm.requiredRows}
       optionalRows={vm.optionalRows}
       blockingRows={vm.blockingRows}
@@ -239,8 +279,8 @@ export function DecisionSurface({
     <ReasonPanel rows={vm.reasonRows} note={vm.reasonNote} />
   )
 
-  const panelToggleClass =
-    'inline-flex min-h-11 items-center text-[14px] leading-[21px] text-meeting-text-secondary underline-offset-2 transition-colors hover:text-meeting-text hover:underline focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] focus-visible:underline'
+  const viewActionClass =
+    'inline-flex min-h-11 items-center text-[14px] font-medium leading-[21px] text-meeting-text-secondary transition-colors hover:text-meeting-text focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]'
 
   const hasDetailBelowState =
     vm.summaryLines.length > 0 ||
@@ -315,7 +355,7 @@ export function DecisionSurface({
       ) : null}
 
       {vm.primaryAction && onPrimaryAction ? (
-        <div className="mb-4">
+        <div className={showPeopleEntry || canShowReason ? 'mb-5' : undefined}>
           {vm.confirmationTarget &&
           (mode === 'need-confirmation' || mode === 'next-alternative') ? (
             <div className="mb-2.5">
@@ -333,37 +373,47 @@ export function DecisionSurface({
         </div>
       ) : null}
 
-      <div
-        className="flex flex-wrap gap-x-4 gap-y-1 min-[720px]:hidden"
-        {...(mobileSheet ? { inert: true } : {})}
-      >
-        {mode !== 'no-option' ? (
-          <button
-            type="button"
-            className={panelToggleClass}
-            disabled={Boolean(mobileSheet)}
-            onClick={() => setMobileSheet('people')}
-          >
-            6명 상황 보기
-          </button>
-        ) : null}
-        {canShowReason ? (
-          <button
-            type="button"
-            className={panelToggleClass}
-            disabled={Boolean(mobileSheet)}
-            onClick={() => setMobileSheet('reason')}
-          >
-            이 시간을 고른 이유
-          </button>
-        ) : null}
-      </div>
+      {!isDesktop && (showPeopleEntry || canShowReason) ? (
+        <div
+          className="flex flex-wrap gap-x-5 gap-y-1"
+          {...(mobileSheet ? { inert: true } : {})}
+        >
+          {showPeopleEntry ? (
+            <button
+              ref={mobilePeopleRef}
+              type="button"
+              className={viewActionClass}
+              disabled={Boolean(mobileSheet)}
+              onClick={() => {
+                lastMobileTrigger.current = 'people'
+                setMobileSheet('people')
+              }}
+            >
+              {PEOPLE_VIEW_LABEL}
+            </button>
+          ) : null}
+          {canShowReason ? (
+            <button
+              ref={mobileReasonRef}
+              type="button"
+              className={viewActionClass}
+              disabled={Boolean(mobileSheet)}
+              onClick={() => {
+                lastMobileTrigger.current = 'reason'
+                setMobileSheet('reason')
+              }}
+            >
+              {REASON_VIEW_LABEL}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
-      {canShowReason ? (
+      {isDesktop && canShowReason ? (
         <button
-          ref={reasonTriggerRef}
+          ref={desktopToggleRef}
           type="button"
-          className={`${panelToggleClass} hidden min-[720px]:inline-flex`}
+          className={viewActionClass}
           onClick={() => {
             if (contextView === 'reason') openPeople()
             else openReason()
@@ -371,7 +421,7 @@ export function DecisionSurface({
           aria-controls="decision-detail-panel"
           aria-expanded={contextView === 'reason'}
         >
-          {contextView === 'reason' ? '참석 상황 보기' : vm.reasonClosedLabel}
+          {contextView === 'reason' ? PEOPLE_VIEW_LABEL : REASON_VIEW_LABEL}
         </button>
       ) : null}
     </div>
@@ -390,46 +440,49 @@ export function DecisionSurface({
         <div className="grid grid-cols-1 gap-6 min-[720px]:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] min-[720px]:items-start min-[720px]:gap-7">
           {decisionColumn}
 
-          <div className="hidden min-w-0 overflow-visible border-l border-meeting-divider pl-6 min-[720px]:block">
-            <div
-              id="decision-detail-panel"
-              key={contextView}
-              className="animate-[panel-fade_160ms_ease] motion-reduce:animate-none"
-            >
-              {contextView === 'people' ? peoplePanel : reasonPanel}
+          {isDesktop ? (
+            <div className="min-w-0 overflow-visible border-l border-meeting-divider pl-6">
+              <div
+                id="decision-detail-panel"
+                key={contextView}
+                className="animate-[panel-fade_160ms_ease] motion-reduce:animate-none"
+              >
+                {contextView === 'people' ? peoplePanel : reasonPanel}
+              </div>
             </div>
-          </div>
+          ) : null}
 
-          {mode === 'no-option' ? (
-            <div className="border-t border-meeting-divider pt-5 min-[720px]:hidden">
+          {!isDesktop && mode === 'no-option' ? (
+            <div className="border-t border-meeting-divider pt-5">
               {peoplePanel}
             </div>
           ) : null}
         </div>
       </article>
 
-      <MobileBottomSheet
-        open={mobileSheet === 'people' || mobileSheet === 'reason'}
-        title={
-          mobileSheet === 'reason' ? '이 시간을 고른 이유' : vm.peoplePanelTitle
-        }
-        onClose={() => {
-          const wasReason = mobileSheet === 'reason'
-          setMobileSheet(null)
-          if (wasReason) reasonTriggerRef.current?.focus()
-        }}
-      >
-        {mobileSheet === 'reason' ? (
-          <ReasonPanel
-            rows={vm.reasonRows}
-            note={vm.reasonNote}
-            hideTitle
-            onShowPeople={() => setMobileSheet('people')}
-          />
-        ) : (
-          peopleSheetPanel
-        )}
-      </MobileBottomSheet>
+      {!isDesktop ? (
+        <MobileBottomSheet
+          open={mobileSheet === 'people' || mobileSheet === 'reason'}
+          title={
+            mobileSheet === 'reason' ? REASON_SHEET_TITLE : PEOPLE_SHEET_TITLE
+          }
+          onClose={closeMobileSheet}
+        >
+          {mobileSheet === 'reason' ? (
+            <ReasonPanel
+              rows={vm.reasonRows}
+              note={vm.reasonNote}
+              hideTitle
+              onShowPeople={() => {
+                lastMobileTrigger.current = 'people'
+                setMobileSheet('people')
+              }}
+            />
+          ) : (
+            peopleSheetPanel
+          )}
+        </MobileBottomSheet>
+      ) : null}
     </div>
   )
 }

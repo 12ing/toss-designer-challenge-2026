@@ -1,37 +1,21 @@
-import { useEffect, useId, useRef, useState } from 'react'
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import {
-  clearSession,
-  loadSession,
-} from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
-import { SituationPicker } from '@/review/components/SituationPicker'
-import { navigateReviewSituation } from '@/review/navigate-review-situation'
+import { clearSession } from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
 import { trackReviewEvent } from '@/review/review-analytics'
 import {
   isReviewMode,
   isUserTestMode,
   withReviewQuery,
 } from '@/review/review-mode'
-import {
-  resolveCurrentReviewSituation,
-  setReviewSituationHint,
-  type ReviewSituationId,
-} from '@/review/review-situations'
+import { setReviewSituationHint } from '@/review/review-situations'
+import { reviewScenariosPath } from '@/review/review-session.factory'
 
 export function ReviewCompletion() {
   const { sessionId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const ctaRef = useRef<HTMLButtonElement>(null)
-  const menuId = useId()
-
-  const currentSituation = resolveCurrentReviewSituation(
-    location.pathname,
-    loadSession(),
-  )
 
   useEffect(() => {
     trackReviewEvent('core_flow_completed', { sessionId })
@@ -41,25 +25,6 @@ export function ReviewCompletion() {
     return <Navigate to="/" replace />
   }
 
-  const closePicker = () => {
-    setPickerOpen(false)
-    ctaRef.current?.focus()
-  }
-
-  const handleSelect = (id: ReviewSituationId) => {
-    if (!navigateReviewSituation(id, currentSituation, navigate)) {
-      closePicker()
-      return
-    }
-    setPickerOpen(false)
-  }
-
-  const goToLanding = () => {
-    clearSession()
-    setReviewSituationHint('landing')
-    navigate(withReviewQuery('/'))
-  }
-
   return (
     <div className="flex min-h-[100dvh] flex-col bg-meeting-bg">
       <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col justify-center px-5 py-10 min-[720px]:px-8 min-[720px]:pb-24 min-[720px]:pt-16">
@@ -67,7 +32,7 @@ export function ReviewCompletion() {
           핵심 흐름 완료
         </p>
         <h1
-          className="mb-6 text-[26px] font-bold leading-[36px] text-meeting-text min-[720px]:text-[28px] min-[720px]:leading-[38px]"
+          className="mb-6 text-[26px] font-bold leading-[36px] text-meeting-text outline-none focus:outline-none focus-visible:outline-none min-[720px]:text-[28px] min-[720px]:leading-[38px]"
           style={{ wordBreak: 'keep-all' }}
         >
           공통 시간이 없어도
@@ -87,34 +52,24 @@ export function ReviewCompletion() {
 
         <div className="flex flex-col items-stretch gap-4 min-[720px]:items-start">
           <Button
-            ref={ctaRef}
             type="button"
-            className="w-full min-[720px]:w-full"
-            aria-haspopup="menu"
-            aria-expanded={pickerOpen}
-            aria-controls={menuId}
-            onClick={() => setPickerOpen((prev) => !prev)}
+            className="w-full"
+            onClick={() => navigate(reviewScenariosPath())}
           >
             다른 상황 살펴보기
           </Button>
-          <button
-            type="button"
+          <Link
+            to={withReviewQuery('/')}
             className="inline-flex min-h-11 items-center justify-center self-center text-[15px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] min-[720px]:self-start"
-            onClick={goToLanding}
+            onClick={() => {
+              clearSession()
+              setReviewSituationHint('landing')
+            }}
           >
             과제 소개로 돌아가기
-          </button>
+          </Link>
         </div>
       </div>
-
-      <SituationPicker
-        open={pickerOpen}
-        menuId={menuId}
-        triggerRef={ctaRef}
-        currentSituation={currentSituation}
-        onClose={closePicker}
-        onSelect={handleSelect}
-      />
     </div>
   )
 }

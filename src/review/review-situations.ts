@@ -117,11 +117,15 @@ export function resolveCurrentReviewSituation(
     return 'landing'
   }
 
-  // Completion is a terminal review beat — no scenario marked current.
+  // Completion / scenario hub — no scenario marked current.
   if (
     pathname.startsWith('/review/session/') &&
     pathname.includes('/complete')
   ) {
+    return null
+  }
+
+  if (pathname === '/review/scenarios' || pathname.startsWith('/review/scenarios/')) {
     return null
   }
 

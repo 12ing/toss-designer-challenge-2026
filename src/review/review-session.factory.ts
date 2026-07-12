@@ -66,6 +66,12 @@ export function attendeePath(
   return preserveModeQuery(path)
 }
 
+/** Canonical review scenarios path with mode query. */
+export function reviewScenariosPath(): string {
+  return withReviewQuery('/review/scenarios')
+}
+
 export function completionPath(sessionId: string): string {
   return withReviewQuery(`/review/session/${sessionId}/complete`)
 }
+

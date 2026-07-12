@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
 import { TextField } from '@/components/ui/TextField'
 import { PRODUCT_TERMS } from '@/copy/product.copy'
-import { sanitizeMeetingDisplayText } from '@/lib/meeting-display'
+import { isMeetingTitleValid } from '@/lib/meeting-display'
 import type { MeetingDraft } from '@/types/schedule'
 
 interface MeetingDetailsProps {
@@ -28,15 +28,21 @@ export function MeetingDetails({
 }: MeetingDetailsProps) {
   const [submitting, setSubmitting] = useState(false)
   const [titleError, setTitleError] = useState(false)
+  const isComposingRef = useRef(false)
   const submittedRef = useRef(false)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const titleErrorId = useId()
-  const titleTrimmed = sanitizeMeetingDisplayText(meeting.title)
   const busy = submitting || creating
 
+  const clearTitleErrorIfValid = (value: string) => {
+    if (isMeetingTitleValid(value)) {
+      setTitleError(false)
+    }
+  }
+
   const handleSubmit = () => {
-    if (busy || submittedRef.current) return
-    if (!titleTrimmed) {
+    if (busy || submittedRef.current || isComposingRef.current) return
+    if (!isMeetingTitleValid(meeting.title)) {
       setTitleError(true)
       titleInputRef.current?.focus()
       return
@@ -89,9 +95,19 @@ export function MeetingDetails({
               placeholder="회의 제목을 입력하세요"
               invalid={titleError}
               errorId={titleErrorId}
+              onCompositionStart={() => {
+                isComposingRef.current = true
+              }}
+              onCompositionEnd={(e) => {
+                isComposingRef.current = false
+                clearTitleErrorIfValid(e.currentTarget.value)
+              }}
               onChange={(e) => {
-                setTitleError(false)
-                onChange({ title: e.target.value })
+                const value = e.target.value
+                onChange({ title: value })
+                if (!isComposingRef.current) {
+                  clearTitleErrorIfValid(value)
+                }
               }}
             />
             {titleError ? (

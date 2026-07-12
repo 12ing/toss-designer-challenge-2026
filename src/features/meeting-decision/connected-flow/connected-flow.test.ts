@@ -237,14 +237,21 @@ describe('connected-flow meeting finalize', () => {
     expect(snapshots.filter((p) => p.role === 'optional')).toHaveLength(1)
   })
 
-  it('rejects incomplete hangul title fragments on create', () => {
+  it('allows jamo titles and rejects whitespace-only titles on create', () => {
     let session = createSession('ready')
     const recommendation = runRecommendation(session.attendanceTypes, {})
     session = applyAnalyzedRecommendation(session, recommendation)
     session = goToMeetingDetails(session)
-    session = updateMeetingDraft(session, { title: 'ㅇ르', location: 'ㅇㄹ' })
+
+    session = updateMeetingDraft(session, { title: '   ', location: '4층 A' })
     const blocked = completeMeeting(session)
     expect(blocked.createdMeeting).toBeUndefined()
     expect(blocked.phase).toBe('meeting-details')
+    expect(blocked.meeting.location).toBe('4층 A')
+
+    session = updateMeetingDraft(session, { title: 'ㅇㄴㅇ', location: '4층 A' })
+    const created = completeMeeting(session)
+    expect(created.createdMeeting?.title).toBe('ㅇㄴㅇ')
+    expect(created.phase).toBe('completed')
   })
 })

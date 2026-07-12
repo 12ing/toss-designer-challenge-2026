@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button'
 import { MeetingParticipantsSummary } from '@/components/meeting/MeetingParticipantsSummary'
 import type { MeetingParticipantSnapshot } from '@/types/schedule'
-import { sanitizeMeetingDisplayText } from '@/lib/meeting-display'
+import { normalizeMeetingTitle, normalizeMeetingLocation } from '@/lib/meeting-display'
 import {
   isMeetingLocationUrl,
   toMeetingLocationHref,
@@ -25,8 +25,8 @@ export function ProductCompletion({
   location,
   onComplete,
 }: ProductCompletionProps) {
-  const safeTitle = sanitizeMeetingDisplayText(title)
-  const locationValue = sanitizeMeetingDisplayText(location)
+  const safeTitle = normalizeMeetingTitle(title)
+  const locationValue = normalizeMeetingLocation(location)
   const locationIsUrl = isMeetingLocationUrl(locationValue)
 
   return (

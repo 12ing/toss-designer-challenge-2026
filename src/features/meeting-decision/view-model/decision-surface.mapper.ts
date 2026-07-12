@@ -507,7 +507,7 @@ export function mapRecommendationToDecisionSurface(params: {
     reasonClosedLabel: REASON_CLOSED_LABEL,
     reasonNote: REASON_NOTE,
     primaryAction,
-    peoplePanelTitle: '이 시간의 참석 상황',
+    peoplePanelTitle: '참석 상황',
     mobilePeopleSummary: mobile.summary,
     mobileConfirmationHint: mobile.confirmationHint,
   }

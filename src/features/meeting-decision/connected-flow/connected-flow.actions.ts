@@ -12,7 +12,11 @@ import type {
   ScenarioPresetId,
   TimeSlotId,
 } from '@/features/meeting-decision/engine/decision-engine.types'
-import { sanitizeMeetingDisplayText } from '@/lib/meeting-display'
+import {
+  isMeetingTitleValid,
+  normalizeMeetingLocation,
+  normalizeMeetingTitle,
+} from '@/lib/meeting-display'
 import type { MeetingDraft } from '@/types/schedule'
 import type {
   ConnectedFlowPhase,
@@ -136,8 +140,8 @@ export function ensureMeetingParticipantSnapshots(
     created.slotId,
   )
   const counts = countParticipantsByRole(participants)
-  const title = sanitizeMeetingDisplayText(created.title) || created.title.trim()
-  const location = sanitizeMeetingDisplayText(created.location)
+  const title = normalizeMeetingTitle(created.title) || created.title.trim()
+  const location = normalizeMeetingLocation(created.location)
 
   return {
     ...session,
@@ -621,12 +625,12 @@ export function completeMeeting(
     return session
   }
 
-  const title = sanitizeMeetingDisplayText(session.meeting.title)
-  if (!title) {
+  const title = normalizeMeetingTitle(session.meeting.title)
+  if (!isMeetingTitleValid(title)) {
     return session
   }
 
-  const location = sanitizeMeetingDisplayText(session.meeting.location)
+  const location = normalizeMeetingLocation(session.meeting.location)
   const participants =
     session.meeting.participants.length > 0
       ? session.meeting.participants

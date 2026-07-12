@@ -71,8 +71,8 @@ export const STATUS_LABELS = {
 } as const
 
 export const ATTENDEE_ACTION_COPY = {
-  approve: '이 시간 사용 가능',
-  decline: '이 시간은 어려워요',
+  approve: '이 시간은 참석 가능',
+  decline: '이 시간은 참석 어려움',
 } as const
 
 export const PAGE_TITLE =

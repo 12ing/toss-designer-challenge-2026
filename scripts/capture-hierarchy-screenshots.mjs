@@ -101,7 +101,7 @@ async function main() {
   await waitText(m, '확인 대상 · 이지훈')
   await shot(m, '08-mobile-need-confirmation-collapsed')
 
-  await m.getByRole('button', { name: '6명 상황 보기' }).click()
+  await m.getByRole('button', { name: '참석 상황 보기' }).click()
   await m.getByRole('button', { name: '접기' }).waitFor({ state: 'visible' })
   await waitVisibleHeading(m, '필수 참석자')
   await shot(m, '09-mobile-people-expanded')

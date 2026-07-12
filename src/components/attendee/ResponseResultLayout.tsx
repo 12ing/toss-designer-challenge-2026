@@ -46,7 +46,7 @@ export function ResponseResultLayout({
       </div>
 
       {showCta && onConfirm ? (
-        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[390px] bg-meeting-surface px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 min-[720px]:static min-[720px]:mx-0 min-[720px]:mt-10 min-[720px]:max-w-none min-[720px]:px-0 min-[720px]:pb-0 min-[720px]:pt-0">
+        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[390px] bg-meeting-surface px-6 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 min-[720px]:static min-[720px]:mx-0 min-[720px]:mt-10 min-[720px]:max-w-none min-[720px]:px-0 min-[720px]:pb-0 min-[720px]:pt-0">
           <Button
             type="button"
             variant="primary"

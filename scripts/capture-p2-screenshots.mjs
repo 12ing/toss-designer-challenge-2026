@@ -93,7 +93,7 @@ async function main() {
   await goToCoordinationResult(m)
   await shot(m, '09-need-confirmation-mobile')
 
-  await m.getByRole('button', { name: '6명 상황 보기' }).click()
+  await m.getByRole('button', { name: '참석 상황 보기' }).click()
   await m.getByRole('button', { name: '접기' }).waitFor({ state: 'visible' })
   await m.waitForTimeout(300)
   await shot(m, '10-mobile-people-expanded')

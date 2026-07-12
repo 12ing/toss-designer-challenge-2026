@@ -1,15 +1,9 @@
-import { useEffect, useId, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { loadSession } from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { formatReviewStepLabel } from '@/review/review-steps'
 import type { ReviewStep } from '@/review/review.types'
-import { navigateReviewSituation } from '@/review/navigate-review-situation'
-import {
-  resolveCurrentReviewSituation,
-  type ReviewSituationId,
-} from '@/review/review-situations'
+import { reviewScenariosPath } from '@/review/review-session.factory'
 import { DesignNoteDrawer } from './DesignNoteDrawer'
-import { SituationPicker } from './SituationPicker'
 
 type ReviewChromeProps = {
   step: ReviewStep
@@ -18,34 +12,12 @@ type ReviewChromeProps = {
 
 export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
   const [notesOpen, setNotesOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const notesTriggerRef = useRef<HTMLButtonElement>(null)
-  const menuTriggerRef = useRef<HTMLButtonElement>(null)
-  const menuId = useId()
-  const navigate = useNavigate()
   const location = useLocation()
-  const currentSituation = resolveCurrentReviewSituation(
-    location.pathname,
-    loadSession(),
-  )
 
   useEffect(() => {
     setNotesOpen(false)
-    setMenuOpen(false)
   }, [step, location.pathname])
-
-  const closeMenu = () => {
-    setMenuOpen(false)
-    menuTriggerRef.current?.focus()
-  }
-
-  const handleSelect = (id: ReviewSituationId) => {
-    if (!navigateReviewSituation(id, currentSituation, navigate)) {
-      closeMenu()
-      return
-    }
-    setMenuOpen(false)
-  }
 
   return (
     <>
@@ -64,27 +36,16 @@ export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
               className="inline-flex min-h-10 items-center rounded-lg px-3 text-[13px] font-medium text-meeting-text-secondary hover:bg-meeting-panel focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
               aria-expanded={notesOpen}
               aria-haspopup="dialog"
-              onClick={() => {
-                setMenuOpen(false)
-                setNotesOpen(true)
-              }}
+              onClick={() => setNotesOpen(true)}
             >
               설계 근거
             </button>
-            <button
-              ref={menuTriggerRef}
-              type="button"
+            <Link
+              to={reviewScenariosPath()}
               className="inline-flex min-h-10 items-center rounded-lg px-3 text-[13px] font-medium text-meeting-text-secondary hover:bg-meeting-panel focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              aria-controls={menuId}
-              onClick={() => {
-                setNotesOpen(false)
-                setMenuOpen((prev) => !prev)
-              }}
             >
-              상황 선택 ▾
-            </button>
+              상황 선택
+            </Link>
           </div>
         </div>
         {debugLine ? (
@@ -93,14 +54,6 @@ export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
           </p>
         ) : null}
       </nav>
-      <SituationPicker
-        open={menuOpen}
-        menuId={menuId}
-        triggerRef={menuTriggerRef}
-        currentSituation={currentSituation}
-        onClose={closeMenu}
-        onSelect={handleSelect}
-      />
       <DesignNoteDrawer
         open={notesOpen}
         step={step}

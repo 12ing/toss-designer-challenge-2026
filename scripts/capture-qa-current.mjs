@@ -182,7 +182,7 @@ async function main() {
     await toNeedConfirmation(page)
     await page.getByRole('button', { name: '이 시간을 고른 이유' }).click()
     await page.getByRole('button', { name: '참석 상황 보기' }).first().click()
-    await waitText(page, '이 시간의 참석 상황')
+    await waitText(page, '참석 상황')
     await shot(page, '09-decision-people-return')
     manifest.push('09 Decision people return')
     await ctx.close()

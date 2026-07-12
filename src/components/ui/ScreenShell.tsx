@@ -51,7 +51,7 @@ export function ScreenShell({
             className={[
               'flex shrink-0 items-center justify-between',
               isMobile
-                ? 'h-14 px-5 pt-[env(safe-area-inset-top)]'
+                ? 'h-14 px-6 pt-[env(safe-area-inset-top)]'
                 : 'mb-6 h-14',
             ].join(' ')}
           >
@@ -69,7 +69,7 @@ export function ScreenShell({
           className={[
             'flex min-h-0 flex-1 flex-col',
             isMobile
-              ? 'px-5 pb-0 pt-2'
+              ? 'px-6 pb-0 pt-0'
               : '',
           ].join(' ')}
         >
@@ -79,7 +79,7 @@ export function ScreenShell({
         {footer ? (
           <div
             className={
-              isMobile ? 'px-5 pb-[max(1rem,env(safe-area-inset-bottom))]' : ''
+              isMobile ? 'px-6 pb-[max(1rem,env(safe-area-inset-bottom))]' : ''
             }
           >
             {footer}

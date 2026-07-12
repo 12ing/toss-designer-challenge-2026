@@ -104,10 +104,10 @@ async function main() {
   await m.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(m, '확인 한 번이면 필수 참석자 모두 가능해요.')
   await waitVisible(m, '확인 대상 · 이지훈')
-  await waitVisible(m, '6명 상황 보기')
+  await waitVisible(m, '참석 상황 보기')
   await shot(m, '08-mobile-need-confirmation-collapsed')
 
-  await m.getByRole('button', { name: '6명 상황 보기' }).click()
+  await m.getByRole('button', { name: '참석 상황 보기' }).click()
   await m.getByRole('button', { name: '접기' }).waitFor({ state: 'visible' })
   await waitVisible(m, '필수 참석자')
   await waitVisible(m, '확인 필요')
