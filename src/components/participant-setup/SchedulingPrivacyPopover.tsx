@@ -5,8 +5,10 @@ type SchedulingPrivacyPopoverProps = {
   variant?: 'link' | 'icon'
 }
 
-const PRIVACY_COPY =
-  '외근이나 선호 시간처럼 조율에 필요한 정보만 보여줘요. 일정 제목과 사유는 공유하지 않아요.'
+const PRIVACY_LINES = [
+  '외근이나 선호 시간처럼 조율에 필요한 정보만 보여줘요.',
+  '일정 제목과 상세 사유는 공유하지 않아요.',
+] as const
 
 function isCoarsePointer() {
   if (typeof window === 'undefined') return false
@@ -91,8 +93,8 @@ export function SchedulingPrivacyPopover({
       type="button"
       className={
         variant === 'icon'
-          ? 'inline-flex size-7 items-center justify-center rounded-full text-meeting-text-secondary hover:bg-meeting-panel hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]'
-          : 'min-h-11 text-[13px] font-medium text-meeting-text-secondary underline underline-offset-2 hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]'
+          ? 'inline-flex size-7 cursor-help items-center justify-center rounded-full text-meeting-text-secondary hover:bg-meeting-panel hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]'
+          : 'min-h-11 cursor-help text-[13px] font-medium text-meeting-text-secondary underline underline-offset-2 hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]'
       }
       aria-expanded={open}
       aria-controls={panelId}
@@ -149,12 +151,17 @@ export function SchedulingPrivacyPopover({
           onMouseEnter={openPanel}
           onMouseLeave={scheduleClose}
         >
-          <p
-            className="text-[13px] leading-5 text-meeting-text-secondary"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            {PRIVACY_COPY}
-          </p>
+          <div className="flex flex-col gap-1">
+            {PRIVACY_LINES.map((line) => (
+              <p
+                key={line}
+                className="text-[13px] leading-5 text-meeting-text-secondary"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                {line}
+              </p>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -174,12 +181,17 @@ export function SchedulingPrivacyPopover({
             aria-label="일정 조건 안내"
             className="relative z-10 w-full rounded-t-2xl border border-meeting-divider bg-meeting-surface px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_24px_rgba(0,27,55,0.1)]"
           >
-            <p
-              className="mb-4 text-[15px] leading-[23px] text-meeting-text"
-              style={{ wordBreak: 'keep-all' }}
-            >
-              {PRIVACY_COPY}
-            </p>
+            <div className="mb-4 flex flex-col gap-1.5">
+              {PRIVACY_LINES.map((line) => (
+                <p
+                  key={line}
+                  className="text-[15px] leading-[23px] text-meeting-text"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
             <button
               type="button"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--meeting-radius-button)] border border-meeting-divider bg-meeting-surface text-[15px] font-semibold text-meeting-text"

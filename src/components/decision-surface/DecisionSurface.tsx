@@ -90,22 +90,33 @@ function MobileBottomSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-meeting-surface px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_32px_rgba(0,27,55,0.12)]"
+        className="relative z-10 flex max-h-[70vh] w-full flex-col rounded-t-3xl bg-meeting-surface shadow-[0_-8px_32px_rgba(0,27,55,0.12)]"
       >
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 id={titleId} className="text-[16px] font-semibold text-meeting-text">
-            {title}
-          </h3>
-          <button
-            ref={closeRef}
-            type="button"
-            className="inline-flex min-h-11 items-center px-2 text-[14px] font-medium text-meeting-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
-            onClick={onClose}
-          >
-            닫기
-          </button>
+        <div className="flex shrink-0 flex-col items-center px-5 pt-3">
+          <div
+            aria-hidden
+            className="mb-3 h-1 w-10 rounded-full bg-meeting-divider"
+          />
+          <div className="mb-3 flex w-full items-center justify-between gap-3">
+            <h3
+              id={titleId}
+              className="text-[16px] font-semibold text-meeting-text"
+            >
+              {title}
+            </h3>
+            <button
+              ref={closeRef}
+              type="button"
+              className="inline-flex min-h-11 items-center px-2 text-[14px] font-medium text-meeting-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+              onClick={onClose}
+            >
+              닫기
+            </button>
+          </div>
         </div>
-        {children}
+        <div className="overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -302,7 +313,7 @@ export function DecisionSurface({
           <div className="hidden border-l border-meeting-divider pl-6 min-[720px]:block">
             <div
               key={contextView}
-              className="animate-[panel-fade_180ms_ease] motion-reduce:animate-none"
+              className="animate-[panel-fade_160ms_ease] motion-reduce:animate-none"
               aria-live="polite"
             >
               {contextView === 'people' ? peoplePanel : reasonPanel}

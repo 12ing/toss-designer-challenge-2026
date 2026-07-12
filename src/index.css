@@ -96,7 +96,7 @@ button {
 @keyframes review-panel-in {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;

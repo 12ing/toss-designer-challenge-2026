@@ -31,7 +31,7 @@ function GroupedList({
       <section aria-labelledby={requiredHeadingId}>
         <h4
           id={requiredHeadingId}
-          className="mb-2 text-[13px] font-bold leading-5 text-meeting-text-secondary"
+          className="mb-1.5 text-[13px] font-bold leading-5 text-meeting-text-secondary"
         >
           필수 참석자 {requiredRows.length}명
         </h4>
@@ -51,10 +51,10 @@ function GroupedList({
       </section>
 
       {optionalRows.length > 0 ? (
-        <section aria-labelledby={optionalHeadingId} className="mt-5">
+        <section aria-labelledby={optionalHeadingId} className="mt-[18px]">
           <h4
             id={optionalHeadingId}
-            className="mb-2 text-[13px] font-bold leading-5 text-meeting-text-secondary"
+            className="mb-1.5 text-[13px] font-bold leading-5 text-meeting-text-secondary"
           >
             선택 참석자 {optionalRows.length}명
           </h4>

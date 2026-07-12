@@ -21,15 +21,15 @@ export function ParticipantImpactRow({
 }: ParticipantImpactRowProps) {
   return (
     <div
-      className="flex min-h-[52px] items-start justify-between gap-3 border-b border-meeting-divider bg-transparent py-3 last:border-b-0"
+      className="flex min-h-12 items-start justify-between gap-3 border-b border-meeting-divider bg-transparent py-2.5 last:border-b-0"
       aria-label={accessibleLabel}
     >
-      <div className="flex min-w-0 flex-col gap-1">
-        <p className="text-[15px] font-semibold leading-[22px] text-meeting-text">
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="text-[15px] font-semibold leading-5 text-meeting-text">
           {name}
         </p>
         {contextLabel ? (
-          <p className="text-[13px] font-normal leading-5 text-meeting-text-tertiary">
+          <p className="text-[13px] font-normal leading-[18px] text-meeting-text-tertiary">
             {contextLabel}
           </p>
         ) : null}

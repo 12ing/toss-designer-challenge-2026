@@ -25,7 +25,7 @@ export function ActorTransitionCard({
     const name = recipientName ?? '참석자'
     return (
       <aside
-        className="fixed z-40 w-[min(100vw-2rem,320px)] rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-4 py-4 shadow-[0_12px_32px_rgba(0,27,55,0.12)] animate-[review-panel-in_180ms_ease] motion-reduce:animate-none max-[719px]:inset-x-4 max-[719px]:bottom-[max(1rem,env(safe-area-inset-bottom))] max-[719px]:w-auto min-[720px]:top-[4.5rem] min-[720px]:right-6"
+        className="fixed z-40 w-[min(100vw-2rem,320px)] rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-4 py-4 shadow-[0_12px_32px_rgba(0,27,55,0.12)] animate-[review-panel-in_180ms_ease] motion-reduce:animate-none max-[719px]:inset-x-4 max-[719px]:bottom-[max(1rem,env(safe-area-inset-bottom))] max-[719px]:w-auto min-[720px]:right-6 min-[720px]:bottom-6"
         aria-label="참석자 응답 화면으로 이동"
         aria-live="polite"
       >

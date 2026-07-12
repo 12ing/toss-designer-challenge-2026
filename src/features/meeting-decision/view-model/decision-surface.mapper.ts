@@ -302,20 +302,14 @@ function buildBlockingRows(
 
   const rows: Array<{ label: string; value: string }> = [
     {
-      label: '필수 참석자의 고정 일정이 겹쳐요.',
+      label: '필수 참석자의 고정 일정이 서로 겹쳐요.',
       value: '',
     },
     {
-      label: '외근 전후 이동 시간을 피하면 1시간 연속으로 가능한 시간이 없어요.',
+      label: '외근 시간을 제외하면 1시간 연속으로 가능한 구간이 없어요.',
       value: '',
     },
   ]
-  if (protectedSlots === 0) {
-    rows.push({
-      label: '확인을 요청할 수 있는 보호 시간도 없어요.',
-      value: '',
-    })
-  }
   return rows
 }
 
@@ -383,7 +377,11 @@ export function mapRecommendationToDecisionSurface(params: {
         ? buildBlockingRows(blocking.evaluations, { debug })
         : [
             {
-              label: '필수 참석자의 고정 일정이 겹쳐요.',
+              label: '필수 참석자의 고정 일정이 서로 겹쳐요.',
+              value: '',
+            },
+            {
+              label: '외근 시간을 제외하면 1시간 연속으로 가능한 구간이 없어요.',
               value: '',
             },
           ],
