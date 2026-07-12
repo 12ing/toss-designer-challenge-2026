@@ -13,7 +13,8 @@ import {
 } from '@/review/review-situations'
 
 /**
- * Shared situation navigation for Review Chrome and Review Completion.
+ * Shared situation navigation for Review Chrome dropdown and
+ * Review Completion inline scenario picker.
  * Returns whether navigation started (false when re-selecting current).
  */
 export function navigateReviewSituation(

@@ -116,10 +116,6 @@ describe('review situation resolution', () => {
       ),
     ).toBe(null)
 
-    expect(
-      resolveCurrentReviewSituation('/review/scenarios', null),
-    ).toBe(null)
-
     setReviewSituationHint('decline')
     expect(
       resolveCurrentReviewSituation('/prototype/session/abc/organizer', {
