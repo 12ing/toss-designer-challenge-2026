@@ -21,7 +21,6 @@ export function AttendanceTypeControl({
     { type: 'optional', label: '선택' },
   ]
   const selectedIndex = value === 'required' ? 0 : 1
-  const isRequired = value === 'required'
   const requiredRef = useRef<HTMLButtonElement>(null)
   const optionalRef = useRef<HTMLButtonElement>(null)
 
@@ -68,15 +67,9 @@ export function AttendanceTypeControl({
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-2xl shadow-sm motion-safe:transition-[transform,background-color,border-color] motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-2xl border border-meeting-divider bg-meeting-surface shadow-sm motion-safe:transition-transform motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
         style={{
           transform: `translateX(${selectedIndex * 100}%)`,
-          backgroundColor: isRequired
-            ? 'var(--meeting-primary-subtle)'
-            : 'var(--meeting-surface)',
-          border: isRequired
-            ? '1px solid color-mix(in srgb, var(--meeting-primary) 22%, transparent)'
-            : '1px solid var(--meeting-divider)',
         }}
       />
 

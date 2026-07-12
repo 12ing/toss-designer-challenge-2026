@@ -262,7 +262,7 @@ function buildBlockingRows(
       value: '',
     },
     {
-      label: '외근 시간을 제외하면 가능한 구간이 없어요.',
+      label: '외근 전후 이동 시간을 피하면 1시간 연속으로 가능한 시간이 없어요.',
       value: '',
     },
   ]
@@ -471,7 +471,7 @@ export function mapRecommendationToDecisionSurface(params: {
     reasonClosedLabel,
     reasonNote: REASON_NOTE,
     primaryAction,
-    peoplePanelTitle: '이 시간에 6명은',
+    peoplePanelTitle: '이 시간의 참석 상황',
     mobilePeopleSummary: mobile.summary,
     mobileConfirmationHint: mobile.confirmationHint,
   }
