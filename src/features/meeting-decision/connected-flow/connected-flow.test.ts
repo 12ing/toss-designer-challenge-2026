@@ -147,6 +147,13 @@ describe('connected-flow meeting finalize', () => {
 
     session = goToMeetingDetails(session)
     expect(session.phase).toBe('meeting-details')
+    expect(session.meeting.participants.map((p) => p.id)).toEqual([
+      'minji',
+      'seoyeon',
+      'doyoon',
+      'yujin',
+      'hyunwoo',
+    ])
 
     const blocked = completeMeeting(session)
     expect(blocked.phase).toBe('meeting-details')
@@ -168,13 +175,9 @@ describe('connected-flow meeting finalize', () => {
     expect(session.createdMeeting?.sessionId).toBe(session.id)
     expect(session.createdMeeting?.slotId).toBe('thu-15')
     expect(session.meeting.title).toBe('킥오프 미팅')
-    expect(session.createdMeeting?.participants).toEqual([
-      { id: 'minji', name: '김민지', role: 'required' },
-      { id: 'seoyeon', name: '박서연', role: 'required' },
-      { id: 'doyoon', name: '최도윤', role: 'required' },
-      { id: 'yujin', name: '정유진', role: 'optional' },
-      { id: 'hyunwoo', name: '한현우', role: 'optional' },
-    ])
+    expect(session.createdMeeting?.participants).toEqual(
+      session.meeting.participants,
+    )
     // jihoon is optional on thu-15 protected time → 참석 어려움, excluded
     expect(session.createdMeeting?.requiredCount).toBe(3)
     expect(session.createdMeeting?.optionalCount).toBe(2)

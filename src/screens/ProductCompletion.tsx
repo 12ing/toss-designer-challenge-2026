@@ -1,6 +1,6 @@
-import { Fragment } from 'react'
 import { Button } from '@/components/ui/Button'
-import type { MeetingParticipantSnapshot } from '@/features/meeting-decision/connected-flow/connected-flow.types'
+import { MeetingParticipantsSummary } from '@/components/meeting/MeetingParticipantsSummary'
+import type { MeetingParticipantSnapshot } from '@/types/schedule'
 import { sanitizeMeetingDisplayText } from '@/lib/meeting-display'
 import {
   isMeetingLocationUrl,
@@ -16,25 +16,6 @@ interface ProductCompletionProps {
   onComplete: () => void
 }
 
-function NameList({ names }: { names: string[] }) {
-  if (names.length === 0) return null
-  return (
-    <p
-      className="max-w-full text-[15px] leading-[23px] text-meeting-text"
-      style={{ wordBreak: 'keep-all', overflowWrap: 'anywhere' }}
-    >
-      {names.map((name, index) => (
-        <Fragment key={`${name}-${index}`}>
-          {index > 0 ? (
-            <span className="text-meeting-text-tertiary"> · </span>
-          ) : null}
-          <span>{name}</span>
-        </Fragment>
-      ))}
-    </p>
-  )
-}
-
 /** Product-facing meeting created screen — separate from ReviewCompletion. */
 export function ProductCompletion({
   title,
@@ -47,10 +28,6 @@ export function ProductCompletion({
   const safeTitle = sanitizeMeetingDisplayText(title)
   const locationValue = sanitizeMeetingDisplayText(location)
   const locationIsUrl = isMeetingLocationUrl(locationValue)
-
-  const required = participants.filter((p) => p.role === 'required')
-  const optional = participants.filter((p) => p.role === 'optional')
-  const totalCount = participants.length
 
   return (
     <div className="mx-auto w-full max-w-[560px]">
@@ -97,29 +74,10 @@ export function ProductCompletion({
           ) : null}
         </div>
 
-        <div className="mb-8 flex flex-col gap-5">
-          <p className="text-[15px] font-semibold leading-[23px] text-meeting-text">
-            참석자 {totalCount}명
-          </p>
-
-          {required.length > 0 ? (
-            <div className="flex flex-col gap-1.5">
-              <p className="text-[13px] font-medium leading-5 text-meeting-text-secondary">
-                필수 참석자 {required.length}명
-              </p>
-              <NameList names={required.map((p) => p.name)} />
-            </div>
-          ) : null}
-
-          {optional.length > 0 ? (
-            <div className="flex flex-col gap-1.5">
-              <p className="text-[13px] font-medium leading-5 text-meeting-text-secondary">
-                선택 참석자 {optional.length}명
-              </p>
-              <NameList names={optional.map((p) => p.name)} />
-            </div>
-          ) : null}
-        </div>
+        <MeetingParticipantsSummary
+          participants={participants}
+          className="mb-8"
+        />
 
         <Button type="button" onClick={onComplete}>
           완료

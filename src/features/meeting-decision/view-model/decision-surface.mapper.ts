@@ -431,11 +431,6 @@ export function mapRecommendationToDecisionSurface(params: {
       : undefined
 
   const summaryLines: string[] = []
-  if (mode === 'ready' || mode === 'ready-after-confirmation') {
-    summaryLines.push(requiredSummary(evaluation, true))
-    const opt = optionalSummary(evaluation)
-    if (opt) summaryLines.push(opt)
-  }
 
   let stateLabel = ''
   let confirmationLine: string | undefined
@@ -477,9 +472,6 @@ export function mapRecommendationToDecisionSurface(params: {
           label: PRODUCT_TERMS.confirmTime,
           kind: 'confirm',
         }
-        summaryLines.push(requiredSummary(evaluation, true))
-        const opt = optionalSummary(evaluation)
-        if (opt) summaryLines.push(opt)
       } else {
         confirmationLine =
           confirmationCount > 0

@@ -242,6 +242,11 @@ export function DecisionSurface({
   const panelToggleClass =
     'inline-flex min-h-11 items-center text-[14px] leading-[21px] text-meeting-text-secondary underline-offset-2 transition-colors hover:text-meeting-text hover:underline focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] focus-visible:underline'
 
+  const hasDetailBelowState =
+    vm.summaryLines.length > 0 ||
+    Boolean(vm.confirmationLine) ||
+    Boolean(vm.supportingLabel)
+
   const decisionColumn = (
     <div className="min-w-0">
       <p className="mb-2.5 text-[13px] font-medium leading-5 text-meeting-text-tertiary">
@@ -271,7 +276,9 @@ export function DecisionSurface({
         </h2>
       )}
 
-      <div className="mb-3.5 flex items-start gap-2">
+      <div
+        className={`flex items-start gap-2 ${hasDetailBelowState ? 'mb-3.5' : 'mb-6'}`}
+      >
         <StateIcon mode={mode} />
         <p
           className="text-[17px] font-semibold leading-[26px] text-meeting-text"
@@ -302,13 +309,13 @@ export function DecisionSurface({
       ) : null}
 
       {vm.supportingLabel ? (
-        <p className="mb-3.5 text-[15px] leading-[23px] text-meeting-text-secondary">
+        <p className="mb-6 text-[15px] leading-[23px] text-meeting-text-secondary">
           {vm.supportingLabel}
         </p>
       ) : null}
 
       {vm.primaryAction && onPrimaryAction ? (
-        <div className="mb-3.5">
+        <div className="mb-4">
           {vm.confirmationTarget &&
           (mode === 'need-confirmation' || mode === 'next-alternative') ? (
             <div className="mb-2.5">
@@ -356,7 +363,7 @@ export function DecisionSurface({
         <button
           ref={reasonTriggerRef}
           type="button"
-          className={`${panelToggleClass} mt-0.5 hidden min-[720px]:inline-flex`}
+          className={`${panelToggleClass} hidden min-[720px]:inline-flex`}
           onClick={() => {
             if (contextView === 'reason') openPeople()
             else openReason()

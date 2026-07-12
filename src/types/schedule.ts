@@ -40,7 +40,15 @@ export type DecisionCardState =
   | 'ready-after-confirmation'
   | 'next-alternative'
 
+export type MeetingParticipantSnapshot = {
+  id: string
+  name: string
+  role: 'required' | 'optional'
+}
+
 export type MeetingDraft = {
   title: string
   location: string
+  /** Locked when entering MeetingDetails — same list written to MeetingRecord. */
+  participants: MeetingParticipantSnapshot[]
 }

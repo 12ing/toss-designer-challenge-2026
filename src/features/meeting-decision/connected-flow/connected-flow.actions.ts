@@ -26,6 +26,7 @@ const ORGANIZER_ID = 'minji'
 const DEFAULT_MEETING: MeetingDraft = {
   title: '',
   location: '',
+  participants: [],
 }
 
 const FINALIZE_PHASES: ConnectedFlowPhase[] = [
@@ -151,6 +152,7 @@ export function ensureMeetingParticipantSnapshots(
     meeting: {
       title,
       location,
+      participants,
     },
   }
 }
@@ -548,7 +550,27 @@ export function goToMeetingDetails(
   if (!canFinalizeRecommendation(session)) {
     return session
   }
-  return stamp({ ...session, phase: 'meeting-details', actor: 'organizer' })
+
+  const rec = session.currentRecommendation
+  if (!rec || rec.status !== 'READY') {
+    return session
+  }
+
+  const participants = buildMeetingParticipantSnapshots(
+    session.attendanceTypes,
+    session.responseOverrides,
+    rec.evaluation.slot.id,
+  )
+
+  return stamp({
+    ...session,
+    phase: 'meeting-details',
+    actor: 'organizer',
+    meeting: {
+      ...session.meeting,
+      participants,
+    },
+  })
 }
 
 /**
@@ -574,6 +596,7 @@ export function completeMeeting(
       meeting: {
         title: existing.title,
         location: existing.location,
+        participants: existing.participants ?? session.meeting.participants,
       },
     })
   }
@@ -604,11 +627,14 @@ export function completeMeeting(
   }
 
   const location = sanitizeMeetingDisplayText(session.meeting.location)
-  const participants = buildMeetingParticipantSnapshots(
-    session.attendanceTypes,
-    session.responseOverrides,
-    rec.evaluation.slot.id,
-  )
+  const participants =
+    session.meeting.participants.length > 0
+      ? session.meeting.participants
+      : buildMeetingParticipantSnapshots(
+          session.attendanceTypes,
+          session.responseOverrides,
+          rec.evaluation.slot.id,
+        )
   const counts = countParticipantsByRole(participants)
   const slot = rec.evaluation.slot
   const createdAt = new Date().toISOString()
@@ -629,7 +655,7 @@ export function completeMeeting(
 
   return stamp({
     ...session,
-    meeting: { title, location },
+    meeting: { title, location, participants },
     createdMeeting: record,
     meetingCreatedAt: createdAt,
     phase: 'completed',

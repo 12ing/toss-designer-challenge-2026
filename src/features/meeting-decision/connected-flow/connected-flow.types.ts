@@ -5,7 +5,9 @@ import type {
   ScenarioPresetId,
   TimeSlotId,
 } from '@/features/meeting-decision/engine/decision-engine.types'
-import type { MeetingDraft } from '@/types/schedule'
+import type { MeetingDraft, MeetingParticipantSnapshot } from '@/types/schedule'
+
+export type { MeetingParticipantSnapshot }
 
 export type PrototypeActor = 'organizer' | 'attendee'
 
@@ -33,13 +35,6 @@ export type SchedulingRequest = {
   createdAt: string
   respondedAt?: string
   response?: 'approved' | 'declined'
-}
-
-/** Immutable snapshot of who was included when the meeting was created. */
-export type MeetingParticipantSnapshot = {
-  id: string
-  name: string
-  role: 'required' | 'optional'
 }
 
 /** Immutable record written once when a meeting is created. */

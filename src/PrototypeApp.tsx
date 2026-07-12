@@ -271,8 +271,6 @@ function OrganizerExperience({
               <MeetingDetails
                 dateDisplay={flow.uiView.dateLabel}
                 timeLabel={flow.uiView.timeLabel}
-                requiredCount={flow.attendanceCounts.requiredCount}
-                optionalCount={flow.attendanceCounts.optionalCount}
                 meeting={flow.meeting}
                 creating={flow.isCreatingMeeting}
                 onChange={flow.updateMeeting}

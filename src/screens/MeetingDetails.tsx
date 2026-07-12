@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react'
+import { MeetingParticipantsSummary } from '@/components/meeting/MeetingParticipantsSummary'
 import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
 import { TextField } from '@/components/ui/TextField'
@@ -9,8 +10,6 @@ import type { MeetingDraft } from '@/types/schedule'
 interface MeetingDetailsProps {
   dateDisplay: string
   timeLabel: string
-  requiredCount: number
-  optionalCount: number
   meeting: MeetingDraft
   creating?: boolean
   onChange: (draft: Partial<MeetingDraft>) => void
@@ -21,8 +20,6 @@ interface MeetingDetailsProps {
 export function MeetingDetails({
   dateDisplay,
   timeLabel,
-  requiredCount,
-  optionalCount,
   meeting,
   creating = false,
   onChange,
@@ -56,7 +53,7 @@ export function MeetingDetails({
 
   return (
     <div className="mx-auto w-full max-w-[560px]">
-      <div className="rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)]">
+      <div className="rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)] max-[360px]:px-5">
         <h2
           data-page-heading
           tabIndex={-1}
@@ -66,22 +63,19 @@ export function MeetingDetails({
           이 시간으로 회의를 만들까요?
         </h2>
 
-        <div className="mb-6">
+        <div className="mb-5">
           <p className="mb-1.5 text-[18px] font-semibold leading-[26px] text-meeting-text-secondary">
             {dateDisplay}
           </p>
           <p className="text-[36px] font-bold leading-[46px] text-meeting-text">
             {timeLabel}
           </p>
-          <div className="mt-3 flex flex-col gap-0.5 text-[14px] leading-[21px] text-meeting-text-secondary">
-            <p>
-              {PRODUCT_TERMS.requiredAttendee} {requiredCount}명
-            </p>
-            <p>
-              {PRODUCT_TERMS.optionalAttendee} {optionalCount}명
-            </p>
-          </div>
         </div>
+
+        <MeetingParticipantsSummary
+          participants={meeting.participants}
+          className="mb-8"
+        />
 
         <div className="mb-6 flex flex-col gap-4">
           <div>
@@ -124,7 +118,7 @@ export function MeetingDetails({
         </Button>
         <div className="mt-4 flex justify-center">
           <TextButton type="button" onClick={onBack} disabled={busy}>
-            시간 다시 보기
+            {PRODUCT_TERMS.reviewConditions}
           </TextButton>
         </div>
       </div>
