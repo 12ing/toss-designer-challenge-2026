@@ -8,7 +8,12 @@ export type Participant = {
   isOrganizer?: boolean
 }
 
-export type ScenarioId = 'ready' | 'need-confirmation' | 'rejected'
+/** @deprecated 프리셋 ID는 ScenarioPresetId 사용. 호환용 별칭 */
+export type ScenarioId =
+  | 'ready'
+  | 'need-confirmation'
+  | 'rejected'
+  | 'coordination'
 
 export type DecisionState =
   | 'participant-setup'
@@ -26,6 +31,7 @@ export type DecisionState =
   | 'attendee-rejected'
   | 'ready-after-confirmation'
   | 'next-alternative'
+  | 'no-option'
 
 export type DecisionCardState =
   | 'ready'
@@ -33,66 +39,6 @@ export type DecisionCardState =
   | 'waiting'
   | 'ready-after-confirmation'
   | 'next-alternative'
-
-export type DecisionCriterion = {
-  label: string
-  value: string
-}
-
-export type ReadyScenario = {
-  id: 'ready'
-  date: string
-  dayLabel: string
-  timeLabel: string
-  dateDisplay: string
-  requiredAvailable: number
-  requiredTotal: number
-  optionalAvailable: number
-  optionalTotal: number
-  reasons: string[]
-  details: DecisionCriterion[]
-  disclosureNote: string
-}
-
-export type ConfirmationScenario = {
-  id: 'need-confirmation'
-  date: string
-  dayLabel: string
-  timeLabel: string
-  dateDisplay: string
-  targetParticipantId: string
-  targetParticipantName: string
-  conflictType: string
-  requiredAvailable: number
-  requiredTotal: number
-  optionalAvailable: number
-  optionalTotal: number
-  resultMessage: string
-  reasonSummary: string
-  details: DecisionCriterion[]
-  disclosureNote: string
-}
-
-export type RejectedScenario = {
-  id: 'rejected'
-  previousDate: string
-  previousTimeLabel: string
-  nextDate: string
-  nextDayLabel: string
-  nextTimeLabel: string
-  nextDateDisplay: string
-  targetParticipantId: string
-  targetParticipantName: string
-  conflictType: string
-  requiredAvailable: number
-  requiredTotal: number
-  optionalAvailable: number
-  optionalTotal: number
-  resultMessage: string
-  reasonSummary: string
-  details: DecisionCriterion[]
-  disclosureNote: string
-}
 
 export type MeetingDraft = {
   title: string

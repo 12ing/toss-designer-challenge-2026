@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import type { DecisionState, ScenarioId } from '@/types/schedule'
+import type { ScenarioPresetId } from '@/features/meeting-decision/engine/decision-engine.types'
+import type { DecisionState } from '@/types/schedule'
 
 type ReviewShellProps = {
   children: ReactNode
   visible: boolean
   state: DecisionState
-  scenarioId: ScenarioId | null
+  scenarioId: ScenarioPresetId | null
   onOpenAttendee: () => void
 }
 

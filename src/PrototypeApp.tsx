@@ -5,12 +5,7 @@ import { ReviewComplete, ReviewNav } from '@/components/ReviewShell'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
 import { parseScenarioParam } from '@/config/scenarios'
-import {
-  CONTEXT_LABEL,
-  confirmationScenario,
-  readyScenario,
-  rejectedScenario,
-} from '@/data/scenarios'
+import { CONTEXT_LABEL } from '@/features/meeting-decision/mappers/to-ui'
 import { usePrototypeFlow } from '@/hooks/usePrototypeFlow'
 import { Analyzing } from '@/screens/Analyzing'
 import { AttendeeRequest } from '@/screens/AttendeeRequest'
@@ -44,33 +39,11 @@ export function PrototypeApp() {
     flow.state === 'attendee-approved' ||
     flow.state === 'attendee-rejected'
 
-  const isAlternative = flow.confirmSource === 'alternative'
   const isDecisionSurface = DECISION_STATES.includes(
     flow.state as DecisionCardState,
   )
-
-  const confirmView = isAlternative
-    ? {
-        name: rejectedScenario.targetParticipantName,
-        dateDisplay: rejectedScenario.nextDateDisplay,
-        timeLabel: rejectedScenario.nextTimeLabel,
-        conflictLabel: rejectedScenario.conflictType,
-        resultLabel: rejectedScenario.resultMessage,
-        details: rejectedScenario.details,
-        disclosureNote: rejectedScenario.disclosureNote,
-      }
-    : {
-        name: confirmationScenario.targetParticipantName,
-        dateDisplay: confirmationScenario.dateDisplay,
-        timeLabel: confirmationScenario.timeLabel,
-        conflictLabel: confirmationScenario.conflictType,
-        resultLabel: confirmationScenario.resultMessage,
-        details: confirmationScenario.details,
-        disclosureNote: confirmationScenario.disclosureNote,
-      }
-
-  const usesReadySlot = flow.scenarioId === 'ready' || flow.state === 'ready'
   const decisionState = flow.state as DecisionCardState
+  const view = flow.uiView
   const goHome = () => navigate('/')
 
   if (flow.state === 'review-complete') {
@@ -96,7 +69,7 @@ export function PrototypeApp() {
       {flow.state === 'participant-setup' && (
         <ParticipantSetup
           participants={flow.participants}
-          editable={false}
+          editable
           onAttendanceTypeChange={flow.setAttendanceType}
           onFindTime={flow.startAnalyzing}
         />
@@ -104,96 +77,121 @@ export function PrototypeApp() {
 
       {flow.state === 'analyzing' && <Analyzing />}
 
-      {isDecisionSurface && decisionState === 'ready' && (
+      {flow.state === 'no-option' && view?.blockingSummary && (
+        <div className="mx-auto w-full max-w-[560px] rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)]">
+          <h2
+            className="text-[22px] font-bold leading-8 text-meeting-text"
+            style={{ wordBreak: 'keep-all' }}
+          >
+            {view.blockingSummary}
+          </h2>
+        </div>
+      )}
+
+      {isDecisionSurface && view && decisionState === 'ready' && (
         <DecisionCard
           state="ready"
           contextLabel={CONTEXT_LABEL}
           animateIn={flow.playCardEnter}
           onAnimateInEnd={flow.acknowledgeCardEnter}
           statusTitle="바로 확정할 수 있어요."
-          dateLabel={readyScenario.dateDisplay}
-          timeLabel={readyScenario.timeLabel}
+          dateLabel={view.dateLabel}
+          timeLabel={view.timeLabel}
           attendance={{
-            requiredAvailable: readyScenario.requiredAvailable,
-            requiredTotal: readyScenario.requiredTotal,
-            optionalAvailable: readyScenario.optionalAvailable,
-            optionalTotal: readyScenario.optionalTotal,
+            requiredAvailable: view.requiredAvailable,
+            requiredTotal: view.requiredTotal,
+            optionalAvailable: view.optionalAvailable,
+            optionalTotal: view.optionalTotal,
           }}
-          details={readyScenario.details}
-          disclosureNote={readyScenario.disclosureNote}
+          details={view.details}
+          disclosureNote={view.disclosureNote}
           isReasonExpanded={flow.reasonExpanded}
           onToggleReason={flow.toggleReasonExpanded}
           onPrimaryAction={flow.goToMeetingDetails}
         />
       )}
 
-      {isDecisionSurface && decisionState === 'need-confirmation' && (
+      {isDecisionSurface && view && decisionState === 'need-confirmation' && (
         <DecisionCard
           state="need-confirmation"
           contextLabel={CONTEXT_LABEL}
           animateIn={flow.playCardEnter}
           onAnimateInEnd={flow.acknowledgeCardEnter}
           statusTitle="확인 한 번이면 필수 참석자 모두 가능해요."
-          dateLabel={confirmationScenario.dateDisplay}
-          timeLabel={confirmationScenario.timeLabel}
-          confirmation={{
-            participantName: confirmationScenario.targetParticipantName,
-            conflictLabel: confirmationScenario.conflictType,
-            resultLabel: confirmationScenario.resultMessage,
-          }}
-          details={confirmationScenario.details}
-          disclosureNote={confirmationScenario.disclosureNote}
+          dateLabel={view.dateLabel}
+          timeLabel={view.timeLabel}
+          confirmation={
+            view.confirmation
+              ? {
+                  participantName: view.confirmation.participantName,
+                  conflictLabel: view.confirmation.conflictLabel,
+                  resultLabel: view.confirmation.resultLabel,
+                }
+              : undefined
+          }
+          details={view.details}
+          disclosureNote={view.disclosureNote}
           isReasonExpanded={flow.reasonExpanded}
           onToggleReason={flow.toggleReasonExpanded}
           onPrimaryAction={flow.openRequestPreview}
         />
       )}
 
-      {isDecisionSurface && decisionState === 'waiting' && (
+      {isDecisionSurface && view && decisionState === 'waiting' && (
         <DecisionCard
           state="waiting"
           contextLabel={CONTEXT_LABEL}
           statusTitle="응답을 기다리고 있어요."
-          dateLabel={confirmView.dateDisplay}
-          timeLabel={confirmView.timeLabel}
+          dateLabel={view.dateLabel}
+          timeLabel={view.timeLabel}
           supportingText="확인되면 회의를 확정할 수 있는지 알려드릴게요."
-          confirmationMeta={`확인 대상 · ${confirmView.name}`}
+          confirmationMeta={
+            view.confirmation
+              ? `확인 대상 · ${view.confirmation.participantName}`
+              : undefined
+          }
         />
       )}
 
-      {isDecisionSurface && decisionState === 'ready-after-confirmation' && (
-        <DecisionCard
-          state="ready-after-confirmation"
-          contextLabel={CONTEXT_LABEL}
-          statusTitle="바로 확정할 수 있어요."
-          dateLabel={confirmView.dateDisplay}
-          timeLabel={confirmView.timeLabel}
-          attendance={{
-            requiredAvailable: 4,
-            requiredTotal: 4,
-            optionalAvailable: 2,
-            optionalTotal: 2,
-          }}
-          onPrimaryAction={flow.goToMeetingDetails}
-        />
-      )}
+      {isDecisionSurface &&
+        view &&
+        decisionState === 'ready-after-confirmation' && (
+          <DecisionCard
+            state="ready-after-confirmation"
+            contextLabel={CONTEXT_LABEL}
+            statusTitle="바로 확정할 수 있어요."
+            dateLabel={view.dateLabel}
+            timeLabel={view.timeLabel}
+            attendance={{
+              requiredAvailable: view.requiredAvailable,
+              requiredTotal: view.requiredTotal,
+              optionalAvailable: view.optionalAvailable,
+              optionalTotal: view.optionalTotal,
+            }}
+            onPrimaryAction={flow.goToMeetingDetails}
+          />
+        )}
 
-      {isDecisionSurface && decisionState === 'next-alternative' && (
+      {isDecisionSurface && view && decisionState === 'next-alternative' && (
         <DecisionCard
           state="next-alternative"
           contextLabel={CONTEXT_LABEL}
           animateIn={flow.playCardEnter}
           onAnimateInEnd={flow.acknowledgeCardEnter}
           statusTitle="다음으로 조율이 적은 시간을 찾았어요."
-          dateLabel={rejectedScenario.nextDateDisplay}
-          timeLabel={rejectedScenario.nextTimeLabel}
-          confirmation={{
-            participantName: rejectedScenario.targetParticipantName,
-            conflictLabel: rejectedScenario.conflictType,
-            resultLabel: rejectedScenario.resultMessage,
-          }}
-          details={rejectedScenario.details}
-          disclosureNote={rejectedScenario.disclosureNote}
+          dateLabel={view.dateLabel}
+          timeLabel={view.timeLabel}
+          confirmation={
+            view.confirmation
+              ? {
+                  participantName: view.confirmation.participantName,
+                  conflictLabel: view.confirmation.conflictLabel,
+                  resultLabel: view.confirmation.resultLabel,
+                }
+              : undefined
+          }
+          details={view.details}
+          disclosureNote={view.disclosureNote}
           footnote="이전 시간은 일정 확인이 어려워 제외했어요."
           isReasonExpanded={flow.reasonExpanded}
           onToggleReason={flow.toggleReasonExpanded}
@@ -201,21 +199,21 @@ export function PrototypeApp() {
         />
       )}
 
-      {flow.state === 'request-preview' && (
+      {flow.state === 'request-preview' && view?.confirmation && (
         <RequestPreview
-          recipientName={confirmView.name}
-          dateDisplay={confirmView.dateDisplay}
-          timeLabel={confirmView.timeLabel}
+          recipientName={view.confirmation.participantName}
+          dateDisplay={view.dateLabel}
+          timeLabel={view.timeLabel}
           loading={flow.isSendingRequest}
           onSend={flow.sendRequest}
           onBack={flow.backFromPreview}
         />
       )}
 
-      {flow.state === 'attendee-request' && (
+      {flow.state === 'attendee-request' && view && (
         <AttendeeRequest
-          dateDisplay={confirmView.dateDisplay}
-          timeLabel={confirmView.timeLabel}
+          dateDisplay={view.dateLabel}
+          timeLabel={view.timeLabel}
           loading={flow.isResponding}
           onApprove={flow.approveRequest}
           onReject={flow.rejectRequest}
@@ -233,14 +231,10 @@ export function PrototypeApp() {
         />
       )}
 
-      {flow.state === 'meeting-details' && (
+      {flow.state === 'meeting-details' && view && (
         <MeetingDetails
-          dateDisplay={
-            usesReadySlot ? readyScenario.dateDisplay : confirmView.dateDisplay
-          }
-          timeLabel={
-            usesReadySlot ? readyScenario.timeLabel : confirmView.timeLabel
-          }
+          dateDisplay={view.dateLabel}
+          timeLabel={view.timeLabel}
           meeting={flow.meeting}
           onChange={flow.updateMeeting}
           onSubmit={flow.completeMeeting}
@@ -248,15 +242,11 @@ export function PrototypeApp() {
         />
       )}
 
-      {flow.state === 'completed' && (
+      {flow.state === 'completed' && view && (
         <Completed
           title={flow.meeting.title}
-          dateDisplay={
-            usesReadySlot ? readyScenario.dateDisplay : confirmView.dateDisplay
-          }
-          timeLabel={
-            usesReadySlot ? readyScenario.timeLabel : confirmView.timeLabel
-          }
+          dateDisplay={view.dateLabel}
+          timeLabel={view.timeLabel}
           onComplete={flow.finishReview}
         />
       )}

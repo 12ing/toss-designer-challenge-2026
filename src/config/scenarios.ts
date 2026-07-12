@@ -1,15 +1,12 @@
-import type { ScenarioId } from '@/types/schedule'
+import type { ScenarioPresetId } from '@/features/meeting-decision/engine/decision-engine.types'
 
-/** URL `?scenario=` 값을 내부 ScenarioId로 변환합니다. */
-export function parseScenarioParam(value: string | null): ScenarioId {
+/** URL `?scenario=` → 프리셋 ID (입력 시드만, 결과 결정 아님) */
+export function parseScenarioParam(value: string | null): ScenarioPresetId {
   if (value === 'ready') return 'ready'
   if (value === 'rejected') return 'rejected'
-  // coordination | need-confirmation | 기본
-  return 'need-confirmation'
+  return 'coordination'
 }
 
-export function scenarioToQuery(id: ScenarioId): string {
-  if (id === 'ready') return 'ready'
-  if (id === 'rejected') return 'rejected'
-  return 'coordination'
+export function scenarioToQuery(id: ScenarioPresetId): string {
+  return id
 }
