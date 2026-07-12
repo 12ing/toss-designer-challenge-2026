@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ParticipantConditionRow } from '@/components/participant-setup/ParticipantConditionRow'
 import { Button } from '@/components/ui/Button'
@@ -28,8 +28,16 @@ function cloneAttendance(source: Record<string, AttendanceType>) {
   return { ...source }
 }
 
+function isResultInViewport(el: HTMLElement | null) {
+  if (!el) return true
+  const rect = el.getBoundingClientRect()
+  return rect.top < window.innerHeight * 0.85 && rect.bottom > 72
+}
+
 export function RuleLabScreen() {
   const navigate = useNavigate()
+  const resultRef = useRef<HTMLDivElement>(null)
+  const [showResultJump, setShowResultJump] = useState(false)
   const [attendanceTypes, setAttendanceTypes] = useState(() =>
     cloneAttendance(getLabPreset('coordination').attendanceTypes),
   )
@@ -54,11 +62,32 @@ export function RuleLabScreen() {
     [attendanceTypes, responseOverrides],
   )
 
+  useEffect(() => {
+    trackReviewEvent('rule_lab_opened')
+  }, [])
+
+  useEffect(() => {
+    const update = () => {
+      setShowResultJump(!isResultInViewport(resultRef.current))
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [recommendation])
+
   const setAttendanceType = (id: string, type: AttendanceType) => {
     setActivePreset('coordination')
     setResponseOverrides({})
     setAttendanceTypes((prev) => ({ ...prev, [id]: type }))
     trackReviewEvent('lab_condition_changed', { participantId: id, type })
+    // Defer jump hint until layout settles — never auto-scroll.
+    window.requestAnimationFrame(() => {
+      setShowResultJump(!isResultInViewport(resultRef.current))
+    })
   }
 
   const applyPreset = (id: LabPresetId) => {
@@ -67,6 +96,9 @@ export function RuleLabScreen() {
     setAttendanceTypes(cloneAttendance(preset.attendanceTypes))
     setResponseOverrides({})
     trackReviewEvent('lab_condition_changed', { preset: id })
+    window.requestAnimationFrame(() => {
+      setShowResultJump(!isResultInViewport(resultRef.current))
+    })
   }
 
   const simulateResponse = (response: 'approved' | 'declined') => {
@@ -92,6 +124,11 @@ export function RuleLabScreen() {
     navigate(organizerPath(session.id))
   }
 
+  const jumpToResult = () => {
+    resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setShowResultJump(false)
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-meeting-bg">
       <div className="@container/lab mx-auto w-full max-w-[1200px] px-4 py-8 min-[640px]:px-6 min-[640px]:py-10">
@@ -104,27 +141,27 @@ export function RuleLabScreen() {
               className="mb-2 text-[clamp(1.35rem,3vw,1.625rem)] font-bold leading-9 text-meeting-text"
               style={{ wordBreak: 'keep-all' }}
             >
-              심사자가 조건을 바꿔 같은 엔진을 검증하는 도구예요
+              조건을 바꾸면 같은 기준으로 다시 계산해요
             </h1>
             <p
               className="text-[15px] leading-[23px] text-meeting-text-secondary"
               style={{ wordBreak: 'keep-all' }}
             >
-              필수·선택 조건에 따라 같은 엔진이 결과를 어떻게 다시 계산하는지
-              확인해보세요.
+              필수·선택 조건에 따라 추천 시간과 필요한 다음 행동이 어떻게
+              달라지는지 확인해보세요.
             </p>
           </div>
           <Link
             to="/"
-            className="inline-flex min-h-11 items-center text-[14px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline"
+            className="inline-flex min-h-11 items-center text-[14px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
           >
-            리뷰 랜딩
+            소개로 돌아가기
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 min-w-0 @[1100px]/lab:grid-cols-[minmax(0,420px)_minmax(0,1fr)] @[1100px]/lab:gap-12">
+        <div className="grid grid-cols-1 gap-8 min-w-0 @[1100px]/lab:grid-cols-[minmax(0,420px)_minmax(0,1fr)] @[1100px]/lab:gap-12">
           <div className="min-w-0">
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="mb-4 flex flex-wrap gap-2" aria-label="대표 조건 프리셋">
               {labPresets.map((preset) => (
                 <button
                   key={preset.id}
@@ -143,8 +180,8 @@ export function RuleLabScreen() {
             </div>
 
             <section
-              className="mb-5 overflow-hidden rounded-3xl border border-meeting-divider bg-meeting-surface"
-              aria-label="참석 조건"
+              className="mb-4 overflow-hidden rounded-3xl border border-meeting-divider bg-meeting-surface"
+              aria-label="참석자 조건"
             >
               <ul className="divide-y divide-meeting-divider px-4">
                 {viewModel.rows.map((row) => (
@@ -159,8 +196,9 @@ export function RuleLabScreen() {
               </ul>
             </section>
 
-            <div className="mb-5 flex gap-2">
+            <div className="mb-4 flex gap-2">
               <Button
+                type="button"
                 variant="secondary"
                 className="whitespace-nowrap"
                 onClick={() => applyPreset('coordination')}
@@ -169,17 +207,33 @@ export function RuleLabScreen() {
               </Button>
             </div>
 
-            <RuleOrderExplanation />
+            <div className="mb-2 @[1100px]/lab:mb-0">
+              <RuleOrderExplanation />
+            </div>
           </div>
 
-          <LabResultPreview
-            recommendation={recommendation}
-            onOpenProductFlow={openProductFlow}
-            onApproveSimulation={() => simulateResponse('approved')}
-            onDeclineSimulation={() => simulateResponse('declined')}
-          />
+          <div ref={resultRef} className="min-w-0">
+            <LabResultPreview
+              recommendation={recommendation}
+              onOpenProductFlow={openProductFlow}
+              onApproveSimulation={() => simulateResponse('approved')}
+              onDeclineSimulation={() => simulateResponse('declined')}
+            />
+          </div>
         </div>
       </div>
+
+      {showResultJump ? (
+        <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4 @[1100px]/lab:hidden">
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center rounded-full border border-meeting-divider bg-meeting-surface px-4 text-[14px] font-semibold text-meeting-text shadow-[0_8px_24px_rgba(0,27,55,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+            onClick={jumpToResult}
+          >
+            계산 결과 보기
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

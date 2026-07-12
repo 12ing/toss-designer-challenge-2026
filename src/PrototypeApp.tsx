@@ -50,9 +50,9 @@ function ReviewFrame({
   transition?: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-meeting-bg">
+    <div className="flex min-h-screen flex-col bg-meeting-bg">
       {showReviewNav ? <ReviewChrome step={step} debugLine={debugLine} /> : null}
-      {children}
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       {showReviewNav ? transition : null}
     </div>
   )
@@ -78,7 +78,7 @@ export function OrganizerSessionApp() {
   const navigate = useNavigate()
   const scenarioId = useScenarioId()
   const showReviewNav = shouldShowPrototypeControls()
-  const flow = usePrototypeFlow(scenarioId)
+  const flow = usePrototypeFlow(scenarioId, sessionId)
 
   useEffect(() => {
     const stored = loadSession()
@@ -115,7 +115,13 @@ export function OrganizerSessionApp() {
     }
   }, [flow.state, flow.sessionId, navigate])
 
-  return <OrganizerExperience flow={flow} showReviewNav={showReviewNav} />
+  return (
+    <OrganizerExperience
+      key={sessionId ?? flow.sessionId}
+      flow={flow}
+      showReviewNav={showReviewNav}
+    />
+  )
 }
 
 function OrganizerExperience({
@@ -127,7 +133,6 @@ function OrganizerExperience({
 }) {
   const navigate = useNavigate()
   const showSurface = flow.surfaceMode !== null && flow.recommendation !== null
-  const goHome = () => navigate('/')
   const step = reviewStepFromPhase(flow.session.phase)
 
   const onPrimary = () => {
@@ -177,10 +182,10 @@ function OrganizerExperience({
       transition={transition}
     >
       <ScreenShell
-        title="회의 시간 잡기"
+        hideHeader
+        embedded={showReviewNav}
         layout="desktop"
         contentWidth={showSurface ? 'wide' : 'default'}
-        onClose={goHome}
       >
         {flow.state === 'participant-setup' && (
           <ParticipantSetup
@@ -257,7 +262,7 @@ export function AttendeeRespondApp() {
   const { requestId = '', sessionId: routeSessionId } = useParams()
   const navigate = useNavigate()
   const scenarioId = useScenarioId()
-  const flow = usePrototypeFlow(scenarioId)
+  const flow = usePrototypeFlow(scenarioId, routeSessionId)
   const showReviewNav = shouldShowPrototypeControls()
   const [step, setStep] = useState<'response' | 'result' | 'review-transition'>(
     'response',
@@ -323,11 +328,7 @@ export function AttendeeRespondApp() {
   if (missing) {
     return (
       <ReviewFrame showReviewNav={showReviewNav} step="attendee-response">
-        <ScreenShell
-          title="일정 확인"
-          layout="mobile"
-          onClose={() => navigate('/')}
-        >
+        <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
           <div className="flex flex-1 flex-col justify-center py-16">
             <h2
               className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
@@ -377,11 +378,7 @@ export function AttendeeRespondApp() {
       step={reviewStep}
       transition={transition}
     >
-      <ScreenShell
-        title="일정 확인"
-        layout="mobile"
-        onClose={() => navigate('/')}
-      >
+      <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
         {!alreadyResponded && step === 'response' && (
           <AttendeeRequest
             dateDisplay={request.dateLabel}

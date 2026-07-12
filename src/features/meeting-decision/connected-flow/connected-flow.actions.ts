@@ -424,7 +424,9 @@ export function changeConditions(
   return stamp({
     ...session,
     currentRecommendation: null,
+    previousRecommendation: undefined,
     activeRequest: undefined,
+    responseOverrides: {},
     isNextAlternative: false,
     isReadyAfterConfirmation: false,
     phase: 'participant-setup',

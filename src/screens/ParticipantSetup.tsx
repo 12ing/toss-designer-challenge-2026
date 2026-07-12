@@ -52,6 +52,18 @@ export function ParticipantSetup({
         className="mb-6 overflow-hidden rounded-3xl border border-meeting-divider bg-meeting-surface shadow-[var(--meeting-shadow)]"
         aria-label="참석자 목록"
       >
+        <div className="flex items-center justify-between gap-3 border-b border-meeting-divider px-5 py-3 min-[640px]:hidden">
+          <p className="text-[13px] font-medium text-meeting-text-secondary">
+            참석자
+          </p>
+          <div className="flex items-center gap-1">
+            <p className="text-[13px] font-medium text-meeting-text-secondary">
+              일정 조건
+            </p>
+            <SchedulingPrivacyPopover variant="icon" />
+          </div>
+        </div>
+
         <div className="hidden grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_120px] items-center gap-5 border-b border-meeting-divider px-5 py-3 min-[640px]:grid">
           <p className="text-[13px] font-medium text-meeting-text-secondary">
             참석자

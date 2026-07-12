@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { candidateSlots } from '@/features/meeting-decision/data/candidate-slots'
 import { decisionParticipants } from '@/features/meeting-decision/data/participants'
 import { recommendMeeting } from '@/features/meeting-decision/engine/decision-engine'
@@ -67,7 +67,10 @@ function commit(
   setSession(next)
 }
 
-export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
+export function usePrototypeFlow(
+  initialScenario: ScenarioPresetId,
+  expectedSessionId?: string,
+) {
   const [session, setSession] = useState<MeetingDecisionSession>(() => {
     // Prefer an explicitly created review/lab session so fresh runs are not wiped.
     const existing = loadSession()
@@ -96,6 +99,25 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
     setIsResponding(false)
     bootstrappedScenario.current = id
   }, [])
+
+  // When Landing/Menu creates a fresh session and navigates in-place, sync storage → state.
+  useLayoutEffect(() => {
+    if (!expectedSessionId) return
+    const stored = loadSession()
+    if (!stored || stored.id !== expectedSessionId) return
+    if (
+      stored.id === sessionRef.current.id &&
+      stored.updatedAt === sessionRef.current.updatedAt
+    ) {
+      return
+    }
+    setSession(stored)
+    setPlayCardEnter(false)
+    setReasonExpanded(false)
+    setIsSendingRequest(false)
+    setIsResponding(false)
+    bootstrappedScenario.current = stored.scenarioSeed
+  }, [expectedSessionId])
 
   useEffect(() => {
     if (bootstrappedScenario.current === initialScenario) return
@@ -285,8 +307,10 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
     toggleReasonExpanded: () => setReasonExpanded((prev) => !prev),
     updateMeeting: (draft: Partial<MeetingDraft>) =>
       commit(updateMeetingDraft(sessionRef.current, draft), setSession),
-    changeConditions: () =>
-      commit(changeConditions(sessionRef.current), setSession),
+    changeConditions: () => {
+      setReasonExpanded(false)
+      commit(changeConditions(sessionRef.current), setSession)
+    },
     reloadFromStorage,
   }
 }

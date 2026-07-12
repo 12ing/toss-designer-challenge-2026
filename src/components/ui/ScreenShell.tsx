@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react'
-import { TextButton } from '@/components/ui/TextButton'
 
 interface ScreenShellProps {
-  title: string
+  title?: string
   onClose?: () => void
   children: ReactNode
   layout?: 'desktop' | 'mobile'
   contentWidth?: 'default' | 'wide'
   footer?: ReactNode
+  /** Hide the product page chrome title/close row. */
+  hideHeader?: boolean
+  /** Nested under Review Chrome — avoid stacking another full viewport height. */
+  embedded?: boolean
 }
 
 export function ScreenShell({
@@ -17,44 +20,50 @@ export function ScreenShell({
   layout = 'desktop',
   contentWidth = 'default',
   footer,
+  hideHeader = false,
+  embedded = false,
 }: ScreenShellProps) {
   const isMobile = layout === 'mobile'
   const wide = contentWidth === 'wide'
+  const showHeader = !hideHeader && Boolean(title || onClose)
 
   return (
     <div
       className={[
-        'min-h-screen bg-meeting-bg',
+        'bg-meeting-bg',
+        embedded ? 'flex min-h-0 flex-1 flex-col' : 'min-h-screen',
         isMobile ? 'flex justify-center' : '',
       ].join(' ')}
     >
       <div
         className={[
-          'mx-auto flex min-h-screen w-full flex-col',
+          'mx-auto flex w-full flex-col',
+          embedded ? 'min-h-0 flex-1' : 'min-h-screen',
           isMobile
             ? 'max-w-[390px] bg-meeting-surface'
             : wide
-              ? 'max-w-[944px] px-8 py-12'
-              : 'max-w-[640px] px-8 py-12',
+              ? 'max-w-[944px] px-8 py-6'
+              : 'max-w-[640px] px-8 py-6',
         ].join(' ')}
       >
-        <header
-          className={[
-            'flex shrink-0 items-center justify-between',
-            isMobile
-              ? 'h-14 px-5 pt-[env(safe-area-inset-top)]'
-              : 'mb-6 h-14',
-          ].join(' ')}
-        >
-          <h1 className="text-[17px] font-semibold text-meeting-text">
-            {title}
-          </h1>
-          {onClose && (
-            <TextButton onClick={onClose} className="!min-h-11 no-underline">
-              닫기
-            </TextButton>
-          )}
-        </header>
+        {showHeader ? (
+          <header
+            className={[
+              'flex shrink-0 items-center justify-between',
+              isMobile
+                ? 'h-14 px-5 pt-[env(safe-area-inset-top)]'
+                : 'mb-6 h-14',
+            ].join(' ')}
+          >
+            {title ? (
+              <h1 className="text-[17px] font-semibold text-meeting-text">
+                {title}
+              </h1>
+            ) : (
+              <span />
+            )}
+          </header>
+        ) : null}
 
         <main
           className={[

@@ -10,11 +10,24 @@ type DecisionPreviewProps = {
   recommendation: MeetingRecommendation
   label?: string
   className?: string
+  /** Tighter person rows for Rule Lab mobile height. */
+  denseRows?: boolean
 }
 
-function PreviewPersonRow({ row }: { row: ParticipantImpactViewModel }) {
+function PreviewPersonRow({
+  row,
+  dense,
+}: {
+  row: ParticipantImpactViewModel
+  dense?: boolean
+}) {
   return (
-    <div className="flex items-start justify-between gap-3 py-2.5">
+    <div
+      className={[
+        'flex items-start justify-between gap-3',
+        dense ? 'min-h-12 py-2' : 'py-2.5',
+      ].join(' ')}
+    >
       <div className="min-w-0">
         <p
           className="text-[14px] font-semibold leading-5 text-meeting-text"
@@ -44,6 +57,7 @@ export function DecisionPreview({
   recommendation,
   label = '핵심 경험 미리보기',
   className = '',
+  denseRows = false,
 }: DecisionPreviewProps) {
   const mode = surfaceFromRecommendation(recommendation)
   const vm = mapRecommendationToDecisionSurface({ mode, recommendation })
@@ -51,7 +65,7 @@ export function DecisionPreview({
   return (
     <aside
       className={['min-w-0 w-full', className].join(' ')}
-      aria-label={label}
+      aria-label={label || '계산된 결과 미리보기'}
     >
       {label ? (
         <p className="mb-3 text-[13px] font-medium leading-5 text-meeting-text-tertiary">
@@ -135,7 +149,11 @@ export function DecisionPreview({
                 </h3>
                 <div className="divide-y divide-meeting-divider">
                   {vm.requiredRows.map((row) => (
-                    <PreviewPersonRow key={row.participantId} row={row} />
+                    <PreviewPersonRow
+                      key={row.participantId}
+                      row={row}
+                      dense={denseRows}
+                    />
                   ))}
                 </div>
               </section>
@@ -147,7 +165,11 @@ export function DecisionPreview({
                 </h3>
                 <div className="divide-y divide-meeting-divider">
                   {vm.optionalRows.map((row) => (
-                    <PreviewPersonRow key={row.participantId} row={row} />
+                    <PreviewPersonRow
+                      key={row.participantId}
+                      row={row}
+                      dense={denseRows}
+                    />
                   ))}
                 </div>
               </section>

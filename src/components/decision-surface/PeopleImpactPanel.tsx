@@ -11,6 +11,8 @@ type PeopleImpactPanelProps = {
   mobileSummary: string
   mobileConfirmationHint?: string
   collapsibleOnMobile?: boolean
+  /** Always render the full list (used when parent owns expand/sheet). */
+  forceExpanded?: boolean
 }
 
 function GroupedList({
@@ -83,8 +85,9 @@ export function PeopleImpactPanel({
   mobileSummary,
   mobileConfirmationHint,
   collapsibleOnMobile = true,
+  forceExpanded = false,
 }: PeopleImpactPanelProps) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(forceExpanded)
   const requiredHeadingId = useId()
   const optionalHeadingId = useId()
 
@@ -116,6 +119,17 @@ export function PeopleImpactPanel({
   )
 
   const mobileSummaryLines = mobileSummary.split('\n')
+
+  if (forceExpanded) {
+    return (
+      <section className="min-w-0">
+        <h3 className="mb-3 text-[15px] font-bold leading-[23px] text-meeting-text">
+          {title}
+        </h3>
+        {list}
+      </section>
+    )
+  }
 
   return (
     <section className="min-w-0">
