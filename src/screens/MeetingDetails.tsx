@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
 import { TextField } from '@/components/ui/TextField'
+import { PRODUCT_TERMS } from '@/copy/product.copy'
 import type { MeetingDraft } from '@/types/schedule'
 
 interface MeetingDetailsProps {
@@ -10,6 +11,7 @@ interface MeetingDetailsProps {
   requiredCount: number
   optionalCount: number
   meeting: MeetingDraft
+  creating?: boolean
   onChange: (draft: Partial<MeetingDraft>) => void
   onSubmit: () => boolean | void
   onBack: () => void
@@ -21,17 +23,24 @@ export function MeetingDetails({
   requiredCount,
   optionalCount,
   meeting,
+  creating = false,
   onChange,
   onSubmit,
   onBack,
 }: MeetingDetailsProps) {
   const [submitting, setSubmitting] = useState(false)
+  const [titleError, setTitleError] = useState(false)
   const submittedRef = useRef(false)
   const titleTrimmed = meeting.title.trim()
-  const canSubmit = titleTrimmed.length > 0 && !submitting
+  const busy = submitting || creating
 
   const handleSubmit = () => {
-    if (!canSubmit || submittedRef.current) return
+    if (busy || submittedRef.current) return
+    if (!titleTrimmed) {
+      setTitleError(true)
+      return
+    }
+    setTitleError(false)
     submittedRef.current = true
     setSubmitting(true)
     const ok = onSubmit()
@@ -45,7 +54,9 @@ export function MeetingDetails({
     <div className="mx-auto w-full max-w-[560px]">
       <div className="rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)]">
         <h2
-          className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text"
+          data-page-heading
+          tabIndex={-1}
+          className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
           이 시간으로 회의를 만들까요?
@@ -59,20 +70,35 @@ export function MeetingDetails({
             {timeLabel}
           </p>
           <div className="mt-3 flex flex-col gap-0.5 text-[14px] leading-[21px] text-meeting-text-secondary">
-            <p>필수 참석자 {requiredCount}명</p>
-            <p>선택 참석자 {optionalCount}명</p>
+            <p>
+              {PRODUCT_TERMS.requiredAttendee} {requiredCount}명
+            </p>
+            <p>
+              {PRODUCT_TERMS.optionalAttendee} {optionalCount}명
+            </p>
           </div>
         </div>
 
         <div className="mb-6 flex flex-col gap-4">
-          <TextField
-            label="회의 제목"
-            value={meeting.title}
-            required
-            autoComplete="off"
-            placeholder="회의 제목을 입력하세요"
-            onChange={(e) => onChange({ title: e.target.value })}
-          />
+          <div>
+            <TextField
+              label="회의 제목"
+              value={meeting.title}
+              required
+              autoComplete="off"
+              placeholder="회의 제목을 입력하세요"
+              aria-invalid={titleError || undefined}
+              onChange={(e) => {
+                setTitleError(false)
+                onChange({ title: e.target.value })
+              }}
+            />
+            {titleError ? (
+              <p className="mt-1.5 text-[13px] text-meeting-text-secondary">
+                회의 제목을 입력해 주세요.
+              </p>
+            ) : null}
+          </div>
           <TextField
             label="장소 또는 화상 회의 링크"
             value={meeting.location}
@@ -82,11 +108,11 @@ export function MeetingDetails({
           />
         </div>
 
-        <Button type="button" disabled={!canSubmit} onClick={handleSubmit}>
-          {submitting ? '만드는 중' : '회의 만들기'}
+        <Button type="button" disabled={busy} onClick={handleSubmit}>
+          {busy ? '만드는 중' : PRODUCT_TERMS.createMeeting}
         </Button>
         <div className="mt-4 flex justify-center">
-          <TextButton type="button" onClick={onBack}>
+          <TextButton type="button" onClick={onBack} disabled={busy}>
             시간 다시 보기
           </TextButton>
         </div>

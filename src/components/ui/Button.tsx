@@ -45,6 +45,8 @@ export function Button({
         className,
       ].join(' ')}
       {...props}
+      aria-busy={loading || undefined}
+      aria-disabled={disabled || loading || undefined}
     >
       {loading ? (
         <>

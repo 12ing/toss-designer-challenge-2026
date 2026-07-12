@@ -1,7 +1,5 @@
 import { DateTimeBlock } from '@/components/DateTimeBlock'
-
-/** Placeholder draft title — not shown until the organizer enters a real title. */
-const DRAFT_MEETING_TITLE = '대시보드 개선 방향 논의'
+import { ATTENDEE_ACTION_COPY } from '@/copy/product.copy'
 
 interface AttendeeRequestProps {
   dateDisplay: string
@@ -18,9 +16,7 @@ const choiceButtonClass =
   'inline-flex w-full min-h-14 items-center justify-center rounded-[var(--meeting-radius-button)] border border-meeting-divider bg-meeting-surface px-5 text-[16px] font-semibold leading-6 text-meeting-text transition-[background-color,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] hover:bg-meeting-primary-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] disabled:opacity-50'
 
 function isRealMeetingTitle(title?: string) {
-  const trimmed = title?.trim()
-  if (!trimmed) return false
-  return trimmed !== DRAFT_MEETING_TITLE
+  return Boolean(title?.trim())
 }
 
 export function AttendeeRequest({
@@ -38,7 +34,9 @@ export function AttendeeRequest({
   return (
     <div className="flex flex-1 flex-col">
       <h2
-        className="mb-3 text-[21px] font-bold leading-[30px] text-meeting-text"
+        data-page-heading
+        tabIndex={-1}
+        className="mb-3 text-[21px] font-bold leading-[30px] text-meeting-text outline-none"
         style={{ wordBreak: 'keep-all' }}
         aria-label={`회의 시간 확인 요청, ${dateDisplay} ${timeLabel}`}
       >
@@ -79,9 +77,10 @@ export function AttendeeRequest({
           type="button"
           className={choiceButtonClass}
           disabled={loading}
+          aria-busy={loading || undefined}
           onClick={onApprove}
         >
-          {loading ? '전달하는 중' : '이 시간 사용 가능'}
+          {loading ? '전달하는 중' : ATTENDEE_ACTION_COPY.approve}
         </button>
         <button
           type="button"
@@ -89,7 +88,7 @@ export function AttendeeRequest({
           disabled={loading}
           onClick={onReject}
         >
-          이 시간은 어려워요
+          {ATTENDEE_ACTION_COPY.decline}
         </button>
       </div>
     </div>

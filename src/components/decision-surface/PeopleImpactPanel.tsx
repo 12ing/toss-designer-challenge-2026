@@ -37,19 +37,20 @@ function GroupedList({
         >
           필수 참석자 {requiredRows.length}명
         </h4>
-        <div>
+        <ul className="list-none p-0">
           {requiredRows.map((row) => (
-            <ParticipantImpactRow
-              key={row.participantId}
-              name={row.name}
-              statusLabel={row.statusLabel}
-              contextLabel={row.contextLabel}
-              tone={row.tone}
-              isConfirmationTarget={row.isConfirmationTarget}
-              accessibleLabel={row.accessibleLabel}
-            />
+            <li key={row.participantId}>
+              <ParticipantImpactRow
+                name={row.name}
+                statusLabel={row.statusLabel}
+                contextLabel={row.contextLabel}
+                tone={row.tone}
+                isConfirmationTarget={row.isConfirmationTarget}
+                accessibleLabel={row.accessibleLabel}
+              />
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
       {optionalRows.length > 0 ? (
@@ -60,19 +61,20 @@ function GroupedList({
           >
             선택 참석자 {optionalRows.length}명
           </h4>
-          <div>
+          <ul className="list-none p-0">
             {optionalRows.map((row) => (
-              <ParticipantImpactRow
-                key={row.participantId}
-                name={row.name}
-                statusLabel={row.statusLabel}
-                contextLabel={row.contextLabel}
-                tone={row.tone}
-                isConfirmationTarget={row.isConfirmationTarget}
-                accessibleLabel={row.accessibleLabel}
-              />
+              <li key={row.participantId}>
+                <ParticipantImpactRow
+                  name={row.name}
+                  statusLabel={row.statusLabel}
+                  contextLabel={row.contextLabel}
+                  tone={row.tone}
+                  isConfirmationTarget={row.isConfirmationTarget}
+                  accessibleLabel={row.accessibleLabel}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       ) : null}
     </div>

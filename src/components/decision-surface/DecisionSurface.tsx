@@ -25,14 +25,20 @@ type MobileSheet = 'people' | 'reason' | null
 function StateIcon({ mode }: { mode: DecisionSurfaceMode }) {
   if (mode === 'ready' || mode === 'ready-after-confirmation') {
     return (
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-meeting-positive-subtle text-meeting-positive">
+      <span
+        aria-hidden
+        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-meeting-positive-subtle text-meeting-positive"
+      >
         <CheckIcon className="h-3 w-3" />
       </span>
     )
   }
   if (mode === 'waiting') {
     return (
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-meeting-panel text-meeting-text-secondary">
+      <span
+        aria-hidden
+        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-meeting-panel text-meeting-text-secondary"
+      >
         <ClockIcon className="h-3.5 w-3.5" />
       </span>
     )
@@ -41,7 +47,10 @@ function StateIcon({ mode }: { mode: DecisionSurfaceMode }) {
     return null
   }
   return (
-    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-meeting-panel text-meeting-text-secondary">
+    <span
+      aria-hidden
+      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-meeting-panel text-meeting-text-secondary"
+    >
       <ShieldIcon className="h-3.5 w-3.5" />
     </span>
   )
@@ -59,13 +68,14 @@ function MobileBottomSheet({
   children: ReactNode
 }) {
   const titleId = useId()
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     if (!open) return
     previouslyFocused.current = document.activeElement as HTMLElement | null
-    closeRef.current?.focus()
+    titleRef.current?.focus()
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
@@ -75,6 +85,35 @@ function MobileBottomSheet({
       previouslyFocused.current?.focus()
     }
   }, [open, onClose])
+
+  useEffect(() => {
+    if (!open) return
+    const container = panelRef.current
+    if (!container) return
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return
+      const nodes = Array.from(
+        container.querySelectorAll<HTMLElement>(FOCUSABLE),
+      ).filter((el) => el.offsetParent !== null || el === titleRef.current)
+      if (nodes.length === 0) return
+      const first = nodes[0]
+      const last = nodes[nodes.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (event.shiftKey && (active === first || active === titleRef.current)) {
+        event.preventDefault()
+        last.focus()
+        return
+      }
+      if (!event.shiftKey && active === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    container.addEventListener('keydown', onKeyDown)
+    return () => container.removeEventListener('keydown', onKeyDown)
+  }, [open])
 
   if (!open) return null
 
@@ -87,10 +126,11 @@ function MobileBottomSheet({
         onClick={onClose}
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 flex max-h-[70vh] w-full flex-col rounded-t-3xl bg-meeting-surface shadow-[0_-8px_32px_rgba(0,27,55,0.12)]"
+        className="relative z-10 flex max-h-[70vh] w-full flex-col overflow-hidden rounded-t-3xl bg-meeting-surface shadow-[0_-8px_32px_rgba(0,27,55,0.12)]"
       >
         <div className="flex shrink-0 flex-col items-center px-5 pt-3">
           <div
@@ -99,13 +139,14 @@ function MobileBottomSheet({
           />
           <div className="mb-3 flex w-full items-center justify-between gap-3">
             <h3
+              ref={titleRef}
               id={titleId}
-              className="text-[16px] font-semibold text-meeting-text"
+              tabIndex={-1}
+              className="text-[16px] font-semibold text-meeting-text outline-none"
             >
               {title}
             </h3>
             <button
-              ref={closeRef}
               type="button"
               className="inline-flex min-h-11 items-center px-2 text-[14px] font-medium text-meeting-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
               onClick={onClose}
@@ -114,7 +155,7 @@ function MobileBottomSheet({
             </button>
           </div>
         </div>
-        <div className="overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           {children}
         </div>
       </div>
@@ -213,17 +254,30 @@ export function DecisionSurface({
           <p className="mb-1 text-[17px] font-semibold leading-[25px] text-meeting-text-secondary">
             {vm.dateLabel}
           </p>
-          <p className="text-[32px] font-bold leading-[42px] tracking-tight text-meeting-text max-[719px]:text-[30px] max-[719px]:leading-[40px]">
+          <h2
+            data-page-heading
+            tabIndex={-1}
+            className="text-[32px] font-bold leading-[42px] tracking-tight text-meeting-text outline-none max-[719px]:text-[30px] max-[719px]:leading-[40px]"
+          >
             {vm.timeLabel}
-          </p>
+          </h2>
         </div>
-      ) : null}
+      ) : (
+        <h2
+          data-page-heading
+          tabIndex={-1}
+          className="sr-only outline-none"
+        >
+          {vm.stateLabel}
+        </h2>
+      )}
 
-      <div className="mb-3.5 flex items-start gap-2" aria-live="polite">
+      <div className="mb-3.5 flex items-start gap-2">
         <StateIcon mode={mode} />
         <p
           className="text-[17px] font-semibold leading-[26px] text-meeting-text"
           style={{ wordBreak: 'keep-all' }}
+          aria-live="polite"
         >
           {vm.stateLabel}
         </p>
@@ -328,7 +382,6 @@ export function DecisionSurface({
             <div
               key={contextView}
               className="animate-[panel-fade_160ms_ease] motion-reduce:animate-none"
-              aria-live="polite"
             >
               {contextView === 'people' ? peoplePanel : reasonPanel}
             </div>

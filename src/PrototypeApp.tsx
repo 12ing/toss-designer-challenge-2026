@@ -9,6 +9,7 @@ import {
   findSessionByRequestId,
   loadSession,
 } from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
+import { useFocusPageHeading } from '@/hooks/useFocusPageHeading'
 import { usePrototypeFlow } from '@/hooks/usePrototypeFlow'
 import { ActorTransitionCard } from '@/review/components/ActorTransitionCard'
 import { ReviewChrome } from '@/review/components/ReviewChrome'
@@ -150,6 +151,7 @@ function OrganizerExperience({
   const navigate = useNavigate()
   const showSurface = flow.surfaceMode !== null && flow.recommendation !== null
   const step = reviewStepFromPhase(flow.session.phase)
+  useFocusPageHeading(`${flow.state}-${flow.session.phase}`)
   const waitingPadding =
     flow.state === 'waiting' && showReviewNav
       ? 'max-[719px]:pb-[200px]'
@@ -251,7 +253,7 @@ function OrganizerExperience({
             )}
 
           {flow.state === 'meeting-details' &&
-            (flow.meetingCreatedAt ? (
+            (flow.createdMeeting || flow.meetingCreatedAt ? (
               <FlowRecovery
                 title="이미 만든 회의예요."
                 description="생성 결과 화면으로 이동할 수 있어요."
@@ -272,37 +274,58 @@ function OrganizerExperience({
                 requiredCount={flow.attendanceCounts.requiredCount}
                 optionalCount={flow.attendanceCounts.optionalCount}
                 meeting={flow.meeting}
+                creating={flow.isCreatingMeeting}
                 onChange={flow.updateMeeting}
                 onSubmit={flow.completeMeeting}
                 onBack={flow.backToDecision}
               />
             ))}
 
-          {flow.state === 'completed' && flow.uiView && (
-            <ProductCompletion
-              title={flow.meeting.title}
-              dateDisplay={flow.uiView.dateLabel}
-              timeLabel={flow.uiView.timeLabel}
-              requiredCount={flow.attendanceCounts.requiredCount}
-              optionalCount={flow.attendanceCounts.optionalCount}
-              onComplete={() => {
-                if (showReviewNav) {
-                  flow.finishReview()
-                  return
+          {flow.state === 'completed' &&
+            (flow.createdMeeting || flow.uiView) && (
+              <ProductCompletion
+                title={
+                  flow.createdMeeting?.title ?? flow.meeting.title
                 }
-                navigate('/')
-              }}
-            />
-          )}
+                dateDisplay={
+                  flow.createdMeeting?.dateLabel ??
+                  flow.uiView?.dateLabel ??
+                  ''
+                }
+                timeLabel={
+                  flow.createdMeeting?.timeLabel ??
+                  flow.uiView?.timeLabel ??
+                  ''
+                }
+                requiredCount={
+                  flow.createdMeeting?.requiredCount ??
+                  flow.attendanceCounts.requiredCount
+                }
+                optionalCount={
+                  flow.createdMeeting?.optionalCount ??
+                  flow.attendanceCounts.optionalCount
+                }
+                location={flow.createdMeeting?.location}
+                onComplete={() => {
+                  if (showReviewNav) {
+                    flow.finishReview()
+                    return
+                  }
+                  navigate('/')
+                }}
+              />
+            )}
 
-          {flow.state === 'completed' && !flow.uiView && (
-            <FlowRecovery
-              title="회의 결과를 불러올 수 없어요."
-              description="처음부터 다시 시작해 주세요."
-              actionLabel="처음으로"
-              href="/"
-            />
-          )}
+          {flow.state === 'completed' &&
+            !flow.createdMeeting &&
+            !flow.uiView && (
+              <FlowRecovery
+                title="회의 결과를 불러올 수 없어요."
+                description="처음부터 다시 시작해 주세요."
+                actionLabel="처음으로"
+                href="/"
+              />
+            )}
         </div>
       </ScreenShell>
     </ReviewFrame>
@@ -316,6 +339,7 @@ export function AttendeeRespondApp() {
   const flow = usePrototypeFlow(scenarioId, routeSessionId)
   const showReviewNav = shouldShowPrototypeControls()
   const [step, setStep] = useState<'response' | 'result'>('response')
+  useFocusPageHeading(`${requestId}-${step}`)
 
   const storedMatch = findSessionByRequestId(requestId)
   const request =

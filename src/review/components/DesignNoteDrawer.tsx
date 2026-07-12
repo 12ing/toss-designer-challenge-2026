@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { PRODUCT_PHILOSOPHY, reviewNotesByStep } from '@/review/review-notes'
 import type { ReviewStep } from '@/review/review.types'
 import { trackReviewEvent } from '@/review/review-analytics'
@@ -7,17 +8,25 @@ type DesignNoteDrawerProps = {
   open: boolean
   step: ReviewStep
   onClose: () => void
+  triggerRef?: React.RefObject<HTMLElement | null>
 }
 
-export function DesignNoteDrawer({ open, step, onClose }: DesignNoteDrawerProps) {
+export function DesignNoteDrawer({
+  open,
+  step,
+  onClose,
+  triggerRef,
+}: DesignNoteDrawerProps) {
   const titleId = useId()
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
   const note = reviewNotesByStep[step]
+
+  useFocusTrap(open, panelRef, triggerRef, titleRef)
 
   useEffect(() => {
     if (!open) return
     trackReviewEvent('design_note_opened', { step })
-    closeRef.current?.focus()
   }, [open, step])
 
   useEffect(() => {
@@ -40,6 +49,7 @@ export function DesignNoteDrawer({ open, step, onClose }: DesignNoteDrawerProps)
         onClick={onClose}
       />
       <aside
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -51,14 +61,15 @@ export function DesignNoteDrawer({ open, step, onClose }: DesignNoteDrawerProps)
               현재 단계
             </p>
             <h2
+              ref={titleRef}
               id={titleId}
-              className="text-[16px] font-semibold text-meeting-text"
+              tabIndex={-1}
+              className="text-[16px] font-semibold text-meeting-text outline-none"
             >
               {note.title}
             </h2>
           </div>
           <button
-            ref={closeRef}
             type="button"
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[14px] font-medium text-meeting-text-secondary hover:bg-meeting-panel focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
             onClick={onClose}

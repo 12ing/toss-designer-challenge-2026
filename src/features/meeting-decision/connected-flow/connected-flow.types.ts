@@ -35,6 +35,21 @@ export type SchedulingRequest = {
   response?: 'approved' | 'declined'
 }
 
+/** Immutable record written once when a meeting is created. */
+export type MeetingRecord = {
+  id: string
+  sessionId: string
+  meetingDraftId: string
+  slotId: TimeSlotId
+  dateLabel: string
+  timeLabel: string
+  title: string
+  location: string
+  requiredCount: number
+  optionalCount: number
+  createdAt: string
+}
+
 export type ConnectedFlowPhase =
   | 'participant-setup'
   | 'analyzing'
@@ -67,8 +82,11 @@ export type MeetingDecisionSession = {
   isReadyAfterConfirmation: boolean
   actor: PrototypeActor
   phase: ConnectedFlowPhase
+  /** In-progress meeting details form draft */
   meeting: MeetingDraft
-  /** Set once when the meeting is created — prevents duplicate create. */
+  /** Persisted created meeting — source of truth after create */
+  createdMeeting?: MeetingRecord
+  /** Convenience mirror of createdMeeting.createdAt */
   meetingCreatedAt?: string
   scenarioSeed: ScenarioPresetId
   createdAt: string

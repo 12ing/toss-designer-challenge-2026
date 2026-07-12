@@ -25,7 +25,9 @@ export function ParticipantSetup({
     <div className="mx-auto flex w-full max-w-[640px] flex-col">
       <div className="mb-5">
         <h2
-          className="mb-2 text-[24px] font-bold leading-[34px] tracking-tight text-meeting-text"
+          data-page-heading
+          tabIndex={-1}
+          className="mb-2 text-[24px] font-bold leading-[34px] tracking-tight text-meeting-text outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
           참석 조건을 확인해주세요

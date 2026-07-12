@@ -1,12 +1,13 @@
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
+import { ATTENDEE_ACTION_COPY, PRODUCT_TERMS } from '@/copy/product.copy'
 import type { MeetingRecommendation } from '@/features/meeting-decision/engine/decision-engine.types'
 import { DecisionPreview } from '@/review/components/DecisionPreview'
 
 const STATUS_LABEL: Record<string, string> = {
-  READY: '바로 확정 가능',
-  NEED_CONFIRMATION: '확인 필요',
-  NO_OPTION: '조건 변경 필요',
+  READY: '바로 확정할 수 있어요',
+  NEED_CONFIRMATION: PRODUCT_TERMS.needsConfirmation,
+  NO_OPTION: '참석 조건 조정 필요',
 }
 
 type LabResultPreviewProps = {
@@ -22,7 +23,8 @@ export function LabResultPreview({
   onApproveSimulation,
   onDeclineSimulation,
 }: LabResultPreviewProps) {
-  const statusLabel = STATUS_LABEL[recommendation.status] ?? recommendation.status
+  const statusLabel =
+    STATUS_LABEL[recommendation.status] ?? recommendation.status
   const confirmationTarget =
     recommendation.status === 'NEED_CONFIRMATION'
       ? recommendation.confirmationTargets[0]
@@ -43,8 +45,8 @@ export function LabResultPreview({
     const evaluation = recommendation.evaluation
     return {
       time: `${evaluation.slot.dateLabel} · ${evaluation.slot.timeLabel}`,
-      required: `필수 ${evaluation.requiredAvailableCount}/${evaluation.requiredTotalCount}명`,
-      optional: `선택 ${evaluation.optionalAvailableCount}/${evaluation.optionalTotalCount}명`,
+      required: `${PRODUCT_TERMS.requiredAttendee} ${evaluation.requiredAvailableCount}/${evaluation.requiredTotalCount}명`,
+      optional: `${PRODUCT_TERMS.optionalAttendee} ${evaluation.optionalAvailableCount}/${evaluation.optionalTotalCount}명`,
     }
   }, [recommendation])
 
@@ -59,21 +61,25 @@ export function LabResultPreview({
     .join(' · ')
 
   return (
-    <div id="lab-result" className="min-w-0 w-full scroll-mt-20">
-      <div className="mb-5 flex flex-col gap-2" aria-live="polite" aria-atomic="true">
+    <div
+      id="lab-result"
+      className="min-w-0 w-full scroll-mt-20 rounded-3xl border border-meeting-divider bg-meeting-surface p-5 shadow-[0_12px_32px_rgba(0,27,55,0.06)] min-[640px]:p-6"
+    >
+      <div className="mb-5 flex flex-col gap-2">
         <p className="text-[13px] font-medium text-meeting-text-tertiary">
           계산된 결과
         </p>
         <p
           className="text-[20px] font-bold leading-7 text-meeting-text"
           style={{ wordBreak: 'keep-all' }}
+          aria-live="polite"
         >
           {statusLabel}
         </p>
         <span className="sr-only">{liveSummary}</span>
         {summary.time ? (
           <p
-            className="text-[15px] text-meeting-text-secondary"
+            className="text-[22px] font-bold leading-8 tracking-tight text-meeting-text"
             style={{ wordBreak: 'keep-all' }}
           >
             {summary.time}
@@ -94,11 +100,7 @@ export function LabResultPreview({
       </div>
 
       <div className="mb-5 min-w-0">
-        <DecisionPreview
-          recommendation={recommendation}
-          label=""
-          denseRows
-        />
+        <DecisionPreview recommendation={recommendation} label="" denseRows />
       </div>
 
       {canSimulate && confirmationTarget ? (
@@ -116,7 +118,7 @@ export function LabResultPreview({
               className="whitespace-nowrap"
               onClick={onApproveSimulation}
             >
-              사용 가능
+              {ATTENDEE_ACTION_COPY.approve}
             </Button>
             <Button
               type="button"
@@ -124,13 +126,17 @@ export function LabResultPreview({
               className="whitespace-nowrap"
               onClick={onDeclineSimulation}
             >
-              이 시간은 어려움
+              {ATTENDEE_ACTION_COPY.decline}
             </Button>
           </div>
         </div>
       ) : null}
 
-      <Button type="button" className="whitespace-nowrap" onClick={onOpenProductFlow}>
+      <Button
+        type="button"
+        className="whitespace-nowrap"
+        onClick={onOpenProductFlow}
+      >
         이 조건으로 제품 흐름 보기
       </Button>
     </div>

@@ -150,24 +150,59 @@ describe('connected-flow meeting finalize', () => {
     const blocked = completeMeeting(session)
     expect(blocked.phase).toBe('meeting-details')
     expect(blocked.meetingCreatedAt).toBeUndefined()
+    expect(blocked.createdMeeting).toBeUndefined()
 
-    session = updateMeetingDraft(session, { title: '킥오프 미팅' })
+    session = updateMeetingDraft(session, {
+      title: '킥오프 미팅',
+      location: 'https://meet.example.com/kickoff',
+    })
     session = completeMeeting(session)
     expect(session.phase).toBe('completed')
     expect(session.meetingCreatedAt).toBeDefined()
+    expect(session.createdMeeting).toBeDefined()
+    expect(session.createdMeeting?.title).toBe('킥오프 미팅')
+    expect(session.createdMeeting?.location).toBe(
+      'https://meet.example.com/kickoff',
+    )
+    expect(session.createdMeeting?.sessionId).toBe(session.id)
+    expect(session.createdMeeting?.slotId).toBe('thu-15')
     expect(session.meeting.title).toBe('킥오프 미팅')
 
     const again = completeMeeting(session)
     expect(again.phase).toBe('completed')
+    expect(again.createdMeeting?.id).toBe(session.createdMeeting?.id)
     expect(again.meetingCreatedAt).toBe(session.meetingCreatedAt)
   })
 
-  it('blocks finalize for NEED_CONFIRMATION', () => {
+  it('blocks finalize for NEED_CONFIRMATION and WAITING', () => {
     let session = createSession('coordination')
     const recommendation = runRecommendation(session.attendanceTypes, {})
     expect(recommendation.status).toBe('NEED_CONFIRMATION')
     session = applyAnalyzedRecommendation(session, recommendation)
     expect(canFinalizeRecommendation(session)).toBe(false)
     expect(goToMeetingDetails(session).phase).toBe('organizer-result')
+
+    session = openRequestPreview(session)
+    session = beginSendingRequest(session)
+    session = markRequestPending(session)
+    expect(session.phase).toBe('organizer-waiting')
+    expect(canFinalizeRecommendation(session)).toBe(false)
+  })
+
+  it('allows finalize after approval when domain status is READY', () => {
+    let session = createSession('coordination')
+    let recommendation = runRecommendation(session.attendanceTypes, {})
+    session = applyAnalyzedRecommendation(session, recommendation)
+    session = openRequestPreview(session)
+    session = beginSendingRequest(session)
+    session = markRequestPending(session)
+    const requestId = session.activeRequest!.id
+    session = completeAttendeeResponse(session, requestId, 'approved')
+    session = resolveAfterAttendeeResponse(session)
+    expect(session.currentRecommendation?.status).toBe('READY')
+    expect(session.isReadyAfterConfirmation).toBe(true)
+    expect(canFinalizeRecommendation(session)).toBe(true)
+    session = goToMeetingDetails(session)
+    expect(session.phase).toBe('meeting-details')
   })
 })

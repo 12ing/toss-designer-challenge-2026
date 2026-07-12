@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatReviewStepLabel } from '@/review/review-steps'
 import type { ReviewStep } from '@/review/review.types'
@@ -13,6 +13,7 @@ type ReviewChromeProps = {
 export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
   const [notesOpen, setNotesOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const notesTriggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     setNotesOpen(false)
@@ -30,8 +31,11 @@ export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
           </p>
           <div className="flex shrink-0 items-center gap-1">
             <button
+              ref={notesTriggerRef}
               type="button"
               className="inline-flex min-h-10 items-center rounded-lg px-3 text-[13px] font-medium text-meeting-text-secondary hover:bg-meeting-panel focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+              aria-expanded={notesOpen}
+              aria-haspopup="dialog"
               onClick={() => setNotesOpen(true)}
             >
               설계 의도
@@ -68,6 +72,7 @@ export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
       <DesignNoteDrawer
         open={notesOpen}
         step={step}
+        triggerRef={notesTriggerRef}
         onClose={() => setNotesOpen(false)}
       />
     </>

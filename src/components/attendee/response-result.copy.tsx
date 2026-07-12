@@ -10,9 +10,9 @@ export const responseResultCopy: Record<
     title: '가능하다고 전달했어요.',
     description: (
       <>
-        회의가 확정되면
+        주최자가 회의를 확정하면
         <br />
-        캘린더에 반영돼요.
+        일정이 만들어져요.
       </>
     ),
     reviewCta: '확정 가능한 시간 보기',

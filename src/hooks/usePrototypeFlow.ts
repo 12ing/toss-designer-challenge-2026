@@ -48,6 +48,7 @@ import type { MeetingDraft, Participant } from '@/types/schedule'
 const ANALYZE_MS = 1000
 const SEND_REQUEST_MS = 700
 const ATTENDEE_RESPONSE_MS = 600
+const CREATE_MEETING_MS = 450
 
 function toUiParticipants(
   attendanceTypes: Record<string, AttendanceType>,
@@ -95,6 +96,7 @@ export function usePrototypeFlow(
   const [reasonExpanded, setReasonExpanded] = useState(false)
   const [isSendingRequest, setIsSendingRequest] = useState(false)
   const [isResponding, setIsResponding] = useState(false)
+  const [isCreatingMeeting, setIsCreatingMeeting] = useState(false)
 
   const bootstrappedScenario = useRef(session.scenarioSeed)
   const sessionRef = useRef(session)
@@ -109,6 +111,7 @@ export function usePrototypeFlow(
     setReasonExpanded(false)
     setIsSendingRequest(false)
     setIsResponding(false)
+    setIsCreatingMeeting(false)
     bootstrappedScenario.current = id
   }, [])
 
@@ -128,6 +131,7 @@ export function usePrototypeFlow(
     setReasonExpanded(false)
     setIsSendingRequest(false)
     setIsResponding(false)
+    setIsCreatingMeeting(false)
     bootstrappedScenario.current = stored.scenarioSeed
   }, [expectedSessionId])
 
@@ -293,9 +297,11 @@ export function usePrototypeFlow(
     attendanceTypes: session.attendanceTypes,
     attendanceCounts,
     meeting: session.meeting,
+    createdMeeting: session.createdMeeting,
     meetingCreatedAt: session.meetingCreatedAt,
     isSendingRequest,
     isResponding,
+    isCreatingMeeting,
     reasonExpanded,
     playCardEnter,
     recommendation,
@@ -318,15 +324,20 @@ export function usePrototypeFlow(
     },
     completeMeeting: () => {
       const current = sessionRef.current
-      if (current.meetingCreatedAt || current.phase === 'completed') {
+      if (current.createdMeeting || current.meetingCreatedAt || current.phase === 'completed') {
         commit(completeMeeting(current), setSession)
         return true
       }
       if (!canFinalizeRecommendation(current)) return false
       if (!current.meeting.title.trim()) return false
-      const next = completeMeeting(current)
-      if (next.phase !== 'completed') return false
-      commit(next, setSession)
+      if (isCreatingMeeting) return false
+      setIsCreatingMeeting(true)
+      window.setTimeout(() => {
+        const latest = sessionRef.current
+        const next = completeMeeting(latest)
+        commit(next, setSession)
+        setIsCreatingMeeting(false)
+      }, CREATE_MEETING_MS)
       return true
     },
     finishReview: () => commit(finishReview(sessionRef.current), setSession),

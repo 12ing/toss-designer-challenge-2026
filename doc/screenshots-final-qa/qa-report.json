@@ -1,0 +1,45 @@
+{
+  "e2e": {
+    "validationKeepsValue": true,
+    "reentry": true,
+    "noFakeCalendar": true,
+    "invalidFinalize": true,
+    "missingSession": true,
+    "missingRequest": true,
+    "pathA": true,
+    "pathB": true,
+    "pathC": true,
+    "attendeeCopyUpdated": true
+  },
+  "refresh": {
+    "completed": {
+      "sameId": true,
+      "sameTitle": true,
+      "sameLocation": true,
+      "hasSlot": true,
+      "hasCreatedAt": true,
+      "record": {
+        "id": "meeting_2enm8p8h_mrhwdoae",
+        "sessionId": "session_gkph7ly4_mrhwdmq3",
+        "meetingDraftId": "draft_drfeludf_mrhwdmq3",
+        "slotId": "thu-15",
+        "dateLabel": "7월 16일 목요일",
+        "timeLabel": "오후 3:00–4:00",
+        "title": "제품 킥오프",
+        "location": "https://meet.example.com/room",
+        "requiredCount": 3,
+        "optionalCount": 3,
+        "createdAt": "2026-07-12T14:37:23.894Z"
+      }
+    },
+    "meetingDetails": {
+      "title": "임시 제목",
+      "location": "회의실 B"
+    }
+  },
+  "modes": {
+    "usertestNoLab": true,
+    "usertestNoReviewChrome": true,
+    "usertestEndsAtLanding": true
+  }
+}

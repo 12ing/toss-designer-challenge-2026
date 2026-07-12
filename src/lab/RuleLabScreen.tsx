@@ -135,7 +135,7 @@ export function RuleLabScreen() {
         <div className="mb-8 flex min-w-0 flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 max-w-[640px]">
             <p className="mb-2 text-[13px] font-medium text-meeting-text-tertiary">
-              결정 규칙 실험
+              규칙 검증 도구
             </p>
             <h1
               className="mb-2 text-[clamp(1.35rem,3vw,1.625rem)] font-bold leading-9 text-meeting-text"

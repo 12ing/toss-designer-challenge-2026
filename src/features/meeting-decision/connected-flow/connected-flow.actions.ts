@@ -13,6 +13,7 @@ import type { MeetingDraft } from '@/types/schedule'
 import type {
   ConnectedFlowPhase,
   MeetingDecisionSession,
+  MeetingRecord,
   SchedulingRequest,
 } from './connected-flow.types'
 
@@ -22,17 +23,40 @@ const DEFAULT_MEETING: MeetingDraft = {
   location: '',
 }
 
-/** READY / READY_AFTER_CONFIRMATION — confirmable recommendation only. */
+const FINALIZE_PHASES: ConnectedFlowPhase[] = [
+  'organizer-result',
+  'organizer-updated-result',
+  'meeting-details',
+]
+
+/**
+ * Single gate for entering meeting-details / creating a meeting.
+ * Domain recommendation must be READY (READY_AFTER_CONFIRMATION is UI-only).
+ * NEED_CONFIRMATION / WAITING / NO_OPTION and non-result phases are blocked.
+ */
 export function canFinalizeRecommendation(
   session: MeetingDecisionSession,
 ): boolean {
-  const rec = session.currentRecommendation
-  if (!rec || rec.status !== 'READY') return false
-  if (session.meetingCreatedAt) return false
+  if (session.createdMeeting || session.meetingCreatedAt) return false
   if (session.phase === 'completed' || session.phase === 'review-complete') {
     return false
   }
+  if (!FINALIZE_PHASES.includes(session.phase)) return false
+
+  const rec = session.currentRecommendation
+  if (!rec || rec.status !== 'READY') return false
   return true
+}
+
+export function findCreatedMeeting(
+  session: MeetingDecisionSession,
+  slotId?: TimeSlotId,
+): MeetingRecord | undefined {
+  const created = session.createdMeeting
+  if (!created) return undefined
+  if (created.sessionId !== session.id) return undefined
+  if (slotId && created.slotId !== slotId) return undefined
+  return created
 }
 
 export function countAttendanceByType(
@@ -428,8 +452,14 @@ export function backFromPreview(
 export function goToMeetingDetails(
   session: MeetingDecisionSession,
 ): MeetingDecisionSession {
-  if (session.meetingCreatedAt || session.phase === 'completed') {
-    return stamp({ ...session, phase: 'completed', actor: 'organizer' })
+  const existing = session.createdMeeting
+  if (existing || session.meetingCreatedAt || session.phase === 'completed') {
+    return stamp({
+      ...session,
+      phase: 'completed',
+      actor: 'organizer',
+      meetingCreatedAt: existing?.createdAt ?? session.meetingCreatedAt,
+    })
   }
   if (!canFinalizeRecommendation(session)) {
     return session
@@ -438,12 +468,32 @@ export function goToMeetingDetails(
 }
 
 /**
- * Creates the meeting once. Returns the same completed session on repeat calls.
- * Returns unchanged session when title is empty or recommendation is stale.
+ * Creates the meeting once. Domain duplicate defense:
+ * same sessionId + slotId → return existing completion.
  */
 export function completeMeeting(
   session: MeetingDecisionSession,
 ): MeetingDecisionSession {
+  const rec = session.currentRecommendation
+  const slotId =
+    rec && rec.status !== 'NO_OPTION' ? rec.evaluation.slot.id : undefined
+  const existing =
+    findCreatedMeeting(session, slotId) ?? session.createdMeeting
+
+  if (existing) {
+    return stamp({
+      ...session,
+      phase: 'completed',
+      actor: 'organizer',
+      createdMeeting: existing,
+      meetingCreatedAt: existing.createdAt,
+      meeting: {
+        title: existing.title,
+        location: existing.location,
+      },
+    })
+  }
+
   if (session.meetingCreatedAt || session.phase === 'completed') {
     return stamp({
       ...session,
@@ -453,20 +503,45 @@ export function completeMeeting(
         session.meetingCreatedAt ?? new Date().toISOString(),
     })
   }
+
   if (session.phase !== 'meeting-details') {
     return session
   }
   if (!canFinalizeRecommendation(session)) {
     return session
   }
+  if (!rec || rec.status !== 'READY') {
+    return session
+  }
+
   const title = session.meeting.title.trim()
   if (!title) {
     return session
   }
+
+  const location = session.meeting.location.trim()
+  const counts = countAttendanceByType(session.attendanceTypes)
+  const slot = rec.evaluation.slot
+  const createdAt = new Date().toISOString()
+  const record: MeetingRecord = {
+    id: createId('meeting'),
+    sessionId: session.id,
+    meetingDraftId: session.meetingDraftId,
+    slotId: slot.id,
+    dateLabel: slot.dateLabel,
+    timeLabel: slot.timeLabel,
+    title,
+    location,
+    requiredCount: counts.requiredCount,
+    optionalCount: counts.optionalCount,
+    createdAt,
+  }
+
   return stamp({
     ...session,
-    meeting: { ...session.meeting, title },
-    meetingCreatedAt: new Date().toISOString(),
+    meeting: { title, location },
+    createdMeeting: record,
+    meetingCreatedAt: createdAt,
     phase: 'completed',
     actor: 'organizer',
   })
@@ -490,6 +565,7 @@ export function changeConditions(
     isNextAlternative: false,
     isReadyAfterConfirmation: false,
     meetingCreatedAt: undefined,
+    createdMeeting: undefined,
     meeting: { ...DEFAULT_MEETING },
     phase: 'participant-setup',
     actor: 'organizer',

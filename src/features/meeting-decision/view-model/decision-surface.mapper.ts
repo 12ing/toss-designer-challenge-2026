@@ -3,6 +3,14 @@ import type {
   ParticipantImpact,
   SlotEvaluation,
 } from '@/features/meeting-decision/engine/decision-engine.types'
+import {
+  needConfirmationStateLabel,
+  optionalAttendeeSummary,
+  PRODUCT_TERMS,
+  REASON_NOTE as COPY_REASON_NOTE,
+  requiredAttendeeSummary,
+  surfaceStatusCopy,
+} from '@/copy/product.copy'
 
 export type DecisionSurfaceMode =
   | 'ready'
@@ -65,8 +73,7 @@ export type DecisionSurfaceViewModel = {
 }
 
 const CONTEXT = '다음 주 · 1시간 · 6명'
-const REASON_NOTE =
-  '필수 참석 가능 여부를 먼저 확인한 뒤, 추가 조율이 적은 시간을 골랐어요.'
+const REASON_NOTE = COPY_REASON_NOTE
 const REASON_CLOSED_LABEL = '이 시간을 고른 이유'
 
 const ALLOWED_CONTEXT = new Set([
@@ -188,18 +195,18 @@ function mapParticipantRows(
 }
 
 function requiredSummary(evaluation: SlotEvaluation, allReady: boolean) {
-  if (allReady) {
-    return `필수 ${evaluation.requiredTotalCount}명 모두 가능`
-  }
-  return `필수 ${evaluation.requiredAvailableCount}명 가능`
+  return requiredAttendeeSummary(
+    evaluation.requiredAvailableCount,
+    evaluation.requiredTotalCount,
+    allReady,
+  )
 }
 
 function optionalSummary(evaluation: SlotEvaluation): string | null {
-  if (evaluation.optionalTotalCount === 0) return null
-  if (evaluation.optionalAvailableCount === evaluation.optionalTotalCount) {
-    return `선택 ${evaluation.optionalTotalCount}명 모두 가능`
-  }
-  return `선택 ${evaluation.optionalTotalCount}명 중 ${evaluation.optionalAvailableCount}명 가능`
+  return optionalAttendeeSummary(
+    evaluation.optionalAvailableCount,
+    evaluation.optionalTotalCount,
+  )
 }
 
 /**
@@ -357,8 +364,7 @@ export function mapRecommendationToDecisionSurface(params: {
     return {
       mode: 'no-option',
       contextLabel: CONTEXT,
-      stateLabel:
-        '현재 조건으로는 필수 참석자가 모두 가능한 1시간을 찾기 어려워요.',
+      stateLabel: surfaceStatusCopy.NO_OPTION.stateLabel,
       summaryLines: [],
       supportingLabel: '참석 조건을 조정하면 다시 찾아볼게요.',
       participantRows: [],
@@ -369,7 +375,7 @@ export function mapRecommendationToDecisionSurface(params: {
       reasonClosedLabel: REASON_CLOSED_LABEL,
       reasonNote: REASON_NOTE,
       primaryAction: {
-        label: '참석 조건 다시 보기',
+        label: surfaceStatusCopy.NO_OPTION.primaryCta!,
         kind: 'edit-conditions',
       },
       peoplePanelTitle: '현재 조건에서 막히는 이유',
@@ -438,31 +444,39 @@ export function mapRecommendationToDecisionSurface(params: {
 
   switch (mode) {
     case 'ready':
-      stateLabel = '바로 확정할 수 있어요.'
-      primaryAction = { label: '이 시간으로 확정', kind: 'confirm' }
+      stateLabel = surfaceStatusCopy.READY.stateLabel
+      primaryAction = {
+        label: surfaceStatusCopy.READY.primaryCta!,
+        kind: 'confirm',
+      }
       break
     case 'ready-after-confirmation':
-      stateLabel = '이제 확정할 수 있어요.'
-      primaryAction = { label: '이 시간으로 확정', kind: 'confirm' }
+      stateLabel = surfaceStatusCopy.READY_AFTER_CONFIRMATION.stateLabel
+      primaryAction = {
+        label: surfaceStatusCopy.READY_AFTER_CONFIRMATION.primaryCta!,
+        kind: 'confirm',
+      }
       break
     case 'need-confirmation':
-      stateLabel =
-        confirmationCount > 1
-          ? `확인 ${confirmationCount}번이면 필수 참석자가 모두 가능해요.`
-          : '확인 한 번이면 필수 참석자 모두 가능해요.'
+      stateLabel = needConfirmationStateLabel(confirmationCount)
       confirmationLine = `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
-      primaryAction = { label: '가능 여부 묻기', kind: 'request' }
+      primaryAction = {
+        label: PRODUCT_TERMS.askAvailability,
+        kind: 'request',
+      }
       break
     case 'waiting':
-      stateLabel = '응답을 기다리고 있어요.'
-      supportingLabel =
-        '확인되면 회의를 확정할 수 있는지 알려드릴게요.'
+      stateLabel = surfaceStatusCopy.WAITING.stateLabel
+      supportingLabel = surfaceStatusCopy.WAITING.supportingLabel
       break
     case 'next-alternative':
-      stateLabel = '다음으로 조율이 적은 시간을 찾았어요.'
+      stateLabel = surfaceStatusCopy.NEXT_ALTERNATIVE.stateLabel
       supportingLabel = '이전 시간은 일정 확인이 어려워 제외했어요.'
       if (recommendation.status === 'READY') {
-        primaryAction = { label: '이 시간으로 확정', kind: 'confirm' }
+        primaryAction = {
+          label: PRODUCT_TERMS.confirmTime,
+          kind: 'confirm',
+        }
         summaryLines.push(requiredSummary(evaluation, true))
         const opt = optionalSummary(evaluation)
         if (opt) summaryLines.push(opt)
@@ -471,7 +485,10 @@ export function mapRecommendationToDecisionSurface(params: {
           confirmationCount > 0
             ? `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
             : undefined
-        primaryAction = { label: '가능 여부 묻기', kind: 'request' }
+        primaryAction = {
+          label: PRODUCT_TERMS.askAvailability,
+          kind: 'request',
+        }
       }
       break
     default:

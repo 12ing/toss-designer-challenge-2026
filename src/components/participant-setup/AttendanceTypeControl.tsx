@@ -67,7 +67,7 @@ export function AttendanceTypeControl({
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-2xl border border-meeting-divider bg-meeting-surface shadow-sm motion-safe:transition-transform motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-2xl border border-meeting-divider bg-meeting-surface shadow-[0_1px_0_rgba(0,27,55,0.04)] motion-safe:transition-transform motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
         style={{
           transform: `translateX(${selectedIndex * 100}%)`,
         }}

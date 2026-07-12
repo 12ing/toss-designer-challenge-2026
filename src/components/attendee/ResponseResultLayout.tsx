@@ -30,7 +30,9 @@ export function ResponseResultLayout({
         ].join(' ')}
       >
         <h2
-          className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text max-[719px]:mb-4"
+          data-page-heading
+          tabIndex={-1}
+          className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text outline-none max-[719px]:mb-4"
           style={{ wordBreak: 'keep-all' }}
         >
           {title}

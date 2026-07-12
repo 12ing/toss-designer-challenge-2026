@@ -1,7 +1,7 @@
 import type { MeetingRecommendation, SlotEvaluation } from '../engine/decision-engine.types'
+import { REASON_NOTE } from '@/copy/product.copy'
 
-export const DISCLOSURE_NOTE =
-  '필수 참석 가능 여부를 먼저 확인한 뒤, 추가 조율이 적은 순서로 비교했어요.'
+export const DISCLOSURE_NOTE = REASON_NOTE
 
 export const CONTEXT_LABEL = '다음 주 · 1시간 · 6명'
 
