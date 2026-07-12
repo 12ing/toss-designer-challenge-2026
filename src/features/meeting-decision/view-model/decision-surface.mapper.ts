@@ -12,15 +12,29 @@ export type DecisionSurfaceMode =
   | 'next-alternative'
   | 'no-option'
 
-export type ImpactTone = 'positive' | 'neutral' | 'attention'
+export type ImpactTone = 'positive' | 'neutral' | 'attention' | 'waiting'
+
+export type StatusLabel =
+  | '가능'
+  | '확인 필요'
+  | '응답 대기'
+  | '참석 어려움'
 
 export type ParticipantImpactViewModel = {
   participantId: string
   name: string
   roleLabel: '필수' | '선택'
-  statusLabel: string
+  statusLabel: StatusLabel
   contextLabel?: string
   tone: ImpactTone
+  isConfirmationTarget: boolean
+  accessibleLabel: string
+}
+
+export type ConfirmationTargetSummary = {
+  count: number
+  name: string
+  contextLabel: string
 }
 
 export type DecisionSurfaceViewModel = {
@@ -31,8 +45,11 @@ export type DecisionSurfaceViewModel = {
   stateLabel: string
   summaryLines: string[]
   confirmationLine?: string
+  confirmationTarget?: ConfirmationTargetSummary
   supportingLabel?: string
   participantRows: ParticipantImpactViewModel[]
+  requiredRows: ParticipantImpactViewModel[]
+  optionalRows: ParticipantImpactViewModel[]
   confirmationCount: number
   reasonRows: Array<{ label: string; value: string }>
   reasonClosedLabel: string
@@ -44,6 +61,7 @@ export type DecisionSurfaceViewModel = {
   peoplePanelTitle: string
   blockingRows?: Array<{ label: string; value: string }>
   mobilePeopleSummary: string
+  mobileConfirmationHint?: string
 }
 
 const CONTEXT = '다음 주 · 1시간 · 6명'
@@ -53,6 +71,7 @@ const REASON_NOTE =
 const ALLOWED_CONTEXT = new Set([
   '개인 보호 시간',
   '점심 직후 회피',
+  '점심 직후 회피 반영',
   '외근',
   '외근 이후 이동',
   '고객 대응',
@@ -64,7 +83,7 @@ function sanitizeContext(raw?: string): string | undefined {
   if (!raw) return undefined
   if (ALLOWED_CONTEXT.has(raw)) return raw
   if (raw.includes('보호')) return '개인 보호 시간'
-  if (raw.includes('점심')) return '점심 직후 회피'
+  if (raw.includes('점심')) return '점심 직후 회피 반영'
   if (raw.includes('외근 이후') || raw.includes('이동')) return '외근 이후 이동'
   if (raw.includes('외근')) return '외근'
   if (raw.includes('고객')) return '고객 대응'
@@ -75,8 +94,11 @@ function sanitizeContext(raw?: string): string | undefined {
 function mapImpactStatus(
   impact: ParticipantImpact,
   options: { waitingParticipantId?: string },
-): Pick<ParticipantImpactViewModel, 'statusLabel' | 'tone' | 'contextLabel'> {
-  const contextLabel = sanitizeContext(impact.publicContext)
+): Pick<
+  ParticipantImpactViewModel,
+  'statusLabel' | 'tone' | 'contextLabel' | 'isConfirmationTarget'
+> {
+  const baseContext = sanitizeContext(impact.publicContext)
 
   if (
     options.waitingParticipantId &&
@@ -84,59 +106,57 @@ function mapImpactStatus(
   ) {
     return {
       statusLabel: '응답 대기',
-      tone: 'attention',
-      contextLabel: contextLabel ?? '개인 보호 시간',
+      tone: 'waiting',
+      contextLabel: baseContext ?? '개인 보호 시간',
+      isConfirmationTarget: true,
     }
   }
 
   switch (impact.status) {
     case 'required-available':
     case 'optional-available':
-      return { statusLabel: '가능', tone: 'positive' }
+      return {
+        statusLabel: '가능',
+        tone: 'positive',
+        isConfirmationTarget: false,
+      }
     case 'required-confirmation':
       return {
         statusLabel: '확인 필요',
         tone: 'attention',
-        contextLabel: contextLabel ?? '개인 보호 시간',
+        contextLabel: baseContext ?? '개인 보호 시간',
+        isConfirmationTarget: true,
       }
     case 'optional-unavailable':
       return {
         statusLabel: '참석 어려움',
         tone: 'neutral',
-        contextLabel,
+        contextLabel: baseContext,
+        isConfirmationTarget: false,
       }
     case 'required-available-with-note':
     case 'optional-available-with-note': {
       const ctx = impact.publicContext ?? ''
+      let contextLabel = sanitizeContext(ctx)
       if (ctx.includes('점심') || ctx.includes('선호')) {
-        return {
-          statusLabel: '선호 반영',
-          tone: 'neutral',
-          contextLabel: sanitizeContext(ctx) ?? '점심 직후 회피',
-        }
-      }
-      if (ctx.includes('외근 이후') || ctx.includes('이동')) {
-        return {
-          statusLabel: '외근 이후 가능',
-          tone: 'neutral',
-          contextLabel: '외근 이후 이동',
-        }
-      }
-      if (ctx.includes('외근')) {
-        return {
-          statusLabel: '외근 회피',
-          tone: 'neutral',
-          contextLabel: sanitizeContext(ctx) ?? '외근',
-        }
+        contextLabel = '점심 직후 회피 반영'
+      } else if (ctx.includes('외근 이후') || ctx.includes('이동')) {
+        contextLabel = '외근 이후 이동'
       }
       return {
         statusLabel: '가능',
-        tone: 'neutral',
-        contextLabel: sanitizeContext(ctx),
+        tone: 'positive',
+        contextLabel,
+        isConfirmationTarget: false,
       }
     }
     default:
-      return { statusLabel: '가능', tone: 'neutral', contextLabel }
+      return {
+        statusLabel: '가능',
+        tone: 'neutral',
+        contextLabel: baseContext,
+        isConfirmationTarget: false,
+      }
   }
 }
 
@@ -146,11 +166,22 @@ function mapParticipantRows(
 ): ParticipantImpactViewModel[] {
   return evaluation.participantImpacts.map((impact) => {
     const mapped = mapImpactStatus(impact, options)
+    const roleLabel = impact.attendanceType === 'required' ? '필수' : '선택'
+    const accessibleLabel = [
+      impact.name,
+      `${roleLabel} 참석자`,
+      mapped.statusLabel,
+      mapped.contextLabel,
+    ]
+      .filter(Boolean)
+      .join(', ')
+
     return {
       participantId: impact.participantId,
       name: impact.name,
-      roleLabel: impact.attendanceType === 'required' ? '필수' : '선택',
+      roleLabel,
       ...mapped,
+      accessibleLabel,
     }
   })
 }
@@ -183,7 +214,6 @@ function buildBlockingRows(evaluations: SlotEvaluation[]) {
         (i.publicContext?.includes('외근') ?? false) &&
         i.status === 'required-available-with-note',
     )
-    // Count hard-busy labeled 외근 among required conflicts via impacts
     const has외근Hard = evaluation.participantImpacts.some(
       (i) =>
         i.attendanceType === 'required' &&
@@ -222,10 +252,30 @@ function buildBlockingRows(evaluations: SlotEvaluation[]) {
   return rows
 }
 
-function mobileSummary(evaluation: SlotEvaluation, allReady: boolean) {
-  const req = requiredSummary(evaluation, allReady)
+function buildMobileSummary(
+  mode: DecisionSurfaceMode,
+  evaluation: SlotEvaluation,
+  confirmationCount: number,
+): { summary: string; confirmationHint?: string } {
+  if (mode === 'need-confirmation' || mode === 'waiting' || mode === 'next-alternative') {
+    const confirmNeeded = confirmationCount
+    const requiredAvailable = evaluation.requiredAvailableCount
+    const summary =
+      confirmNeeded > 0
+        ? `필수 ${requiredAvailable}명 가능 · ${confirmNeeded}명 확인 필요`
+        : requiredSummary(evaluation, false)
+    const target = evaluation.requiredConfirmationTargets[0]
+    return {
+      summary,
+      confirmationHint: target
+        ? `확인 대상 · ${target.name}`
+        : undefined,
+    }
+  }
+
+  const req = requiredSummary(evaluation, true)
   const opt = optionalSummary(evaluation)
-  return opt ? `${req} · ${opt}` : req
+  return { summary: opt ? `${req}\n${opt}` : req }
 }
 
 export function mapRecommendationToDecisionSurface(params: {
@@ -236,9 +286,7 @@ export function mapRecommendationToDecisionSurface(params: {
 
   if (recommendation.status === 'NO_OPTION' || mode === 'no-option') {
     const blocking =
-      recommendation.status === 'NO_OPTION'
-        ? recommendation
-        : null
+      recommendation.status === 'NO_OPTION' ? recommendation : null
     return {
       mode: 'no-option',
       contextLabel: CONTEXT,
@@ -247,6 +295,8 @@ export function mapRecommendationToDecisionSurface(params: {
       summaryLines: [],
       supportingLabel: '필수 참석자나 가능한 조건을 다시 확인해주세요.',
       participantRows: [],
+      requiredRows: [],
+      optionalRows: [],
       confirmationCount: 0,
       reasonRows: [],
       reasonClosedLabel: '이 시간인 이유',
@@ -277,6 +327,26 @@ export function mapRecommendationToDecisionSurface(params: {
   const participantRows = mapParticipantRows(evaluation, {
     waitingParticipantId: waitingId,
   })
+  const requiredRows = participantRows.filter((r) => r.roleLabel === '필수')
+  const optionalRows = participantRows.filter((r) => r.roleLabel === '선택')
+
+  const firstTarget =
+    evaluation.requiredConfirmationTargets[0] ??
+    (recommendation.status === 'NEED_CONFIRMATION'
+      ? recommendation.confirmationTargets[0]
+      : undefined)
+
+  const confirmationTarget: ConfirmationTargetSummary | undefined =
+    firstTarget &&
+    (mode === 'need-confirmation' ||
+      mode === 'waiting' ||
+      mode === 'next-alternative')
+      ? {
+          count: Math.max(confirmationCount, 1),
+          name: firstTarget.name,
+          contextLabel: firstTarget.publicLabel,
+        }
+      : undefined
 
   const summaryLines: string[] = []
   if (mode === 'ready' || mode === 'ready-after-confirmation') {
@@ -335,7 +405,6 @@ export function mapRecommendationToDecisionSurface(params: {
       break
   }
 
-  // Enrich reason rows: add confirmation row when needed
   const reasonRows = [...evaluation.reasonRows]
   if (
     confirmationCount > 0 &&
@@ -348,6 +417,8 @@ export function mapRecommendationToDecisionSurface(params: {
     })
   }
 
+  const mobile = buildMobileSummary(mode, evaluation, confirmationCount)
+
   return {
     mode,
     contextLabel: CONTEXT,
@@ -356,17 +427,18 @@ export function mapRecommendationToDecisionSurface(params: {
     stateLabel,
     summaryLines,
     confirmationLine,
+    confirmationTarget,
     supportingLabel,
     participantRows,
+    requiredRows,
+    optionalRows,
     confirmationCount,
     reasonRows: reasonRows.map((r) => ({ label: r.label, value: r.value })),
     reasonClosedLabel,
     reasonNote: REASON_NOTE,
     primaryAction,
     peoplePanelTitle: '이 시간에 6명은',
-    mobilePeopleSummary: mobileSummary(
-      evaluation,
-      mode === 'ready' || mode === 'ready-after-confirmation',
-    ),
+    mobilePeopleSummary: mobile.summary,
+    mobileConfirmationHint: mobile.confirmationHint,
   }
 }

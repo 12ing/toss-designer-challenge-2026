@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import type { ScenarioPresetId } from '@/features/meeting-decision/engine/decision-engine.types'
 import type { DecisionState } from '@/types/schedule'
@@ -19,17 +19,21 @@ export function ReviewNav({
   scenarioId,
   onOpenAttendee,
 }: Omit<ReviewShellProps, 'children'>) {
+  const [params] = useSearchParams()
+  const showDebug = params.get('debug') === '1'
+
   if (!visible) return null
 
   const showWaitingNav = state === 'waiting'
   const showScenarioNote =
-    state === 'participant-setup' ||
-    state === 'analyzing' ||
-    state === 'ready' ||
-    state === 'need-confirmation' ||
-    state === 'next-alternative' ||
-    state === 'ready-after-confirmation' ||
-    state === 'no-option'
+    showDebug &&
+    (state === 'participant-setup' ||
+      state === 'analyzing' ||
+      state === 'ready' ||
+      state === 'need-confirmation' ||
+      state === 'next-alternative' ||
+      state === 'ready-after-confirmation' ||
+      state === 'no-option')
 
   if (!showWaitingNav && !showScenarioNote) return null
 

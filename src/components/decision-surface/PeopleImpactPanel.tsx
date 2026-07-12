@@ -1,24 +1,108 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { ParticipantImpactRow } from '@/components/decision-surface/ParticipantImpactRow'
 import { TextButton } from '@/components/ui/TextButton'
-import type { ParticipantImpactViewModel } from '@/features/meeting-decision/view-model/decision-surface.mapper'
+import type {
+  ConfirmationTargetSummary,
+  ParticipantImpactViewModel,
+} from '@/features/meeting-decision/view-model/decision-surface.mapper'
 
 type PeopleImpactPanelProps = {
   title: string
-  rows: ParticipantImpactViewModel[]
+  requiredRows: ParticipantImpactViewModel[]
+  optionalRows: ParticipantImpactViewModel[]
   blockingRows?: Array<{ label: string; value: string }>
   mobileSummary: string
+  mobileConfirmationHint?: string
+  confirmationTarget?: ConfirmationTargetSummary
   collapsibleOnMobile?: boolean
+}
+
+function GroupedList({
+  requiredRows,
+  optionalRows,
+  requiredHeadingId,
+  optionalHeadingId,
+}: {
+  requiredRows: ParticipantImpactViewModel[]
+  optionalRows: ParticipantImpactViewModel[]
+  requiredHeadingId: string
+  optionalHeadingId: string
+}) {
+  return (
+    <div className="flex flex-col gap-5">
+      <section aria-labelledby={requiredHeadingId}>
+        <h4
+          id={requiredHeadingId}
+          className="mb-1 text-[13px] font-bold leading-5 text-meeting-text-secondary"
+        >
+          필수 참석자 {requiredRows.length}명
+        </h4>
+        <div>
+          {requiredRows.map((row) => (
+            <ParticipantImpactRow
+              key={row.participantId}
+              name={row.name}
+              statusLabel={row.statusLabel}
+              contextLabel={row.contextLabel}
+              tone={row.tone}
+              isConfirmationTarget={row.isConfirmationTarget}
+              accessibleLabel={row.accessibleLabel}
+            />
+          ))}
+        </div>
+      </section>
+
+      {optionalRows.length > 0 ? (
+        <section aria-labelledby={optionalHeadingId}>
+          <h4
+            id={optionalHeadingId}
+            className="mb-1 text-[13px] font-bold leading-5 text-meeting-text-secondary"
+          >
+            선택 참석자 {optionalRows.length}명
+          </h4>
+          <div>
+            {optionalRows.map((row) => (
+              <ParticipantImpactRow
+                key={row.participantId}
+                name={row.name}
+                statusLabel={row.statusLabel}
+                contextLabel={row.contextLabel}
+                tone={row.tone}
+                isConfirmationTarget={row.isConfirmationTarget}
+                accessibleLabel={row.accessibleLabel}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  )
 }
 
 export function PeopleImpactPanel({
   title,
-  rows,
+  requiredRows,
+  optionalRows,
   blockingRows,
   mobileSummary,
+  mobileConfirmationHint,
+  confirmationTarget,
   collapsibleOnMobile = true,
 }: PeopleImpactPanelProps) {
   const [expanded, setExpanded] = useState(false)
+  const requiredHeadingId = useId()
+  const optionalHeadingId = useId()
+
+  const confirmationBanner = confirmationTarget ? (
+    <div className="mb-4 rounded-xl bg-meeting-primary-subtle px-3 py-3">
+      <p className="text-[13px] font-semibold text-[color:var(--meeting-primary)]">
+        확인이 필요한 사람 {confirmationTarget.count}명
+      </p>
+      <p className="mt-1 text-[14px] font-medium text-meeting-text">
+        {confirmationTarget.name} · {confirmationTarget.contextLabel}
+      </p>
+    </div>
+  ) : null
 
   const list = blockingRows ? (
     <dl className="divide-y divide-meeting-divider">
@@ -33,19 +117,18 @@ export function PeopleImpactPanel({
       ))}
     </dl>
   ) : (
-    <div>
-      {rows.map((row) => (
-        <ParticipantImpactRow
-          key={row.participantId}
-          name={row.name}
-          roleLabel={row.roleLabel}
-          statusLabel={row.statusLabel}
-          contextLabel={row.contextLabel}
-          tone={row.tone}
-        />
-      ))}
-    </div>
+    <>
+      {confirmationBanner}
+      <GroupedList
+        requiredRows={requiredRows}
+        optionalRows={optionalRows}
+        requiredHeadingId={requiredHeadingId}
+        optionalHeadingId={optionalHeadingId}
+      />
+    </>
   )
+
+  const mobileSummaryLines = mobileSummary.split('\n')
 
   return (
     <section className="min-w-0">
@@ -60,9 +143,21 @@ export function PeopleImpactPanel({
           <>
             {!expanded ? (
               <>
-                <p className="mb-2 text-[14px] leading-[21px] text-meeting-text-secondary">
-                  {mobileSummary}
-                </p>
+                <div className="mb-2 flex flex-col gap-1">
+                  {mobileSummaryLines.map((line) => (
+                    <p
+                      key={line}
+                      className="text-[14px] leading-[21px] text-meeting-text-secondary"
+                    >
+                      {line}
+                    </p>
+                  ))}
+                  {mobileConfirmationHint ? (
+                    <p className="text-[14px] font-medium leading-[21px] text-meeting-text">
+                      {mobileConfirmationHint}
+                    </p>
+                  ) : null}
+                </div>
                 <TextButton
                   onClick={() => setExpanded(true)}
                   className="!min-h-10 text-[14px] underline"

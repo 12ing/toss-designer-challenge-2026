@@ -89,8 +89,7 @@ export function PrototypeApp() {
     >
       {flow.state === 'participant-setup' && (
         <ParticipantSetup
-          participants={flow.participants}
-          editable
+          attendanceTypes={flow.attendanceTypes}
           onAttendanceTypeChange={flow.setAttendanceType}
           onFindTime={flow.startAnalyzing}
         />

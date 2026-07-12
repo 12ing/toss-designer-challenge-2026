@@ -67,6 +67,25 @@ export function DecisionSurface({
     mode !== 'waiting' &&
     mode !== 'no-option'
 
+  const peoplePanel = (
+    <PeopleImpactPanel
+      title={vm.peoplePanelTitle}
+      requiredRows={vm.requiredRows}
+      optionalRows={vm.optionalRows}
+      blockingRows={vm.blockingRows}
+      mobileSummary={vm.mobilePeopleSummary}
+      mobileConfirmationHint={vm.mobileConfirmationHint}
+      confirmationTarget={
+        mode === 'need-confirmation' || mode === 'waiting'
+          ? vm.confirmationTarget
+          : mode === 'next-alternative'
+            ? vm.confirmationTarget
+            : undefined
+      }
+      collapsibleOnMobile={mode !== 'no-option'}
+    />
+  )
+
   const decisionColumn = (
     <div className="min-w-0">
       <p className="mb-4 text-[13px] font-medium leading-5 text-meeting-text-tertiary">
@@ -111,7 +130,7 @@ export function DecisionSurface({
       ) : null}
 
       {vm.confirmationLine ? (
-        <p className="mb-5 text-[15px] font-medium leading-[23px] text-meeting-text">
+        <p className="mb-4 text-[15px] font-medium leading-[23px] text-meeting-text">
           {vm.confirmationLine}
         </p>
       ) : null}
@@ -124,19 +143,23 @@ export function DecisionSurface({
 
       {vm.primaryAction && onPrimaryAction ? (
         <div className="mb-6 transition-opacity duration-[var(--meeting-motion-quick)]">
+          {vm.confirmationTarget &&
+          (mode === 'need-confirmation' || mode === 'next-alternative') ? (
+            <div className="mb-3">
+              <p className="text-[13px] leading-5 text-meeting-text-tertiary">
+                확인 대상 · {vm.confirmationTarget.name}
+              </p>
+              <p className="text-[14px] font-medium leading-[21px] text-meeting-text">
+                {vm.confirmationTarget.contextLabel}
+              </p>
+            </div>
+          ) : null}
           <Button onClick={onPrimaryAction}>{vm.primaryAction.label}</Button>
         </div>
       ) : null}
 
-      {/* Mobile: people panel between CTA and reason */}
       <div className="mb-6 border-t border-meeting-divider pt-6 min-[720px]:hidden">
-        <PeopleImpactPanel
-          title={vm.peoplePanelTitle}
-          rows={vm.participantRows}
-          blockingRows={vm.blockingRows}
-          mobileSummary={vm.mobilePeopleSummary}
-          collapsibleOnMobile={mode !== 'no-option'}
-        />
+        {peoplePanel}
       </div>
 
       {showReason && onToggleReason ? (
@@ -165,13 +188,7 @@ export function DecisionSurface({
           {decisionColumn}
 
           <div className="hidden border-l border-meeting-divider pl-8 min-[720px]:block">
-            <PeopleImpactPanel
-              title={vm.peoplePanelTitle}
-              rows={vm.participantRows}
-              blockingRows={vm.blockingRows}
-              mobileSummary={vm.mobilePeopleSummary}
-              collapsibleOnMobile={false}
-            />
+            {peoplePanel}
           </div>
         </div>
       </article>
