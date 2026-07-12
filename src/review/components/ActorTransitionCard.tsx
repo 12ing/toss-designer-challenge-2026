@@ -42,7 +42,7 @@ export function ActorTransitionCard({
           {name} 님의 응답 화면을 확인해보세요.
         </p>
         <Link to={preserveModeQuery(href)} className="block">
-          <Button type="button" variant="secondary">
+          <Button type="button" variant="primary" className="!min-h-[54px]">
             참석자 응답 보기
           </Button>
         </Link>

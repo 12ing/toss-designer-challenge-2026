@@ -31,14 +31,14 @@ export function ScreenShell({
     <div
       className={[
         'bg-meeting-bg',
-        embedded ? 'flex min-h-0 flex-1 flex-col' : 'min-h-screen',
+        embedded ? 'flex min-h-0 flex-1 flex-col' : 'min-h-[100dvh]',
         isMobile ? 'flex justify-center' : '',
       ].join(' ')}
     >
       <div
         className={[
           'mx-auto flex w-full flex-col',
-          embedded ? 'min-h-0 flex-1' : 'min-h-screen',
+          embedded ? 'min-h-0 flex-1' : 'min-h-[100dvh]',
           isMobile
             ? 'max-w-[390px] bg-meeting-surface'
             : wide
@@ -67,9 +67,9 @@ export function ScreenShell({
 
         <main
           className={[
-            'flex flex-1 flex-col',
+            'flex min-h-0 flex-1 flex-col',
             isMobile
-              ? 'px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2'
+              ? 'px-5 pb-0 pt-2'
               : '',
           ].join(' ')}
         >

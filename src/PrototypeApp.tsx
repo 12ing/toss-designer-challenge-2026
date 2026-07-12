@@ -50,7 +50,7 @@ function ReviewFrame({
   transition?: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-meeting-bg">
+    <div className="flex min-h-[100dvh] flex-col bg-meeting-bg">
       {showReviewNav ? <ReviewChrome step={step} debugLine={debugLine} /> : null}
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       {showReviewNav ? transition : null}
@@ -264,9 +264,7 @@ export function AttendeeRespondApp() {
   const scenarioId = useScenarioId()
   const flow = usePrototypeFlow(scenarioId, routeSessionId)
   const showReviewNav = shouldShowPrototypeControls()
-  const [step, setStep] = useState<'response' | 'result' | 'review-transition'>(
-    'response',
-  )
+  const [step, setStep] = useState<'response' | 'result'>('response')
 
   const storedMatch = findSessionByRequestId(requestId)
   const request =
@@ -310,19 +308,17 @@ export function AttendeeRespondApp() {
     } else {
       flow.finishAttendeeRejected()
     }
-    if (showReviewNav) {
-      setStep('review-transition')
+    if (showReviewNav && sessionId) {
+      navigate(organizerPath(sessionId, showReviewNav), { replace: true })
       return
     }
     navigate('/')
   }
 
   const reviewStep = reviewStepFromPhase(
-    step === 'review-transition'
-      ? 'attendee-approved'
-      : flow.session.phase === 'organizer-waiting'
-        ? 'attendee-request'
-        : flow.session.phase,
+    flow.session.phase === 'organizer-waiting'
+      ? 'attendee-request'
+      : flow.session.phase,
   )
 
   if (missing) {
@@ -362,22 +358,8 @@ export function AttendeeRespondApp() {
     request.response === 'declined' || flow.state === 'attendee-rejected'
   const approved = showApproved && !showDeclined
 
-  const transition =
-    step === 'review-transition' && sessionId ? (
-      <ActorTransitionCard
-        variant={
-          approved ? 'to-organizer-approved' : 'to-organizer-declined'
-        }
-        href={organizerPath(sessionId, showReviewNav)}
-      />
-    ) : null
-
   return (
-    <ReviewFrame
-      showReviewNav={showReviewNav}
-      step={reviewStep}
-      transition={transition}
-    >
+    <ReviewFrame showReviewNav={showReviewNav} step={reviewStep}>
       <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
         {!alreadyResponded && step === 'response' && (
           <AttendeeRequest
@@ -397,25 +379,6 @@ export function AttendeeRespondApp() {
             onConfirm={() => onProductConfirm(approved)}
           />
         )}
-
-        {step === 'review-transition' && showReviewNav ? (
-          <div className="flex flex-1 flex-col justify-center py-16">
-            <h2
-              className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
-              style={{ wordBreak: 'keep-all' }}
-            >
-              {approved ? '가능하다고 전달했어요.' : '어렵다고 전달했어요.'}
-            </h2>
-            <p
-              className="text-[16px] leading-6 text-meeting-text-secondary"
-              style={{ wordBreak: 'keep-all' }}
-            >
-              {approved
-                ? '회의가 확정되면 캘린더에 반영돼요.'
-                : '다른 시간을 다시 찾을게요.'}
-            </p>
-          </div>
-        ) : null}
       </ScreenShell>
     </ReviewFrame>
   )

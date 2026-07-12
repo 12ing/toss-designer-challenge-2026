@@ -74,7 +74,7 @@ export function AttendeeRequest({
         </p>
       </div>
 
-      <div className="mt-auto flex flex-col gap-3 pb-2">
+      <div className="mt-auto flex flex-col gap-3 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <button
           type="button"
           className={choiceButtonClass}
