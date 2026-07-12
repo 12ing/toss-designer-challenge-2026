@@ -27,11 +27,11 @@ function GroupedList({
   optionalHeadingId: string
 }) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col">
       <section aria-labelledby={requiredHeadingId}>
         <h4
           id={requiredHeadingId}
-          className="mb-1 text-[13px] font-bold leading-5 text-meeting-text-secondary"
+          className="mb-2 text-[13px] font-bold leading-5 text-meeting-text-secondary"
         >
           필수 참석자 {requiredRows.length}명
         </h4>
@@ -51,10 +51,10 @@ function GroupedList({
       </section>
 
       {optionalRows.length > 0 ? (
-        <section aria-labelledby={optionalHeadingId}>
+        <section aria-labelledby={optionalHeadingId} className="mt-5">
           <h4
             id={optionalHeadingId}
-            className="mb-1 text-[13px] font-bold leading-5 text-meeting-text-secondary"
+            className="mb-2 text-[13px] font-bold leading-5 text-meeting-text-secondary"
           >
             선택 참석자 {optionalRows.length}명
           </h4>
@@ -123,7 +123,7 @@ export function PeopleImpactPanel({
   if (forceExpanded) {
     return (
       <section className="min-w-0">
-        <h3 className="mb-3 text-[15px] font-bold leading-[23px] text-meeting-text">
+        <h3 className="mb-2 text-[15px] font-bold leading-[23px] text-meeting-text">
           {title}
         </h3>
         {list}
@@ -133,7 +133,7 @@ export function PeopleImpactPanel({
 
   return (
     <section className="min-w-0">
-      <h3 className="mb-3 text-[15px] font-bold leading-[23px] text-meeting-text">
+      <h3 className="mb-2 text-[15px] font-bold leading-[23px] text-meeting-text">
         {title}
       </h3>
 

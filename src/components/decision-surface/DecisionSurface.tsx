@@ -179,25 +179,22 @@ export function DecisionSurface({
 
   const decisionColumn = (
     <div className="min-w-0">
-      <p className="mb-3 text-[13px] font-medium leading-5 text-meeting-text-tertiary">
+      <p className="mb-2.5 text-[13px] font-medium leading-5 text-meeting-text-tertiary">
         {vm.contextLabel}
       </p>
 
       {vm.dateLabel && vm.timeLabel ? (
-        <div className="mb-4">
-          <p className="mb-1.5 text-[17px] font-semibold leading-[25px] text-meeting-text-secondary">
+        <div className="mb-3.5">
+          <p className="mb-1 text-[17px] font-semibold leading-[25px] text-meeting-text-secondary">
             {vm.dateLabel}
           </p>
-          <p className="text-[34px] font-bold leading-[44px] tracking-tight text-meeting-text max-[719px]:text-[30px] max-[719px]:leading-[40px]">
+          <p className="text-[32px] font-bold leading-[42px] tracking-tight text-meeting-text max-[719px]:text-[30px] max-[719px]:leading-[40px]">
             {vm.timeLabel}
           </p>
         </div>
       ) : null}
 
-      <div
-        className="mb-4 flex items-start gap-2"
-        aria-live="polite"
-      >
+      <div className="mb-3.5 flex items-start gap-2" aria-live="polite">
         <StateIcon mode={mode} />
         <p
           className="text-[17px] font-semibold leading-[26px] text-meeting-text"
@@ -208,7 +205,7 @@ export function DecisionSurface({
       </div>
 
       {vm.summaryLines.length > 0 ? (
-        <div className="mb-4 flex flex-col gap-1">
+        <div className="mb-3.5 flex flex-col gap-1">
           {vm.summaryLines.map((line) => (
             <p
               key={line}
@@ -221,22 +218,22 @@ export function DecisionSurface({
       ) : null}
 
       {vm.confirmationLine ? (
-        <p className="mb-3 text-[15px] font-medium leading-[23px] text-meeting-text">
+        <p className="mb-2.5 text-[15px] font-medium leading-[23px] text-meeting-text">
           {vm.confirmationLine}
         </p>
       ) : null}
 
       {vm.supportingLabel ? (
-        <p className="mb-4 text-[15px] leading-[23px] text-meeting-text-secondary">
+        <p className="mb-3.5 text-[15px] leading-[23px] text-meeting-text-secondary">
           {vm.supportingLabel}
         </p>
       ) : null}
 
       {vm.primaryAction && onPrimaryAction ? (
-        <div className="mb-4">
+        <div className="mb-3.5">
           {vm.confirmationTarget &&
           (mode === 'need-confirmation' || mode === 'next-alternative') ? (
-            <div className="mb-3">
+            <div className="mb-2.5">
               <p className="text-[13px] leading-5 text-meeting-text-tertiary">
                 확인 대상 · {vm.confirmationTarget.name}
               </p>
@@ -267,7 +264,7 @@ export function DecisionSurface({
             className="inline-flex min-h-11 items-center text-[14px] text-meeting-text-secondary underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
             onClick={() => setMobileSheet('reason')}
           >
-            이 시간인 이유
+            이 시간을 고른 이유
           </button>
         ) : null}
       </div>
@@ -276,7 +273,7 @@ export function DecisionSurface({
         <button
           ref={reasonTriggerRef}
           type="button"
-          className="mt-1 hidden min-h-11 items-center text-[14px] leading-[21px] text-meeting-text-secondary underline underline-offset-2 transition-colors hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] min-[720px]:inline-flex"
+          className="mt-0.5 hidden min-h-11 items-center text-[14px] leading-[21px] text-meeting-text-secondary underline underline-offset-2 transition-colors hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] min-[720px]:inline-flex"
           onClick={() => {
             if (contextView === 'reason') openPeople()
             else openReason()
@@ -293,37 +290,22 @@ export function DecisionSurface({
     <div className="mx-auto w-full max-w-[880px]">
       <article
         className={[
-          'w-full rounded-3xl border border-meeting-divider bg-meeting-surface p-6 shadow-[0_12px_32px_rgba(0,27,55,0.06)] max-[719px]:p-5',
+          'w-full rounded-3xl border border-meeting-divider bg-meeting-surface px-7 py-7 shadow-[0_12px_32px_rgba(0,27,55,0.06)] max-[719px]:p-5',
           animateIn
             ? 'animate-[card-in_var(--meeting-motion-standard)_var(--meeting-ease-standard)] motion-reduce:animate-none'
             : '',
         ].join(' ')}
       >
-        <div className="grid grid-cols-1 gap-6 min-[720px]:grid-cols-[minmax(0,1fr)_280px] min-[720px]:gap-7">
+        <div className="grid grid-cols-1 gap-6 min-[720px]:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] min-[720px]:items-start min-[720px]:gap-7">
           {decisionColumn}
 
-          <div className="relative hidden min-h-[380px] border-l border-meeting-divider pl-6 min-[720px]:block">
+          <div className="hidden border-l border-meeting-divider pl-6 min-[720px]:block">
             <div
-              className={[
-                'absolute inset-0 pl-6 transition-opacity duration-[180ms] ease-[var(--meeting-ease-standard)] motion-reduce:transition-none',
-                contextView === 'people'
-                  ? 'opacity-100'
-                  : 'pointer-events-none opacity-0',
-              ].join(' ')}
-              aria-hidden={contextView !== 'people'}
+              key={contextView}
+              className="animate-[panel-fade_180ms_ease] motion-reduce:animate-none"
+              aria-live="polite"
             >
-              {peoplePanel}
-            </div>
-            <div
-              className={[
-                'absolute inset-0 pl-6 transition-opacity duration-[180ms] ease-[var(--meeting-ease-standard)] motion-reduce:transition-none',
-                contextView === 'reason'
-                  ? 'opacity-100'
-                  : 'pointer-events-none opacity-0',
-              ].join(' ')}
-              aria-hidden={contextView !== 'reason'}
-            >
-              {reasonPanel}
+              {contextView === 'people' ? peoplePanel : reasonPanel}
             </div>
           </div>
 

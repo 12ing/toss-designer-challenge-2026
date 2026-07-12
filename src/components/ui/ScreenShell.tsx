@@ -42,8 +42,8 @@ export function ScreenShell({
           isMobile
             ? 'max-w-[390px] bg-meeting-surface'
             : wide
-              ? 'max-w-[944px] px-8 py-6'
-              : 'max-w-[640px] px-8 py-6',
+              ? 'max-w-[944px] px-8 py-5'
+              : 'max-w-[640px] px-8 py-5',
         ].join(' ')}
       >
         {showHeader ? (

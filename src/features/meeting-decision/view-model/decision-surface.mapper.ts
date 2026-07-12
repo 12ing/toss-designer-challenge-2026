@@ -66,7 +66,8 @@ export type DecisionSurfaceViewModel = {
 
 const CONTEXT = '다음 주 · 1시간 · 6명'
 const REASON_NOTE =
-  '필수 참석 가능 여부를 먼저 확인한 뒤, 추가 조율이 적은 순서로 비교했어요.'
+  '필수 참석 가능 여부를 먼저 확인한 뒤, 추가 조율이 적은 시간을 골랐어요.'
+const REASON_CLOSED_LABEL = '이 시간을 고른 이유'
 
 const ALLOWED_CONTEXT = new Set([
   '개인 보호 시간',
@@ -201,6 +202,49 @@ function optionalSummary(evaluation: SlotEvaluation): string | null {
   return `선택 ${evaluation.optionalTotalCount}명 중 ${evaluation.optionalAvailableCount}명 가능`
 }
 
+/**
+ * Surface-facing reason rows — max 3, no score/penalty, hide non-impactful items.
+ * Engine reasonRows remain the source of travel/preference signals.
+ */
+function buildDisplayReasonRows(
+  evaluation: SlotEvaluation,
+): Array<{ label: string; value: string }> {
+  const confirmCount = evaluation.requiredConfirmationTargets.length
+  const available = evaluation.requiredAvailableCount
+  const total = evaluation.requiredTotalCount
+
+  const rows: Array<{ label: string; value: string }> = []
+
+  const requiredValue =
+    confirmCount === 0 && available === total
+      ? `${total}명 모두 가능해요`
+      : confirmCount > 0
+        ? `현재 가능한 ${available}명 · ${confirmCount}명 확인 필요`
+        : `현재 가능한 ${available}명`
+  rows.push({ label: '필수 참석 조건', value: requiredValue })
+
+  const travel = evaluation.reasonRows.find((row) => row.key === 'travel')
+  if (travel?.value.includes('반영')) {
+    rows.push({
+      label: '이동 일정',
+      value: '외근 이후 이동 시간을 반영했어요',
+    })
+  }
+
+  if (evaluation.optionalTotalCount > 0) {
+    const { optionalAvailableCount, optionalTotalCount } = evaluation
+    rows.push({
+      label: '선택 참석자',
+      value:
+        optionalAvailableCount === optionalTotalCount
+          ? `${optionalTotalCount}명 모두 참석할 수 있어요`
+          : `${optionalTotalCount}명 중 ${optionalAvailableCount}명 참석할 수 있어요`,
+    })
+  }
+
+  return rows.slice(0, 3)
+}
+
 function buildBlockingRows(
   evaluations: SlotEvaluation[],
   options: { debug?: boolean } = {},
@@ -328,7 +372,7 @@ export function mapRecommendationToDecisionSurface(params: {
       optionalRows: [],
       confirmationCount: 0,
       reasonRows: [],
-      reasonClosedLabel: '이 시간인 이유',
+      reasonClosedLabel: REASON_CLOSED_LABEL,
       reasonNote: REASON_NOTE,
       primaryAction: {
         label: '참석 조건 다시 보기',
@@ -392,7 +436,6 @@ export function mapRecommendationToDecisionSurface(params: {
   let stateLabel = ''
   let confirmationLine: string | undefined
   let supportingLabel: string | undefined
-  let reasonClosedLabel = '이 시간인 이유'
   let primaryAction: DecisionSurfaceViewModel['primaryAction']
 
   switch (mode) {
@@ -411,7 +454,6 @@ export function mapRecommendationToDecisionSurface(params: {
           : '확인 한 번이면 필수 참석자 모두 가능해요.'
       confirmationLine = `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
       primaryAction = { label: '가능 여부 묻기', kind: 'request' }
-      reasonClosedLabel = '왜 이 시간이 조율이 가장 적나요?'
       break
     case 'waiting':
       stateLabel = '응답을 기다리고 있어요.'
@@ -432,23 +474,10 @@ export function mapRecommendationToDecisionSurface(params: {
             ? `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
             : undefined
         primaryAction = { label: '가능 여부 묻기', kind: 'request' }
-        reasonClosedLabel = '왜 이 시간이 조율이 가장 적나요?'
       }
       break
     default:
       break
-  }
-
-  const reasonRows = [...evaluation.reasonRows]
-  if (
-    confirmationCount > 0 &&
-    !reasonRows.some((r) => r.key === 'confirmation')
-  ) {
-    reasonRows.splice(1, 0, {
-      key: 'confirmation',
-      label: '확인 필요',
-      value: `개인 보호 시간 ${confirmationCount}건`,
-    })
   }
 
   const mobile = buildMobileSummary(mode, evaluation, confirmationCount)
@@ -467,8 +496,8 @@ export function mapRecommendationToDecisionSurface(params: {
     requiredRows,
     optionalRows,
     confirmationCount,
-    reasonRows: reasonRows.map((r) => ({ label: r.label, value: r.value })),
-    reasonClosedLabel,
+    reasonRows: buildDisplayReasonRows(evaluation),
+    reasonClosedLabel: REASON_CLOSED_LABEL,
     reasonNote: REASON_NOTE,
     primaryAction,
     peoplePanelTitle: '이 시간의 참석 상황',

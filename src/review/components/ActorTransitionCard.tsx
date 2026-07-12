@@ -22,27 +22,28 @@ export function ActorTransitionCard({
   }, [variant])
 
   if (variant === 'to-attendee') {
+    const name = recipientName ?? '참석자'
     return (
       <aside
-        className="fixed z-40 w-[min(100vw-2rem,360px)] rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-5 py-5 shadow-[0_12px_32px_rgba(0,27,55,0.12)] max-[719px]:inset-x-4 max-[719px]:bottom-4 max-[719px]:w-auto min-[720px]:right-6 min-[720px]:bottom-6"
-        aria-label="리뷰 역할 전환"
+        className="fixed z-40 w-[min(100vw-2rem,320px)] rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-4 py-4 shadow-[0_12px_32px_rgba(0,27,55,0.12)] animate-[review-panel-in_180ms_ease] motion-reduce:animate-none max-[719px]:inset-x-4 max-[719px]:bottom-[max(1rem,env(safe-area-inset-bottom))] max-[719px]:w-auto min-[720px]:top-[4.5rem] min-[720px]:right-6"
+        aria-label="참석자 응답 화면으로 이동"
         aria-live="polite"
       >
-        <p className="mb-1 text-[12px] font-medium text-meeting-text-tertiary">
-          Review
-        </p>
-        <p className="mb-1 text-[13px] font-semibold text-meeting-text-secondary">
-          다음 장면
-        </p>
         <p
-          className="mb-4 text-[15px] leading-[23px] text-meeting-text"
+          className="mb-1.5 text-[15px] font-semibold leading-[22px] text-meeting-text"
           style={{ wordBreak: 'keep-all' }}
         >
-          {recipientName ?? '참석자'} 님에게 일정 확인 알림이 도착했어요.
+          참석자에게 확인 요청을 보냈어요
+        </p>
+        <p
+          className="mb-4 text-[14px] leading-[21px] text-meeting-text-secondary"
+          style={{ wordBreak: 'keep-all' }}
+        >
+          {name} 님의 응답 화면을 확인해보세요.
         </p>
         <Link to={preserveModeQuery(href)} className="block">
           <Button type="button" variant="secondary">
-            참석자 화면 보기
+            참석자 응답 보기
           </Button>
         </Link>
       </aside>
@@ -57,12 +58,9 @@ export function ActorTransitionCard({
   return (
     <div
       className="mx-auto mt-4 w-full max-w-[390px] rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-5 py-5"
-      aria-label="리뷰 역할 전환"
+      aria-label="주최자 화면으로 이동"
       aria-live="polite"
     >
-      <p className="mb-1 text-[12px] font-medium text-meeting-text-tertiary">
-        Review
-      </p>
       <p
         className="mb-4 text-[15px] leading-[23px] text-meeting-text"
         style={{ wordBreak: 'keep-all' }}
