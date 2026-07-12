@@ -16,17 +16,17 @@ export const readyScenario: ReadyScenario = {
   optionalAvailable: 1,
   optionalTotal: 2,
   reasons: [
-    '외근 전후 시간을 피했어요.',
-    '개인 선호와 겹치는 경우가 가장 적어요.',
+    '외근 전후 시간을 피했어요',
+    '개인 선호 충돌이 가장 적어요',
   ],
   details: [
-    '꼭 참석해야 하는 4명 모두 가능',
-    '외근 전후 시간과 겹치지 않음',
-    '개인 선호와 겹치는 일정 없음',
-    '참석하면 좋은 2명 중 1명 가능',
+    { label: '필수 참석자', value: '4명 모두 가능' },
+    { label: '이동 일정', value: '외근 전후 시간과 겹치지 않음' },
+    { label: '개인 선호', value: '충돌하는 선호 없음' },
+    { label: '선택 참석자', value: '2명 중 1명 가능' },
   ],
   disclosureNote:
-    '꼭 참석해야 하는 사람이 모두 가능한 시간을 먼저 찾고, 그다음 일정 충돌과 개인 선호가 적은 순서로 비교했어요.',
+    '필수 참석자 가능 여부를 먼저 확인한 뒤, 일정 충돌과 선호가 적은 순서로 비교했어요.',
 }
 
 export const confirmationScenario: ConfirmationScenario = {
@@ -42,8 +42,7 @@ export const confirmationScenario: ConfirmationScenario = {
   requiredTotal: 4,
   optionalAvailable: 2,
   optionalTotal: 2,
-  resultMessage:
-    '가능하다고 답하면 꼭 참석해야 하는 4명 모두 만날 수 있어요.',
+  resultMessage: '확인되면 필수 참석자 4명 전원 참석 가능',
 }
 
 export const rejectedScenario: RejectedScenario = {
@@ -61,7 +60,7 @@ export const rejectedScenario: RejectedScenario = {
   requiredTotal: 4,
   optionalAvailable: 1,
   optionalTotal: 2,
-  resultMessage: '확인되면 꼭 참석해야 하는 4명 모두 참석할 수 있어요.',
+  resultMessage: '확인되면 필수 참석자 4명 모두 참석 가능',
 }
 
 export const scenarioMeta: Record<

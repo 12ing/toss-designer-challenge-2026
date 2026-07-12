@@ -31,12 +31,16 @@ export default function App() {
         name: rejectedScenario.targetParticipantName,
         dateDisplay: rejectedScenario.nextDateDisplay,
         timeLabel: rejectedScenario.nextTimeLabel,
+        conflictLabel: rejectedScenario.conflictType,
+        resultLabel: rejectedScenario.resultMessage,
         requiredAvailable: rejectedScenario.requiredAvailable,
       }
     : {
         name: confirmationScenario.targetParticipantName,
         dateDisplay: confirmationScenario.dateDisplay,
         timeLabel: confirmationScenario.timeLabel,
+        conflictLabel: confirmationScenario.conflictType,
+        resultLabel: confirmationScenario.resultMessage,
         requiredAvailable: confirmationScenario.requiredAvailable,
       }
 
@@ -72,36 +76,41 @@ export default function App() {
 
       {flow.state === 'ready' && (
         <DecisionCard
-          variant="ready"
+          state="ready"
           animateIn
-          stateMessage="가장 적은 조율로 확정할 수 있는 시간이에요."
-          dateDisplay={readyScenario.dateDisplay}
+          statusTitle="가장 적은 조율로 확정할 수 있어요"
+          dateLabel={readyScenario.dateDisplay}
           timeLabel={readyScenario.timeLabel}
-          requiredText={`꼭 참석해야 하는 ${readyScenario.requiredTotal}명 모두 가능해요.`}
-          optionalText={`참석하면 좋은 ${readyScenario.optionalTotal}명 중 ${readyScenario.optionalAvailable}명이 가능해요.`}
+          attendance={{
+            requiredAvailable: readyScenario.requiredAvailable,
+            requiredTotal: readyScenario.requiredTotal,
+            optionalAvailable: readyScenario.optionalAvailable,
+            optionalTotal: readyScenario.optionalTotal,
+          }}
           reasons={readyScenario.reasons}
           details={readyScenario.details}
           disclosureNote={readyScenario.disclosureNote}
-          primaryCtaText="이 시간으로 확정"
-          onPrimaryCta={flow.goToMeetingDetails}
-          showReasonDisclosure
-          reasonExpanded={flow.reasonExpanded}
+          isReasonExpanded={flow.reasonExpanded}
           onToggleReason={flow.toggleReasonExpanded}
+          onPrimaryAction={flow.goToMeetingDetails}
           onChangeConditions={flow.changeConditions}
         />
       )}
 
       {flow.state === 'need-confirmation' && (
         <DecisionCard
-          variant="need-confirmation"
+          state="need-confirmation"
           animateIn
-          stateMessage="한 번의 확인으로 모두 가능한 시간을 만들 수 있어요."
-          dateDisplay={confirmationScenario.dateDisplay}
+          statusTitle="한 번의 확인으로 모두 가능해요"
+          dateLabel={confirmationScenario.dateDisplay}
           timeLabel={confirmationScenario.timeLabel}
-          confirmationRequirement={`${confirmationScenario.targetParticipantName} 님의 ${confirmationScenario.conflictType}을 사용할 수 있는지 확인해야 해요.`}
-          resultMessage={confirmationScenario.resultMessage}
-          primaryCtaText="가능 여부 묻기"
-          onPrimaryCta={flow.openRequestPreview}
+          confirmation={{
+            participantName: confirmationScenario.targetParticipantName,
+            conflictLabel: confirmationScenario.conflictType,
+            resultLabel: confirmationScenario.resultMessage,
+          }}
+          supportingText="현재 가장 적은 확인이 필요한 시간이에요"
+          onPrimaryAction={flow.openRequestPreview}
           onChangeConditions={flow.changeConditions}
         />
       )}
@@ -120,14 +129,12 @@ export default function App() {
       {flow.state === 'waiting' && (
         <div className="flex flex-col gap-4">
           <DecisionCard
-            variant="waiting"
-            stateMessage={`${confirmView.name} 님의 응답을 기다리고 있어요.`}
-            dateDisplay={confirmView.dateDisplay}
+            state="waiting"
+            statusTitle={`${confirmView.name} 님의 응답을 기다리고 있어요`}
+            dateLabel={confirmView.dateDisplay}
             timeLabel={confirmView.timeLabel}
-            requiredText={`현재 꼭 참석해야 하는 ${confirmView.requiredAvailable}명은 가능해요.`}
-            optionalText="응답이 오면 확정할 수 있는지 다시 알려드릴게요."
-            primaryCtaText=""
-            onPrimaryCta={() => undefined}
+            waitingImpact={`현재 필수 참석자 ${confirmView.requiredAvailable}명은 가능해요`}
+            supportingText="응답이 오면 다시 알려드릴게요"
             onCancelRequest={flow.cancelRequest}
             onChangeConditions={flow.changeConditions}
           />
@@ -143,7 +150,6 @@ export default function App() {
         <AttendeeRequest
           dateDisplay={confirmView.dateDisplay}
           timeLabel={confirmView.timeLabel}
-          conflictType="개인 업무 시간"
           loading={flow.isResponding}
           onApprove={flow.approveRequest}
           onReject={flow.rejectRequest}
@@ -163,33 +169,38 @@ export default function App() {
 
       {flow.state === 'ready-after-confirmation' && (
         <DecisionCard
-          variant="ready-after-confirmation"
+          state="ready-after-confirmation"
           animateIn
-          stateMessage="이제 확정할 수 있어요."
-          dateDisplay={confirmView.dateDisplay}
+          statusTitle="이제 확정할 수 있어요"
+          dateLabel={confirmView.dateDisplay}
           timeLabel={confirmView.timeLabel}
-          requiredText="꼭 참석해야 하는 4명 모두 가능해요."
-          optionalText="참석하면 좋은 2명도 모두 가능해요."
-          helperText="필요한 일정 확인이 끝났어요."
-          primaryCtaText="이 시간으로 확정"
-          onPrimaryCta={flow.goToMeetingDetails}
+          attendance={{
+            requiredAvailable: 4,
+            requiredTotal: 4,
+            optionalAvailable: 2,
+            optionalTotal: 2,
+          }}
+          supportingText="필요한 일정 확인이 끝났어요"
+          onPrimaryAction={flow.goToMeetingDetails}
         />
       )}
 
       {flow.state === 'next-alternative' && (
         <DecisionCard
-          variant="next-alternative"
+          state="next-alternative"
           animateIn
-          stateMessage={[
-            '목요일 오후 3시는 조율하기 어려워요.',
-            '다음으로 확인이 적은 시간을 찾았어요.',
+          statusTitle={[
+            '목요일 오후 3시는 조율하기 어려워요',
+            '다음으로 확인이 적은 시간을 찾았어요',
           ]}
-          dateDisplay={rejectedScenario.nextDateDisplay}
+          dateLabel={rejectedScenario.nextDateDisplay}
           timeLabel={rejectedScenario.nextTimeLabel}
-          confirmationRequirement={`${rejectedScenario.targetParticipantName} 님의 ${rejectedScenario.conflictType}을 사용할 수 있는지 확인해야 해요.`}
-          resultMessage={rejectedScenario.resultMessage}
-          primaryCtaText="가능 여부 묻기"
-          onPrimaryCta={flow.openRequestPreview}
+          confirmation={{
+            participantName: rejectedScenario.targetParticipantName,
+            conflictLabel: rejectedScenario.conflictType,
+            resultLabel: rejectedScenario.resultMessage,
+          }}
+          onPrimaryAction={flow.openRequestPreview}
           onChangeConditions={flow.changeConditions}
         />
       )}

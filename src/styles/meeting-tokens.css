@@ -1,0 +1,38 @@
+/* Meeting Decision visual tokens — Quiet Confidence
+   Additive to project theme; does not replace global TDS tokens. */
+
+:root {
+  --meeting-bg: #f5f6f8;
+  --meeting-surface: #ffffff;
+
+  --meeting-text-primary: #191f28;
+  --meeting-text-secondary: #4e5968;
+  --meeting-text-tertiary: #8b95a1;
+
+  --meeting-divider: #e5e8eb;
+  --meeting-panel: #f7f8fa;
+
+  --meeting-primary: #3b6ff5;
+  --meeting-primary-pressed: #315fd4;
+  --meeting-primary-subtle: #eef3ff;
+
+  --meeting-positive: #20a66a;
+  --meeting-positive-subtle: #eaf8f1;
+
+  --meeting-neutral-emphasis: #6b7684;
+  --meeting-focus: #8fb2ff;
+
+  --meeting-shadow: 0 8px 24px rgba(0, 27, 55, 0.06);
+
+  --meeting-radius-card: 24px;
+  --meeting-radius-panel: 16px;
+  --meeting-radius-button: 14px;
+  --meeting-radius-input: 12px;
+  --meeting-radius-pill: 999px;
+
+  --meeting-motion-quick: 160ms;
+  --meeting-motion-standard: 240ms;
+  --meeting-motion-emphasis: 320ms;
+  --meeting-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --meeting-ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+}

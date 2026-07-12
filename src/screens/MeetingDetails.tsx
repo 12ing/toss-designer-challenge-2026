@@ -21,15 +21,17 @@ export function MeetingDetails({
   onBack,
 }: MeetingDetailsProps) {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-[20px] bg-background px-7 py-8 sm:px-8">
-        <h2 className="mb-6 text-[20px] font-semibold leading-7 text-grey-900">
+    <div className="mx-auto w-full max-w-[560px]">
+      <div className="rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)]">
+        <h2 className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text">
           이 시간으로 회의를 만들까요?
         </h2>
 
         <div className="mb-6">
-          <p className="mb-1.5 text-[15px] text-grey-600">{dateDisplay}</p>
-          <p className="text-[28px] font-bold leading-9 text-grey-900">
+          <p className="mb-1.5 text-[18px] font-semibold leading-[26px] text-meeting-text-secondary">
+            {dateDisplay}
+          </p>
+          <p className="text-[36px] font-bold leading-[46px] text-meeting-text">
             {timeLabel}
           </p>
         </div>

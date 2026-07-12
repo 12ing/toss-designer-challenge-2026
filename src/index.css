@@ -1,11 +1,12 @@
 @import 'tailwindcss';
 @import '@toss/tds-colors/colors.light.css';
+@import './styles/meeting-tokens.css';
 
 @theme {
   --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui,
     sans-serif;
 
-  /* TDS adaptive color tokens → Tailwind */
+  /* Existing TDS mappings (kept for non-meeting screens) */
   --color-grey-50: var(--adaptiveGrey50);
   --color-grey-100: var(--adaptiveGrey100);
   --color-grey-200: var(--adaptiveGrey200);
@@ -29,6 +30,21 @@
   --color-grey-background: var(--adaptiveGreyBackground);
   --color-pc-screen: var(--adaptivePcScreenBg);
   --color-hairline: var(--adaptiveHairlineBorder);
+
+  /* Meeting visual tokens */
+  --color-meeting-bg: var(--meeting-bg);
+  --color-meeting-surface: var(--meeting-surface);
+  --color-meeting-text: var(--meeting-text-primary);
+  --color-meeting-text-secondary: var(--meeting-text-secondary);
+  --color-meeting-text-tertiary: var(--meeting-text-tertiary);
+  --color-meeting-divider: var(--meeting-divider);
+  --color-meeting-panel: var(--meeting-panel);
+  --color-meeting-primary: var(--meeting-primary);
+  --color-meeting-primary-pressed: var(--meeting-primary-pressed);
+  --color-meeting-primary-subtle: var(--meeting-primary-subtle);
+  --color-meeting-positive: var(--meeting-positive);
+  --color-meeting-positive-subtle: var(--meeting-positive-subtle);
+  --color-meeting-focus: var(--meeting-focus);
 }
 
 * {
@@ -44,8 +60,8 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  color: var(--adaptiveGrey900);
-  background: var(--adaptivePcScreenBg);
+  color: var(--meeting-text-primary);
+  background: var(--meeting-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -72,5 +88,16 @@ button {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: none;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }

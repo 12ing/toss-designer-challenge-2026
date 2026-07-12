@@ -14,7 +14,7 @@ export function TextButton({
     <button
       type={type}
       className={[
-        'min-h-11 text-[15px] font-medium text-grey-500 underline-offset-2 transition-colors hover:text-grey-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+        'min-h-11 text-[15px] font-medium text-meeting-text-tertiary underline-offset-2 transition-colors hover:text-meeting-text-secondary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
         className,
       ].join(' ')}
       {...props}

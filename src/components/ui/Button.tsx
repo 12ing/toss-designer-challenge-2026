@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { SpinnerIcon } from '@/components/icons'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
 
@@ -7,15 +8,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   fullWidth?: boolean
   loading?: boolean
+  size?: 'desktop' | 'mobile'
 }
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 disabled:bg-blue-100 disabled:text-white/80',
+    'bg-meeting-primary text-white hover:brightness-95 active:bg-meeting-primary-pressed disabled:opacity-50',
   secondary:
-    'bg-grey-100 text-grey-800 hover:bg-grey-200 active:bg-grey-300 disabled:opacity-50',
+    'border border-meeting-divider bg-meeting-surface text-meeting-text hover:bg-meeting-panel active:bg-meeting-panel disabled:opacity-50',
   ghost:
-    'bg-transparent text-grey-600 hover:bg-grey-100 hover:text-grey-800 disabled:opacity-50',
+    'bg-transparent text-meeting-text-secondary hover:bg-meeting-panel hover:text-meeting-text disabled:opacity-50',
 }
 
 export function Button({
@@ -23,24 +25,35 @@ export function Button({
   variant = 'primary',
   fullWidth = true,
   loading = false,
+  size = 'desktop',
   className = '',
   disabled,
   type = 'button',
   ...props
 }: ButtonProps) {
+  const height = size === 'mobile' ? 'min-h-14' : 'min-h-[52px]'
+
   return (
     <button
       type={type}
       disabled={disabled || loading}
       className={[
-        'inline-flex min-h-14 items-center justify-center rounded-2xl px-5 text-[17px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+        'inline-flex items-center justify-center gap-2 rounded-[var(--meeting-radius-button)] px-5 text-[16px] font-semibold leading-6 transition-[background-color,filter,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
+        height,
         fullWidth ? 'w-full' : '',
         variantClass[variant],
         className,
       ].join(' ')}
       {...props}
     >
-      {loading ? '요청 보내는 중' : children}
+      {loading ? (
+        <>
+          <SpinnerIcon className="h-4 w-4" />
+          요청 보내는 중
+        </>
+      ) : (
+        children
+      )}
     </button>
   )
 }

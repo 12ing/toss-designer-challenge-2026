@@ -1,9 +1,15 @@
-interface ReasonDisclosureProps {
+import { useEffect, useRef } from 'react'
+
+type ReasonDetail = {
+  label: string
+  value: string
+}
+
+type ReasonDisclosureProps = {
   open: boolean
   onToggle: () => void
-  details: string[]
+  details: ReasonDetail[]
   note?: string
-  title?: string
 }
 
 export function ReasonDisclosure({
@@ -11,13 +17,27 @@ export function ReasonDisclosure({
   onToggle,
   details,
   note,
-  title = '이 시간을 추천한 이유',
 }: ReasonDisclosureProps) {
+  const headingRef = useRef<HTMLParagraphElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const wasOpen = useRef(open)
+
+  useEffect(() => {
+    if (open && !wasOpen.current) {
+      headingRef.current?.focus()
+    }
+    if (!open && wasOpen.current) {
+      buttonRef.current?.focus()
+    }
+    wasOpen.current = open
+  }, [open])
+
   return (
-    <div className="border-t border-hairline pt-4">
+    <div className="border-t border-meeting-divider pt-4">
       <button
+        ref={buttonRef}
         type="button"
-        className="min-h-11 text-[13px] leading-5 text-grey-500 underline underline-offset-2 transition-colors hover:text-grey-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        className="min-h-11 text-[14px] leading-[21px] text-meeting-text-tertiary underline underline-offset-2 transition-colors hover:text-meeting-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
         onClick={onToggle}
         aria-expanded={open}
       >
@@ -25,31 +45,35 @@ export function ReasonDisclosure({
       </button>
 
       <div
-        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none ${
+        className={`grid transition-[grid-template-rows,opacity] duration-[var(--meeting-motion-standard)] ease-[var(--meeting-ease-standard)] motion-reduce:transition-none ${
           open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         }`}
       >
         <div className="overflow-hidden">
-          <div className="mt-4 rounded-2xl bg-grey-50 px-4 py-4">
-            <p className="mb-3 text-[13px] font-semibold text-grey-800">
-              {title}
+          <div className="mt-4">
+            <p
+              ref={headingRef}
+              tabIndex={-1}
+              className="mb-4 text-[15px] font-semibold text-meeting-text outline-none"
+            >
+              이 시간을 추천한 이유
             </p>
-            <ul className="mb-3 flex flex-col gap-2">
+            <dl className="grid gap-4 sm:grid-cols-2">
               {details.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 text-[13px] leading-5 text-grey-600"
-                >
-                  <span
-                    aria-hidden
-                    className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-grey-400"
-                  />
-                  {item}
-                </li>
+                <div key={item.label} className="flex flex-col gap-1">
+                  <dt className="text-[14px] leading-[21px] text-meeting-text-secondary">
+                    {item.label}
+                  </dt>
+                  <dd className="text-[15px] leading-[23px] text-meeting-text">
+                    {item.value}
+                  </dd>
+                </div>
               ))}
-            </ul>
+            </dl>
             {note && (
-              <p className="text-[13px] leading-5 text-grey-500">{note}</p>
+              <p className="mt-4 text-[14px] leading-[21px] text-meeting-text-tertiary">
+                {note}
+              </p>
             )}
           </div>
         </div>

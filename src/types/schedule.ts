@@ -34,6 +34,11 @@ export type DecisionCardState =
   | 'ready-after-confirmation'
   | 'next-alternative'
 
+export type DecisionCriterion = {
+  label: string
+  value: string
+}
+
 export type ReadyScenario = {
   id: 'ready'
   date: string
@@ -45,7 +50,7 @@ export type ReadyScenario = {
   optionalAvailable: number
   optionalTotal: number
   reasons: string[]
-  details: string[]
+  details: DecisionCriterion[]
   disclosureNote: string
 }
 
