@@ -45,6 +45,7 @@
   --color-meeting-primary-subtle: var(--meeting-primary-subtle);
   --color-meeting-positive: var(--meeting-positive);
   --color-meeting-positive-subtle: var(--meeting-positive-subtle);
+  --color-meeting-waiting: var(--meeting-waiting);
   --color-meeting-focus: var(--meeting-focus);
 }
 

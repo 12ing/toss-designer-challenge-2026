@@ -31,7 +31,12 @@ export function ParticipantConditionRow({
 
   return (
     <div
-      className="grid grid-cols-1 gap-3 py-3.5 min-[640px]:grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_minmax(120px,auto)] min-[640px]:items-center min-[640px]:gap-5"
+      className={[
+        'grid grid-cols-1 gap-2 py-3 min-[640px]:grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_120px] min-[640px]:items-center min-[640px]:gap-5 min-[640px]:py-2.5',
+        row.isOrganizer
+          ? 'min-[640px]:min-h-[58px]'
+          : 'min-h-[72px] min-[640px]:min-h-16',
+      ].join(' ')}
       aria-label={row.accessibleSummary}
     >
       <div className="flex min-w-0 items-start justify-between gap-3 min-[640px]:block">

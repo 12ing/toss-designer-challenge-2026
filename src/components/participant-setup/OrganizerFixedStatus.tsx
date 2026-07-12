@@ -2,7 +2,7 @@
 export function OrganizerFixedStatus() {
   return (
     <span
-      className="inline-flex min-h-11 items-center justify-center px-1 text-[13px] font-semibold text-meeting-text-secondary"
+      className="inline-flex h-9 min-w-[72px] items-center justify-center px-1 text-[13px] font-semibold leading-5 text-meeting-text-secondary"
       aria-hidden
     >
       필수 고정

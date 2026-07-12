@@ -321,7 +321,6 @@ export function AttendeeRespondApp() {
         <AttendeeRequest
           dateDisplay={request.dateLabel}
           timeLabel={request.timeLabel}
-          meetingTitle={request.meetingTitle}
           organizerName={request.organizerName}
           conflictLabel={request.conflictPublicLabel}
           loading={flow.isResponding}

@@ -66,7 +66,7 @@ export function SchedulingPrivacyPopover({
         }
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label="공유된 일정 조건 안내"
+        aria-label="일정 조건 안내"
         onClick={() => setOpen((prev) => !prev)}
       >
         {variant === 'icon' ? (

@@ -89,17 +89,23 @@ export function PeopleImpactPanel({
   const optionalHeadingId = useId()
 
   const list = blockingRows ? (
-    <dl className="divide-y divide-meeting-divider">
+    <ul className="divide-y divide-meeting-divider">
       {blockingRows.map((row) => (
-        <div
-          key={row.label}
-          className="flex items-baseline justify-between gap-3 py-3"
-        >
-          <dt className="text-[14px] text-meeting-text-secondary">{row.label}</dt>
-          <dd className="text-[15px] font-medium text-meeting-text">{row.value}</dd>
-        </div>
+        <li key={row.label} className="py-3">
+          <p
+            className="text-[14px] leading-[21px] text-meeting-text"
+            style={{ wordBreak: 'keep-all' }}
+          >
+            {row.label}
+          </p>
+          {row.value ? (
+            <p className="mt-1 text-[13px] font-medium text-meeting-text-secondary">
+              {row.value}
+            </p>
+          ) : null}
+        </li>
       ))}
-    </dl>
+    </ul>
   ) : (
     <GroupedList
       requiredRows={requiredRows}

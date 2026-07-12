@@ -139,7 +139,7 @@ function mapImpactStatus(
       const ctx = impact.publicContext ?? ''
       let contextLabel = sanitizeContext(ctx)
       if (ctx.includes('점심') || ctx.includes('선호')) {
-        contextLabel = '점심 직후 회피 반영'
+        contextLabel = '점심 직후 회피'
       } else if (ctx.includes('외근 이후') || ctx.includes('이동')) {
         contextLabel = '외근 이후 이동'
       }
@@ -201,7 +201,10 @@ function optionalSummary(evaluation: SlotEvaluation): string | null {
   return `선택 ${evaluation.optionalTotalCount}명 중 ${evaluation.optionalAvailableCount}명 가능`
 }
 
-function buildBlockingRows(evaluations: SlotEvaluation[]) {
+function buildBlockingRows(
+  evaluations: SlotEvaluation[],
+  options: { debug?: boolean } = {},
+) {
   let hardConflictSlots = 0
   let travelConflictSlots = 0
   let protectedSlots = 0
@@ -224,32 +227,57 @@ function buildBlockingRows(evaluations: SlotEvaluation[]) {
     if (evaluation.requiredConfirmationTargets.length > 0) protectedSlots += 1
   }
 
-  const rows: Array<{ label: string; value: string }> = []
-  if (hardConflictSlots > 0) {
-    rows.push({
-      label: '필수 일정 충돌',
-      value: `${hardConflictSlots}개 시간`,
-    })
+  if (options.debug) {
+    const rows: Array<{ label: string; value: string }> = []
+    if (hardConflictSlots > 0) {
+      rows.push({
+        label: '필수 일정 충돌',
+        value: `${hardConflictSlots}개 시간`,
+      })
+    }
+    if (travelConflictSlots > 0) {
+      rows.push({
+        label: '외근과 겹침',
+        value: `${travelConflictSlots}개 시간`,
+      })
+    }
+    if (protectedSlots === 0) {
+      rows.push({
+        label: '확인 가능한 보호 시간',
+        value: '없음',
+      })
+    }
+    if (rows.length === 0) {
+      rows.push({
+        label: '필수 참석자 가능 시간',
+        value: '없음',
+      })
+    }
+    return rows
   }
-  if (travelConflictSlots > 0) {
-    rows.push({
-      label: '외근과 겹침',
-      value: `${travelConflictSlots}개 시간`,
-    })
-  }
+
+  const rows: Array<{ label: string; value: string }> = [
+    {
+      label: '필수 참석자의 고정 일정이 겹쳐요.',
+      value: '',
+    },
+    {
+      label: '외근 시간을 제외하면 가능한 구간이 없어요.',
+      value: '',
+    },
+  ]
   if (protectedSlots === 0) {
     rows.push({
-      label: '확인 가능한 보호 시간',
-      value: '없음',
-    })
-  }
-  if (rows.length === 0) {
-    rows.push({
-      label: '필수 참석자 가능 시간',
-      value: '없음',
+      label: '확인을 요청할 수 있는 보호 시간이 없어요.',
+      value: '',
     })
   }
   return rows
+}
+
+function isDebugMode() {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('debug') === '1'
 }
 
 function buildMobileSummary(
@@ -287,13 +315,15 @@ export function mapRecommendationToDecisionSurface(params: {
   if (recommendation.status === 'NO_OPTION' || mode === 'no-option') {
     const blocking =
       recommendation.status === 'NO_OPTION' ? recommendation : null
+    const debug = isDebugMode()
     return {
       mode: 'no-option',
       contextLabel: CONTEXT,
       stateLabel:
-        '현재 조건으로는 다음 주 안에 모두가 가능한 1시간을 찾기 어려워요.',
+        '현재 조건으로는 모두가 가능한 1시간을 찾기 어려워요.',
       summaryLines: [],
-      supportingLabel: '필수 참석자나 가능한 조건을 다시 확인해주세요.',
+      supportingLabel:
+        '필수 참석자의 고정 일정이 서로 겹치고, 외근 시간을 피하면 1시간 연속으로 가능한 구간이 남지 않아요.',
       participantRows: [],
       requiredRows: [],
       optionalRows: [],
@@ -307,8 +337,13 @@ export function mapRecommendationToDecisionSurface(params: {
       },
       peoplePanelTitle: '현재 조건에서 막히는 이유',
       blockingRows: blocking
-        ? buildBlockingRows(blocking.evaluations)
-        : [{ label: '필수 참석자 가능 시간', value: '없음' }],
+        ? buildBlockingRows(blocking.evaluations, { debug })
+        : [
+            {
+              label: '필수 참석자의 고정 일정이 겹쳐요.',
+              value: '',
+            },
+          ],
       mobilePeopleSummary: '가능한 공통 시간 없음',
     }
   }

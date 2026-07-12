@@ -19,22 +19,33 @@ export function AttendanceTypeControl({
   const selectedIndex = value === 'required' ? 0 : 1
   const isRequired = value === 'required'
 
+  const select = (type: AttendanceType) => {
+    // Re-selecting the current segment keeps state (no opposite toggle).
+    onChange(type)
+  }
+
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-    event.preventDefault()
-    onChange(value === 'required' ? 'optional' : 'required')
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault()
+      select(value === 'required' ? 'optional' : 'required')
+      return
+    }
+    if (event.key === ' ' || event.key === 'Enter') {
+      // Native button handles Space/Enter on focused segment.
+      return
+    }
   }
 
   return (
     <div
       role="radiogroup"
       aria-label={`${name} 참석 조건`}
-      className="relative flex shrink-0 rounded-full bg-meeting-panel p-1 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--meeting-focus)]"
+      className="relative flex h-11 w-[120px] shrink-0 rounded-2xl bg-meeting-panel p-0.5 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--meeting-focus)] min-[640px]:h-9"
       onKeyDown={onKeyDown}
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full shadow-sm motion-safe:transition-[transform,background-color,border-color] motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-2xl shadow-sm motion-safe:transition-[transform,background-color,border-color] motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
         style={{
           transform: `translateX(${selectedIndex * 100}%)`,
           backgroundColor: isRequired
@@ -55,9 +66,9 @@ export function AttendanceTypeControl({
             role="radio"
             aria-checked={checked}
             tabIndex={checked ? 0 : -1}
-            onClick={() => onChange(option.type)}
+            onClick={() => select(option.type)}
             className={[
-              'relative z-[1] min-h-11 min-w-[52px] flex-1 rounded-full px-3 text-[13px] font-semibold transition-colors duration-[180ms] focus-visible:outline-none',
+              'relative z-[1] flex h-full w-[60px] flex-1 items-center justify-center rounded-2xl text-[13px] font-semibold leading-5 transition-colors duration-[180ms] focus-visible:outline-none',
               checked
                 ? 'text-[color:var(--meeting-primary)]'
                 : 'text-meeting-text-secondary hover:text-meeting-text',
