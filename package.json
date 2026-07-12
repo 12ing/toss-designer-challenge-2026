@@ -17,7 +17,8 @@
     "screenshots:p3-dedupe": "node scripts/capture-p3-dedupe-screenshots.mjs",
     "screenshots:p4": "node scripts/capture-p4-screenshots.mjs",
     "screenshots:p4-ux": "node scripts/capture-p4-ux-screenshots.mjs",
-    "screenshots:interaction": "node scripts/capture-interaction-screenshots.mjs"
+    "screenshots:interaction": "node scripts/capture-interaction-screenshots.mjs",
+    "screenshots:p5": "node scripts/capture-p5-screenshots.mjs"
   },
   "dependencies": {
     "@toss/tds-colors": "^0.1.0",

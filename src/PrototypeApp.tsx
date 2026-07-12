@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { DecisionSurface } from '@/components/decision-surface/DecisionSurface'
-import { ReviewComplete, ReviewNav } from '@/components/ReviewShell'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
 import { parseScenarioParam } from '@/config/scenarios'
@@ -10,10 +9,18 @@ import {
   loadSession,
 } from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
 import { usePrototypeFlow } from '@/hooks/usePrototypeFlow'
+import { ActorTransitionCard } from '@/review/components/ActorTransitionCard'
+import { ReviewChrome } from '@/review/components/ReviewChrome'
+import { isDebugMode } from '@/review/review-mode'
+import {
+  attendeePath,
+  completionPath,
+  organizerPath,
+} from '@/review/review-session.factory'
+import { reviewStepFromPhase } from '@/review/review-steps'
 import { Analyzing } from '@/screens/Analyzing'
 import { AttendeeRequest } from '@/screens/AttendeeRequest'
 import { AttendeeResult } from '@/screens/AttendeeResult'
-import { AttendeeReviewTransition } from '@/screens/AttendeeReviewTransition'
 import { Completed } from '@/screens/Completed'
 import { MeetingDetails } from '@/screens/MeetingDetails'
 import { ParticipantSetup } from '@/screens/ParticipantSetup'
@@ -29,6 +36,28 @@ function useScenarioId() {
 
 type FlowApi = ReturnType<typeof usePrototypeFlow>
 
+function ReviewFrame({
+  showReviewNav,
+  step,
+  debugLine,
+  children,
+  transition,
+}: {
+  showReviewNav: boolean
+  step: ReturnType<typeof reviewStepFromPhase>
+  debugLine?: string
+  children: ReactNode
+  transition?: React.ReactNode
+}) {
+  return (
+    <div className="min-h-screen bg-meeting-bg">
+      {showReviewNav ? <ReviewChrome step={step} debugLine={debugLine} /> : null}
+      {children}
+      {showReviewNav ? transition : null}
+    </div>
+  )
+}
+
 export function PrototypeApp() {
   const navigate = useNavigate()
   const scenarioId = useScenarioId()
@@ -36,10 +65,9 @@ export function PrototypeApp() {
 
   useEffect(() => {
     if (!flow.sessionId) return
-    navigate(
-      `/prototype/session/${flow.sessionId}/organizer${window.location.search}`,
-      { replace: true },
-    )
+    navigate(organizerPath(flow.sessionId, shouldShowPrototypeControls()), {
+      replace: true,
+    })
   }, [flow.sessionId, navigate])
 
   return null
@@ -55,12 +83,9 @@ export function OrganizerSessionApp() {
   useEffect(() => {
     const stored = loadSession()
     if (sessionId && stored && stored.id !== sessionId) {
-      navigate(
-        `/prototype/session/${stored.id}/organizer${window.location.search}`,
-        { replace: true },
-      )
+      navigate(organizerPath(stored.id, showReviewNav), { replace: true })
     }
-  }, [sessionId, navigate])
+  }, [sessionId, navigate, showReviewNav])
 
   useEffect(() => {
     if (
@@ -70,12 +95,25 @@ export function OrganizerSessionApp() {
     ) {
       const requestId = flow.activeRequest?.id
       if (requestId) {
-        navigate(`/prototype/respond/${requestId}${window.location.search}`, {
-          replace: true,
-        })
+        navigate(
+          attendeePath(flow.sessionId, requestId, showReviewNav),
+          { replace: true },
+        )
       }
     }
-  }, [flow.state, flow.activeRequest?.id, navigate])
+  }, [
+    flow.state,
+    flow.activeRequest?.id,
+    flow.sessionId,
+    navigate,
+    showReviewNav,
+  ])
+
+  useEffect(() => {
+    if (flow.state === 'review-complete' && flow.sessionId) {
+      navigate(completionPath(flow.sessionId), { replace: true })
+    }
+  }, [flow.state, flow.sessionId, navigate])
 
   return <OrganizerExperience flow={flow} showReviewNav={showReviewNav} />
 }
@@ -90,6 +128,7 @@ function OrganizerExperience({
   const navigate = useNavigate()
   const showSurface = flow.surfaceMode !== null && flow.recommendation !== null
   const goHome = () => navigate('/')
+  const step = reviewStepFromPhase(flow.session.phase)
 
   const onPrimary = () => {
     if (!flow.surfaceMode || !flow.recommendation) return
@@ -109,99 +148,113 @@ function OrganizerExperience({
     flow.openRequestPreview()
   }
 
-  if (flow.state === 'review-complete') {
-    return <ReviewComplete />
-  }
+  const debugLine = isDebugMode()
+    ? `session ${flow.sessionId} · phase ${flow.session.phase}${
+        flow.activeRequest ? ` · request ${flow.activeRequest.id}` : ''
+      }`
+    : undefined
+
+  const transition =
+    flow.state === 'waiting' && flow.activeRequest ? (
+      <ActorTransitionCard
+        variant="to-attendee"
+        recipientName={flow.activeRequest.targetParticipantName}
+        dateLabel={flow.activeRequest.dateLabel}
+        timeLabel={flow.activeRequest.timeLabel}
+        href={attendeePath(
+          flow.sessionId,
+          flow.activeRequest.id,
+          showReviewNav,
+        )}
+      />
+    ) : null
 
   return (
-    <ScreenShell
-      title="회의 시간 잡기"
-      layout="desktop"
-      contentWidth={showSurface ? 'wide' : 'default'}
-      onClose={goHome}
-      footer={
-        <ReviewNav
-          visible={showReviewNav}
-          state={flow.state}
-          scenarioId={flow.scenarioId}
-          requestId={flow.activeRequest?.id}
-          recipientName={flow.activeRequest?.targetParticipantName}
-          dateLabel={flow.activeRequest?.dateLabel}
-          timeLabel={flow.activeRequest?.timeLabel}
-          organizerNote={
-            flow.state === 'participant-setup'
-              ? '이번 플로우에서는 주최자가 직접 참석하는 회의를 가정했어요.'
-              : undefined
-          }
-        />
-      }
+    <ReviewFrame
+      showReviewNav={showReviewNav}
+      step={step}
+      debugLine={debugLine}
+      transition={transition}
     >
-      {flow.state === 'participant-setup' && (
-        <ParticipantSetup
-          attendanceTypes={flow.attendanceTypes}
-          onAttendanceTypeChange={flow.setAttendanceType}
-          onFindTime={flow.startAnalyzing}
-        />
-      )}
-
-      {flow.state === 'analyzing' && <Analyzing />}
-
-      {showSurface && flow.surfaceMode && flow.recommendation && (
-        <DecisionSurface
-          mode={flow.surfaceMode}
-          recommendation={flow.recommendation}
-          isReasonExpanded={flow.reasonExpanded}
-          onToggleReason={
-            flow.surfaceMode === 'waiting' || flow.surfaceMode === 'no-option'
-              ? undefined
-              : flow.toggleReasonExpanded
-          }
-          onPrimaryAction={
-            flow.surfaceMode === 'waiting' ? undefined : onPrimary
-          }
-          animateIn={flow.playCardEnter}
-          onAnimateInEnd={flow.acknowledgeCardEnter}
-        />
-      )}
-
-      {(flow.state === 'request-preview' ||
-        flow.session.phase === 'sending-request') &&
-        flow.activeRequest && (
-          <RequestPreview
-            recipientName={flow.activeRequest.targetParticipantName}
-            dateDisplay={flow.activeRequest.dateLabel}
-            timeLabel={flow.activeRequest.timeLabel}
-            loading={flow.isSendingRequest}
-            onSend={flow.sendRequest}
-            onBack={flow.backFromPreview}
+      <ScreenShell
+        title="회의 시간 잡기"
+        layout="desktop"
+        contentWidth={showSurface ? 'wide' : 'default'}
+        onClose={goHome}
+      >
+        {flow.state === 'participant-setup' && (
+          <ParticipantSetup
+            attendanceTypes={flow.attendanceTypes}
+            onAttendanceTypeChange={flow.setAttendanceType}
+            onFindTime={flow.startAnalyzing}
           />
         )}
 
-      {flow.state === 'meeting-details' && flow.uiView && (
-        <MeetingDetails
-          dateDisplay={flow.uiView.dateLabel}
-          timeLabel={flow.uiView.timeLabel}
-          meeting={flow.meeting}
-          onChange={flow.updateMeeting}
-          onSubmit={flow.completeMeeting}
-          onBack={flow.backToDecision}
-        />
-      )}
+        {flow.state === 'analyzing' && <Analyzing />}
 
-      {flow.state === 'completed' && flow.uiView && (
-        <Completed
-          title={flow.meeting.title}
-          dateDisplay={flow.uiView.dateLabel}
-          timeLabel={flow.uiView.timeLabel}
-          onComplete={flow.finishReview}
-        />
-      )}
-    </ScreenShell>
+        {showSurface && flow.surfaceMode && flow.recommendation && (
+          <DecisionSurface
+            mode={flow.surfaceMode}
+            recommendation={flow.recommendation}
+            isReasonExpanded={flow.reasonExpanded}
+            onToggleReason={
+              flow.surfaceMode === 'waiting' || flow.surfaceMode === 'no-option'
+                ? undefined
+                : flow.toggleReasonExpanded
+            }
+            onPrimaryAction={
+              flow.surfaceMode === 'waiting' ? undefined : onPrimary
+            }
+            animateIn={flow.playCardEnter}
+            onAnimateInEnd={flow.acknowledgeCardEnter}
+          />
+        )}
+
+        {(flow.state === 'request-preview' ||
+          flow.session.phase === 'sending-request') &&
+          flow.activeRequest && (
+            <RequestPreview
+              recipientName={flow.activeRequest.targetParticipantName}
+              dateDisplay={flow.activeRequest.dateLabel}
+              timeLabel={flow.activeRequest.timeLabel}
+              loading={flow.isSendingRequest}
+              onSend={flow.sendRequest}
+              onBack={flow.backFromPreview}
+            />
+          )}
+
+        {flow.state === 'meeting-details' && flow.uiView && (
+          <MeetingDetails
+            dateDisplay={flow.uiView.dateLabel}
+            timeLabel={flow.uiView.timeLabel}
+            meeting={flow.meeting}
+            onChange={flow.updateMeeting}
+            onSubmit={flow.completeMeeting}
+            onBack={flow.backToDecision}
+          />
+        )}
+
+        {flow.state === 'completed' && flow.uiView && (
+          <Completed
+            title={flow.meeting.title}
+            dateDisplay={flow.uiView.dateLabel}
+            timeLabel={flow.uiView.timeLabel}
+            onComplete={() => {
+              if (showReviewNav) {
+                flow.finishReview()
+                return
+              }
+              navigate('/')
+            }}
+          />
+        )}
+      </ScreenShell>
+    </ReviewFrame>
   )
 }
 
 export function AttendeeRespondApp() {
-  const { requestId = '' } = useParams()
+  const { requestId = '', sessionId: routeSessionId } = useParams()
   const navigate = useNavigate()
   const scenarioId = useScenarioId()
   const flow = usePrototypeFlow(scenarioId)
@@ -243,12 +296,8 @@ export function AttendeeRespondApp() {
     }
   }, [request, step])
 
-  const goOrganizer = () => {
-    const sessionId = loadSession()?.id ?? flow.sessionId
-    navigate(
-      `/prototype/session/${sessionId}/organizer${window.location.search}`,
-    )
-  }
+  const sessionId =
+    routeSessionId ?? loadSession()?.id ?? flow.sessionId ?? storedMatch?.id
 
   const onProductConfirm = (approved: boolean) => {
     if (approved) {
@@ -260,35 +309,44 @@ export function AttendeeRespondApp() {
       setStep('review-transition')
       return
     }
-    // usertest: end attendee product flow only
     navigate('/')
   }
 
+  const reviewStep = reviewStepFromPhase(
+    step === 'review-transition'
+      ? 'attendee-approved'
+      : flow.session.phase === 'organizer-waiting'
+        ? 'attendee-request'
+        : flow.session.phase,
+  )
+
   if (missing) {
     return (
-      <ScreenShell
-        title="일정 확인"
-        layout="mobile"
-        onClose={() => navigate('/')}
-      >
-        <div className="flex flex-1 flex-col justify-center py-16">
-          <h2
-            className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            요청을 찾을 수 없어요.
-          </h2>
-          <p className="mb-8 text-[16px] leading-6 text-meeting-text-secondary">
-            링크가 만료되었거나 잘못된 요청일 수 있어요.
-          </p>
-          <Link
-            to="/"
-            className="text-[15px] font-medium text-meeting-text-secondary underline"
-          >
-            처음으로
-          </Link>
-        </div>
-      </ScreenShell>
+      <ReviewFrame showReviewNav={showReviewNav} step="attendee-response">
+        <ScreenShell
+          title="일정 확인"
+          layout="mobile"
+          onClose={() => navigate('/')}
+        >
+          <div className="flex flex-1 flex-col justify-center py-16">
+            <h2
+              className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              요청을 찾을 수 없어요.
+            </h2>
+            <p className="mb-8 text-[16px] leading-6 text-meeting-text-secondary">
+              링크가 만료되었거나 잘못된 요청일 수 있어요.
+            </p>
+            <Link
+              to="/"
+              className="text-[15px] font-medium text-meeting-text-secondary underline"
+            >
+              처음으로
+            </Link>
+          </div>
+        </ScreenShell>
+      </ReviewFrame>
     )
   }
 
@@ -303,57 +361,65 @@ export function AttendeeRespondApp() {
     request.response === 'declined' || flow.state === 'attendee-rejected'
   const approved = showApproved && !showDeclined
 
+  const transition =
+    step === 'review-transition' && sessionId ? (
+      <ActorTransitionCard
+        variant={
+          approved ? 'to-organizer-approved' : 'to-organizer-declined'
+        }
+        href={organizerPath(sessionId, showReviewNav)}
+      />
+    ) : null
+
   return (
-    <ScreenShell
-      title="일정 확인"
-      layout="mobile"
-      onClose={() => navigate('/')}
-      footer={
-        step === 'review-transition' && showReviewNav ? (
-          <AttendeeReviewTransition
-            approved={approved}
-            onContinue={goOrganizer}
-          />
-        ) : undefined
-      }
+    <ReviewFrame
+      showReviewNav={showReviewNav}
+      step={reviewStep}
+      transition={transition}
     >
-      {!alreadyResponded && step === 'response' && (
-        <AttendeeRequest
-          dateDisplay={request.dateLabel}
-          timeLabel={request.timeLabel}
-          organizerName={request.organizerName}
-          conflictLabel={request.conflictPublicLabel}
-          loading={flow.isResponding}
-          onApprove={() => flow.approveRequest(requestId)}
-          onReject={() => flow.rejectRequest(requestId)}
-        />
-      )}
+      <ScreenShell
+        title="일정 확인"
+        layout="mobile"
+        onClose={() => navigate('/')}
+      >
+        {!alreadyResponded && step === 'response' && (
+          <AttendeeRequest
+            dateDisplay={request.dateLabel}
+            timeLabel={request.timeLabel}
+            organizerName={request.organizerName}
+            conflictLabel={request.conflictPublicLabel}
+            loading={flow.isResponding}
+            onApprove={() => flow.approveRequest(requestId)}
+            onReject={() => flow.rejectRequest(requestId)}
+          />
+        )}
 
-      {alreadyResponded && step === 'result' && (
-        <AttendeeResult
-          approved={approved}
-          onConfirm={() => onProductConfirm(approved)}
-        />
-      )}
+        {alreadyResponded && step === 'result' && (
+          <AttendeeResult
+            approved={approved}
+            onConfirm={() => onProductConfirm(approved)}
+          />
+        )}
 
-      {step === 'review-transition' && showReviewNav ? (
-        <div className="flex flex-1 flex-col justify-center py-16">
-          <h2
-            className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            {approved ? '가능하다고 전달했어요.' : '어렵다고 전달했어요.'}
-          </h2>
-          <p
-            className="text-[16px] leading-6 text-meeting-text-secondary"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            {approved
-              ? '회의가 확정되면 캘린더에 반영돼요.'
-              : '다른 시간을 다시 찾을게요.'}
-          </p>
-        </div>
-      ) : null}
-    </ScreenShell>
+        {step === 'review-transition' && showReviewNav ? (
+          <div className="flex flex-1 flex-col justify-center py-16">
+            <h2
+              className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {approved ? '가능하다고 전달했어요.' : '어렵다고 전달했어요.'}
+            </h2>
+            <p
+              className="text-[16px] leading-6 text-meeting-text-secondary"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {approved
+                ? '회의가 확정되면 캘린더에 반영돼요.'
+                : '다른 시간을 다시 찾을게요.'}
+            </p>
+          </div>
+        ) : null}
+      </ScreenShell>
+    </ReviewFrame>
   )
 }

@@ -46,19 +46,34 @@ export function createSession(
   scenarioSeed: ScenarioPresetId = 'coordination',
 ): MeetingDecisionSession {
   const preset = getScenarioPreset(scenarioSeed)
+  return createSessionFromAttendance(
+    preset.attendanceTypes,
+    scenarioSeed,
+    preset.responseOverrides,
+  )
+}
+
+/** Fresh session from explicit attendance inputs — no result hardcoding. */
+export function createSessionFromAttendance(
+  attendanceTypes: Record<string, AttendanceType>,
+  scenarioSeed: ScenarioPresetId = 'coordination',
+  responseOverrides: ResponseOverrides = {},
+): MeetingDecisionSession {
   const now = new Date().toISOString()
+  const hasRejectedSeed =
+    scenarioSeed === 'rejected' && Object.keys(responseOverrides).length > 0
   return {
     id: createId('session'),
     meetingDraftId: createId('draft'),
     organizerId: ORGANIZER_ID,
     participantIds: decisionParticipants.map((p) => p.id),
-    attendanceTypes: { ...preset.attendanceTypes },
+    attendanceTypes: { ...attendanceTypes },
     currentRecommendation: null,
-    responseOverrides: structuredClone(preset.responseOverrides),
-    isNextAlternative: scenarioSeed === 'rejected',
+    responseOverrides: structuredClone(responseOverrides),
+    isNextAlternative: hasRejectedSeed,
     isReadyAfterConfirmation: false,
     actor: 'organizer',
-    phase: scenarioSeed === 'rejected' ? 'analyzing' : 'participant-setup',
+    phase: hasRejectedSeed ? 'analyzing' : 'participant-setup',
     meeting: { ...DEFAULT_MEETING },
     scenarioSeed,
     createdAt: now,

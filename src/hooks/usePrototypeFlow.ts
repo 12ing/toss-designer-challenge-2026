@@ -69,10 +69,9 @@ function commit(
 
 export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
   const [session, setSession] = useState<MeetingDecisionSession>(() => {
+    // Prefer an explicitly created review/lab session so fresh runs are not wiped.
     const existing = loadSession()
-    if (existing && existing.scenarioSeed === initialScenario) {
-      return existing
-    }
+    if (existing) return existing
     const created = createSession(initialScenario)
     saveSession(created)
     return created
@@ -82,7 +81,7 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
   const [isSendingRequest, setIsSendingRequest] = useState(false)
   const [isResponding, setIsResponding] = useState(false)
 
-  const bootstrappedScenario = useRef(initialScenario)
+  const bootstrappedScenario = useRef(session.scenarioSeed)
   const sessionRef = useRef(session)
   sessionRef.current = session
 
@@ -100,6 +99,13 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
 
   useEffect(() => {
     if (bootstrappedScenario.current === initialScenario) return
+    const existing = loadSession()
+    if (existing) {
+      // Keep factory-created sessions (custom attendance / ready / coordination).
+      bootstrappedScenario.current = existing.scenarioSeed
+      setSession(existing)
+      return
+    }
     bootstrap(initialScenario)
   }, [initialScenario, bootstrap])
 

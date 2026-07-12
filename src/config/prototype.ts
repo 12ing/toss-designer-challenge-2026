@@ -1,11 +1,18 @@
-export const SHOW_PROTOTYPE_CONTROLS_DEFAULT = true
+import { isReviewMode, isUserTestMode } from '@/review/review-mode'
 
-/** URL에 ?usertest=1 이면 프로토타입 전용 컨트롤을 숨깁니다. */
+export const SHOW_PROTOTYPE_CONTROLS_DEFAULT = false
+
+/**
+ * Review chrome / actor transitions / design notes.
+ * Visible only with `?review=1` and never with `?usertest=1`.
+ */
 export function shouldShowPrototypeControls() {
   if (typeof window === 'undefined') return SHOW_PROTOTYPE_CONTROLS_DEFAULT
+  if (isUserTestMode()) return false
+  if (isReviewMode()) return true
+  // Legacy: explicit prototype=1 still shows controls for local QA
   const params = new URLSearchParams(window.location.search)
-  if (params.get('usertest') === '1') return false
-  if (params.get('prototype') === '0') return false
   if (params.get('prototype') === '1') return true
+  if (params.get('prototype') === '0') return false
   return SHOW_PROTOTYPE_CONTROLS_DEFAULT
 }
