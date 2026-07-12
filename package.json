@@ -19,7 +19,8 @@
     "screenshots:p4-ux": "node scripts/capture-p4-ux-screenshots.mjs",
     "screenshots:interaction": "node scripts/capture-interaction-screenshots.mjs",
     "screenshots:p5": "node scripts/capture-p5-screenshots.mjs",
-    "screenshots:interaction-v2": "node scripts/capture-interaction-v2-screenshots.mjs"
+    "screenshots:interaction-v2": "node scripts/capture-interaction-v2-screenshots.mjs",
+    "screenshots:p5-visual": "node scripts/capture-p5-visual-screenshots.mjs"
   },
   "dependencies": {
     "@toss/tds-colors": "^0.1.0",

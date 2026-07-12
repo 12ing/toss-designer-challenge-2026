@@ -42,7 +42,7 @@ export function ReviewChrome({ step, debugLine }: ReviewChromeProps) {
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((prev) => !prev)}
             >
-              메뉴
+              다른 장면
             </button>
             <Link
               to="/"

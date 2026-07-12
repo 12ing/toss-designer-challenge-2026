@@ -6,11 +6,14 @@ import type { AttendanceType } from '@/types/schedule'
 type ParticipantConditionRowProps = {
   row: ParticipantSetupRowViewModel
   onAttendanceTypeChange: (id: string, type: AttendanceType) => void
+  /** Stack layout for narrow panels (e.g. Rule Lab) — avoids viewport-based 3-col overflow. */
+  compact?: boolean
 }
 
 export function ParticipantConditionRow({
   row,
   onAttendanceTypeChange,
+  compact = false,
 }: ParticipantConditionRowProps) {
   const showPublicContext =
     !row.isOrganizer &&
@@ -29,19 +32,36 @@ export function ParticipantConditionRow({
       />
     )
 
+  const wideGrid = !compact
+
   return (
     <div
       className={[
-        'grid grid-cols-1 gap-2 py-3 min-[640px]:grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_120px] min-[640px]:items-center min-[640px]:gap-5 min-[640px]:py-2.5',
+        'grid grid-cols-1 gap-2 py-3',
+        wideGrid
+          ? 'min-[640px]:grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_120px] min-[640px]:items-center min-[640px]:gap-5 min-[640px]:py-2.5'
+          : '',
         row.isOrganizer
-          ? 'min-[640px]:min-h-[58px]'
-          : 'min-h-[72px] min-[640px]:min-h-16',
+          ? wideGrid
+            ? 'min-[640px]:min-h-[58px]'
+            : ''
+          : wideGrid
+            ? 'min-h-[72px] min-[640px]:min-h-16'
+            : 'min-h-[72px]',
       ].join(' ')}
       aria-label={row.accessibleSummary}
     >
-      <div className="flex min-w-0 items-start justify-between gap-3 min-[640px]:block">
+      <div
+        className={[
+          'flex min-w-0 items-start justify-between gap-3',
+          wideGrid ? 'min-[640px]:block' : '',
+        ].join(' ')}
+      >
         <div className="min-w-0">
-          <p className="text-[16px] font-semibold leading-6 text-meeting-text">
+          <p
+            className="text-[16px] font-semibold leading-6 text-meeting-text"
+            style={{ wordBreak: 'keep-all' }}
+          >
             {row.name}
           </p>
           <p className="mt-0.5 text-[13px] font-normal leading-5 text-meeting-text-tertiary">
@@ -49,7 +69,10 @@ export function ParticipantConditionRow({
           </p>
           {showPublicContext ? (
             <p
-              className="mt-1 text-[13px] font-medium leading-5 text-meeting-text-secondary min-[640px]:hidden"
+              className={[
+                'mt-1 text-[13px] font-medium leading-5 text-meeting-text-secondary',
+                wideGrid ? 'min-[640px]:hidden' : '',
+              ].join(' ')}
               style={{ wordBreak: 'keep-all' }}
             >
               {row.publicContext.label}
@@ -57,23 +80,33 @@ export function ParticipantConditionRow({
           ) : null}
         </div>
 
-        <div className="shrink-0 min-[640px]:hidden">{renderAttendance()}</div>
+        <div
+          className={['shrink-0', wideGrid ? 'min-[640px]:hidden' : ''].join(
+            ' ',
+          )}
+        >
+          {renderAttendance()}
+        </div>
       </div>
 
-      <div className="hidden min-w-0 min-[640px]:block">
-        {showPublicContext ? (
-          <p
-            className="text-[13px] font-medium leading-5 text-meeting-text-secondary"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            {row.publicContext.label}
-          </p>
-        ) : null}
-      </div>
+      {wideGrid ? (
+        <>
+          <div className="hidden min-w-0 min-[640px]:block">
+            {showPublicContext ? (
+              <p
+                className="text-[13px] font-medium leading-5 text-meeting-text-secondary"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                {row.publicContext.label}
+              </p>
+            ) : null}
+          </div>
 
-      <div className="hidden justify-self-end min-[640px]:block">
-        {renderAttendance()}
-      </div>
+          <div className="hidden justify-self-end min-[640px]:block">
+            {renderAttendance()}
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }

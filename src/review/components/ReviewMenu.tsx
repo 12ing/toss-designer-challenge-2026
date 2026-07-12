@@ -20,7 +20,7 @@ export function ReviewMenu({ onNavigate }: ReviewMenuProps) {
   }
 
   return (
-    <ul className="flex flex-col gap-1" aria-label="리뷰 메뉴">
+    <ul className="flex flex-col gap-1" aria-label="다른 장면">
       <li>
         <button
           type="button"
@@ -54,7 +54,7 @@ export function ReviewMenu({ onNavigate }: ReviewMenuProps) {
           className="inline-flex min-h-10 w-full items-center rounded-lg px-2 text-[14px] font-medium text-meeting-text-secondary hover:bg-meeting-panel"
           onClick={onNavigate}
         >
-          조건 직접 바꿔보기
+          결정 규칙 실험하기
         </a>
       </li>
       <li>

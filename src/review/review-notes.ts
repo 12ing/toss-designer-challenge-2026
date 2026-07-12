@@ -5,7 +5,7 @@ export const reviewNotesByStep: Record<ReviewStep, ReviewNote> = {
     title: '참석 조건',
     problem:
       '참석자는 이미 정해졌지만, 누가 꼭 참석해야 하는지는 회의마다 달라요.',
-    rule: '필수 참석자는 회의 성립 조건으로, 선택 참석자는 참석 가능성을 높이는 조건으로 계산해요. 이번 플로우는 주최자가 직접 참석하는 회의를 가정해 주최자는 필수 고정이에요.',
+    rule: '선택 참석자가 참석하지 못해도 확정을 막지 않지만, 가능한 사람이 더 많은 시간을 우선합니다. 이번 플로우는 주최자가 직접 참석하는 회의를 가정해 주최자는 필수 고정이에요.',
     omitted: '사람 검색과 조직도는 이번 문제의 핵심이 아니어서 제외했어요.',
   },
   'time-recommendation': {
@@ -17,7 +17,7 @@ export const reviewNotesByStep: Record<ReviewStep, ReviewNote> = {
   'confirmation-request': {
     title: '확인 요청',
     problem: '공통 시간이 없을 때 제품 밖에서 개인적으로 양보를 요청하게 돼요.',
-    rule: '이동 가능한 보호 시간만 일정 소유자에게 중립적으로 확인해요.',
+    rule: '변경 가능한 보호 시간만 일정 소유자에게 확인하며, 다른 사람의 일정을 자동으로 옮기지 않습니다.',
     omitted: '다른 사람의 일정을 자동으로 이동하지 않아요.',
   },
   'attendee-response': {

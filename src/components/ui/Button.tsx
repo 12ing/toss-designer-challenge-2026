@@ -38,7 +38,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-[var(--meeting-radius-button)] px-5 text-[16px] font-semibold leading-6 transition-[background-color,filter,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
+        'inline-flex items-center justify-center gap-2 rounded-[var(--meeting-radius-button)] px-5 text-[16px] font-semibold leading-6 whitespace-nowrap transition-[background-color,filter,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
         height,
         fullWidth ? 'w-full' : '',
         variantClass[variant],

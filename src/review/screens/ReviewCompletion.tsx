@@ -29,7 +29,7 @@ export function ReviewCompletion() {
         >
           공통 시간이 없어도
           <br />
-          확인과 응답을 연결해 회의를 확정했어요.
+          확인과 응답을 연결해 회의 시간을 확정했어요.
         </h1>
         <p
           className="mb-10 text-[16px] leading-6 text-meeting-text-secondary"
@@ -64,7 +64,7 @@ export function ReviewCompletion() {
             to="/lab"
             className="inline-flex min-h-11 items-center justify-center text-[15px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
           >
-            조건을 직접 바꿔보기
+            결정 규칙 실험하기
           </Link>
           <Link
             to="/"

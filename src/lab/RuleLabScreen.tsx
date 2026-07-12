@@ -93,24 +93,25 @@ export function RuleLabScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-meeting-bg">
-      <div className="mx-auto w-full max-w-[1200px] px-6 py-10 max-[719px]:px-4 max-[719px]:py-8">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
+    <div className="min-h-screen overflow-x-hidden bg-meeting-bg">
+      <div className="@container/lab mx-auto w-full max-w-[1200px] px-4 py-8 min-[640px]:px-6 min-[640px]:py-10">
+        <div className="mb-8 flex min-w-0 flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 max-w-[640px]">
             <p className="mb-2 text-[13px] font-medium text-meeting-text-tertiary">
-              규칙 실험
+              결정 규칙 실험
             </p>
             <h1
-              className="mb-2 text-[26px] font-bold leading-9 text-meeting-text"
+              className="mb-2 text-[clamp(1.35rem,3vw,1.625rem)] font-bold leading-9 text-meeting-text"
               style={{ wordBreak: 'keep-all' }}
             >
-              조건을 바꾸면 같은 엔진이 다시 계산해요
+              심사자가 조건을 바꿔 같은 엔진을 검증하는 도구예요
             </h1>
             <p
-              className="max-w-[520px] text-[15px] leading-[23px] text-meeting-text-secondary"
+              className="text-[15px] leading-[23px] text-meeting-text-secondary"
               style={{ wordBreak: 'keep-all' }}
             >
-              필수·선택 조건을 바꾸면 같은 결정 엔진이 새로운 결과를 계산해요.
+              필수·선택 조건에 따라 같은 엔진이 결과를 어떻게 다시 계산하는지
+              확인해보세요.
             </p>
           </div>
           <Link
@@ -121,7 +122,7 @@ export function RuleLabScreen() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 min-[960px]:grid-cols-[minmax(360px,440px)_minmax(0,1fr)] min-[960px]:gap-12">
+        <div className="grid grid-cols-1 gap-10 min-w-0 @[1100px]/lab:grid-cols-[minmax(0,420px)_minmax(0,1fr)] @[1100px]/lab:gap-12">
           <div className="min-w-0">
             <div className="mb-4 flex flex-wrap gap-2">
               {labPresets.map((preset) => (
@@ -147,9 +148,10 @@ export function RuleLabScreen() {
             >
               <ul className="divide-y divide-meeting-divider px-4">
                 {viewModel.rows.map((row) => (
-                  <li key={row.id}>
+                  <li key={row.id} className="min-w-0">
                     <ParticipantConditionRow
                       row={row}
+                      compact
                       onAttendanceTypeChange={setAttendanceType}
                     />
                   </li>
@@ -160,6 +162,7 @@ export function RuleLabScreen() {
             <div className="mb-5 flex gap-2">
               <Button
                 variant="secondary"
+                className="whitespace-nowrap"
                 onClick={() => applyPreset('coordination')}
               >
                 초기화

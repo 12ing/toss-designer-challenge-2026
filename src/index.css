@@ -66,6 +66,7 @@ body {
   background: var(--meeting-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 button {
