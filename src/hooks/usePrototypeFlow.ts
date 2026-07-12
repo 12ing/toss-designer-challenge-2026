@@ -1,33 +1,51 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { candidateSlots } from '@/features/meeting-decision/data/candidate-slots'
 import { decisionParticipants } from '@/features/meeting-decision/data/participants'
-import { getScenarioPreset } from '@/features/meeting-decision/data/scenario-presets'
 import { recommendMeeting } from '@/features/meeting-decision/engine/decision-engine'
 import type {
   AttendanceType,
-  MeetingRecommendation,
-  ResponseOverrides,
   ScenarioPresetId,
-  TimeSlotId,
 } from '@/features/meeting-decision/engine/decision-engine.types'
 import {
+  applyAnalyzedRecommendation,
+  backFromPreview,
+  backToDecision,
+  beginAttendeeResponse,
+  beginSendingRequest,
+  changeConditions,
+  completeAttendeeResponse,
+  completeMeeting,
+  createSession,
+  finishReview,
+  goToMeetingDetails,
+  markRequestPending,
+  openAttendeeView,
+  openRequestPreview,
+  resolveAfterAttendeeResponse,
+  returnToOrganizer,
+  runRecommendation,
+  startAnalyzing,
+  updateMeetingDraft,
+  withAttendanceType,
+} from '@/features/meeting-decision/connected-flow/connected-flow.actions'
+import {
+  clearSession,
+  loadSession,
+  saveSession,
+} from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
+import {
+  toDecisionSurfaceMode,
+  toLegacyDecisionState,
+} from '@/features/meeting-decision/connected-flow/connected-flow.selectors'
+import type { MeetingDecisionSession } from '@/features/meeting-decision/connected-flow/connected-flow.types'
+import {
   recommendationToUi,
-  surfaceFromRecommendation,
 } from '@/features/meeting-decision/mappers/to-ui'
-import type {
-  DecisionState,
-  MeetingDraft,
-  Participant,
-} from '@/types/schedule'
+import type { MeetingDraft, Participant } from '@/types/schedule'
 
 const ANALYZE_MS = 1000
 const SEND_REQUEST_MS = 700
 const ATTENDEE_RESPONSE_MS = 600
-
-const defaultMeeting: MeetingDraft = {
-  title: '대시보드 개선 방향 논의',
-  location: '4층 회의실 A',
-}
 
 function toUiParticipants(
   attendanceTypes: Record<string, AttendanceType>,
@@ -41,106 +59,43 @@ function toUiParticipants(
   }))
 }
 
-function runRecommendation(
-  attendanceTypes: Record<string, AttendanceType>,
-  responseOverrides: ResponseOverrides,
-): MeetingRecommendation {
-  return recommendMeeting({
-    participants: decisionParticipants,
-    candidateSlots,
-    attendanceTypes,
-    responseOverrides,
-  })
-}
-
-function withOverride(
-  prev: ResponseOverrides,
-  participantId: string,
-  slotId: TimeSlotId,
-  value: 'approved' | 'declined',
-): ResponseOverrides {
-  return {
-    ...prev,
-    [participantId]: {
-      ...prev[participantId],
-      [slotId]: value,
-    },
-  }
+function commit(
+  next: MeetingDecisionSession,
+  setSession: (s: MeetingDecisionSession) => void,
+) {
+  saveSession(next)
+  setSession(next)
 }
 
 export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
-  const preset = getScenarioPreset(initialScenario)
-
-  const [state, setState] = useState<DecisionState>(() =>
-    initialScenario === 'rejected' ? 'analyzing' : 'participant-setup',
-  )
-  const [scenarioId, setScenarioId] =
-    useState<ScenarioPresetId>(initialScenario)
-  const [attendanceTypes, setAttendanceTypes] = useState(
-    () => preset.attendanceTypes,
-  )
-  const [responseOverrides, setResponseOverrides] = useState<ResponseOverrides>(
-    () => preset.responseOverrides,
-  )
-  const [recommendation, setRecommendation] =
-    useState<MeetingRecommendation | null>(null)
-  const [isNextAlternative, setIsNextAlternative] = useState(
-    () => initialScenario === 'rejected',
-  )
-  const [meeting, setMeeting] = useState<MeetingDraft>(defaultMeeting)
+  const [session, setSession] = useState<MeetingDecisionSession>(() => {
+    const existing = loadSession()
+    if (existing && existing.scenarioSeed === initialScenario) {
+      return existing
+    }
+    const created = createSession(initialScenario)
+    saveSession(created)
+    return created
+  })
+  const [playCardEnter, setPlayCardEnter] = useState(false)
+  const [reasonExpanded, setReasonExpanded] = useState(false)
   const [isSendingRequest, setIsSendingRequest] = useState(false)
   const [isResponding, setIsResponding] = useState(false)
-  const [reasonExpanded, setReasonExpanded] = useState(false)
-  const [playCardEnter, setPlayCardEnter] = useState(false)
 
   const bootstrappedScenario = useRef(initialScenario)
-  const pendingAlternativeRef = useRef(initialScenario === 'rejected')
-  const overridesRef = useRef(responseOverrides)
-  overridesRef.current = responseOverrides
-
-  const applyRecommendation = useCallback(
-    (
-      next: MeetingRecommendation,
-      options: { isNextAlternative?: boolean; animate?: boolean } = {},
-    ) => {
-      setRecommendation(next)
-      setIsNextAlternative(Boolean(options.isNextAlternative))
-      setPlayCardEnter(Boolean(options.animate))
-      const surface = surfaceFromRecommendation(next, {
-        isNextAlternative: options.isNextAlternative,
-      })
-      if (surface === 'no-option') {
-        setState('no-option')
-        return
-      }
-      if (surface === 'ready') {
-        setState('ready')
-        return
-      }
-      if (surface === 'next-alternative') {
-        setState('next-alternative')
-        return
-      }
-      setState('need-confirmation')
-    },
-    [],
-  )
+  const sessionRef = useRef(session)
+  sessionRef.current = session
 
   const bootstrap = useCallback((id: ScenarioPresetId) => {
-    const nextPreset = getScenarioPreset(id)
-    setScenarioId(id)
-    setAttendanceTypes(nextPreset.attendanceTypes)
-    setResponseOverrides(nextPreset.responseOverrides)
-    setRecommendation(null)
-    setMeeting(defaultMeeting)
+    clearSession()
+    const created = createSession(id)
+    saveSession(created)
+    setSession(created)
+    setPlayCardEnter(false)
+    setReasonExpanded(false)
     setIsSendingRequest(false)
     setIsResponding(false)
-    setReasonExpanded(false)
-    pendingAlternativeRef.current = id === 'rejected'
-    setIsNextAlternative(id === 'rejected')
     bootstrappedScenario.current = id
-    setPlayCardEnter(false)
-    setState(id === 'rejected' ? 'analyzing' : 'participant-setup')
   }, [])
 
   useEffect(() => {
@@ -148,236 +103,182 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
     bootstrap(initialScenario)
   }, [initialScenario, bootstrap])
 
-  const participants = useMemo(
-    () => toUiParticipants(attendanceTypes),
-    [attendanceTypes],
-  )
-
-  const uiView = useMemo(
-    () => (recommendation ? recommendationToUi(recommendation) : null),
-    [recommendation],
-  )
-
-  const confirmationTarget = uiView?.confirmation
-
-  const startAnalyzing = useCallback(() => {
-    setResponseOverrides({})
-    pendingAlternativeRef.current = false
-    setIsNextAlternative(false)
-    setReasonExpanded(false)
-    setRecommendation(null)
-    setState('analyzing')
-  }, [])
-
   useEffect(() => {
-    if (state !== 'analyzing') return
+    if (session.phase !== 'analyzing') return
 
     const timer = window.setTimeout(() => {
+      const current = sessionRef.current
       const params = new URLSearchParams(window.location.search)
+      let result = runRecommendation(
+        current.attendanceTypes,
+        current.responseOverrides,
+      )
+
       if (params.get('fixture') === 'no-option') {
         const blocked = decisionParticipants.map((p) => {
           if (p.id !== 'minji') return p
           const schedule = { ...p.schedule }
           for (const slot of candidateSlots) {
-            schedule[slot.id] = { type: 'hard-busy' as const, publicLabel: '일정 있음' }
+            schedule[slot.id] = {
+              type: 'hard-busy' as const,
+              publicLabel: '일정 있음',
+            }
           }
           return { ...p, schedule }
         })
-        const result = recommendMeeting({
+        result = recommendMeeting({
           participants: blocked,
           candidateSlots,
-          attendanceTypes,
+          attendanceTypes: current.attendanceTypes,
           responseOverrides: {},
         })
-        applyRecommendation(result, {
-          isNextAlternative: false,
-          animate: true,
-        })
-        return
       }
 
-      const result = runRecommendation(attendanceTypes, responseOverrides)
-      applyRecommendation(result, {
-        isNextAlternative: pendingAlternativeRef.current,
-        animate: true,
+      const next = applyAnalyzedRecommendation(current, result, {
+        isNextAlternative: current.isNextAlternative,
       })
+      commit(next, setSession)
+      setPlayCardEnter(true)
     }, ANALYZE_MS)
 
     return () => window.clearTimeout(timer)
-  }, [state, attendanceTypes, responseOverrides, applyRecommendation])
+  }, [session.phase, session.id])
 
-  const acknowledgeCardEnter = useCallback(() => {
-    setPlayCardEnter(false)
-  }, [])
+  const participants = useMemo(
+    () => toUiParticipants(session.attendanceTypes),
+    [session.attendanceTypes],
+  )
+
+  const recommendation = session.currentRecommendation
+  const uiView = useMemo(
+    () => (recommendation ? recommendationToUi(recommendation) : null),
+    [recommendation],
+  )
+
+  const surfaceMode = toDecisionSurfaceMode(session)
+  const state = toLegacyDecisionState(session)
+  const activeRequest = session.activeRequest
 
   const setAttendanceType = useCallback(
     (id: string, type: AttendanceType) => {
-      const person = decisionParticipants.find((p) => p.id === id)
-      if (!person || person.isOrganizer) return
-      setAttendanceTypes((prev) => ({ ...prev, [id]: type }))
+      commit(withAttendanceType(sessionRef.current, id, type), setSession)
     },
     [],
   )
 
-  const goToMeetingDetails = useCallback(() => {
+  const startAnalyzingFlow = useCallback(() => {
+    commit(startAnalyzing(sessionRef.current), setSession)
     setReasonExpanded(false)
-    setState('meeting-details')
   }, [])
 
-  const completeMeeting = useCallback(() => {
-    setState('completed')
-  }, [])
-
-  const finishReview = useCallback(() => {
-    setState('review-complete')
-  }, [])
-
-  const backToDecision = useCallback(() => {
-    if (!recommendation) {
-      setState('participant-setup')
-      return
-    }
-    if (recommendation.status === 'READY') {
-      const hasApproval = Object.values(responseOverrides).some((slots) =>
-        Object.values(slots ?? {}).includes('approved'),
-      )
-      setState(hasApproval ? 'ready-after-confirmation' : 'ready')
-      return
-    }
-    setState(isNextAlternative ? 'next-alternative' : 'need-confirmation')
-  }, [recommendation, isNextAlternative, responseOverrides])
-
-  const openRequestPreview = useCallback(() => {
-    setState('request-preview')
+  const openRequestPreviewFlow = useCallback(() => {
+    commit(openRequestPreview(sessionRef.current), setSession)
   }, [])
 
   const sendRequest = useCallback(() => {
     setIsSendingRequest(true)
+    const sending = beginSendingRequest(sessionRef.current)
+    commit(sending, setSession)
     window.setTimeout(() => {
+      const pending = markRequestPending(sending)
+      commit(pending, setSession)
       setIsSendingRequest(false)
-      setState('waiting')
     }, SEND_REQUEST_MS)
   }, [])
 
-  const openAttendeeRequest = useCallback(() => {
-    setState('attendee-request')
+  const openAttendeeRequest = useCallback((requestId?: string) => {
+    const id = requestId ?? sessionRef.current.activeRequest?.id
+    if (!id) return
+    commit(openAttendeeView(sessionRef.current, id), setSession)
   }, [])
 
-  const currentConfirmTarget = useMemo(() => {
-    if (!recommendation || recommendation.status !== 'NEED_CONFIRMATION') {
-      return null
-    }
-    return {
-      participantId: recommendation.confirmationTargets[0]?.participantId,
-      slotId: recommendation.evaluation.slot.id,
-    }
-  }, [recommendation])
-
-  const approveRequest = useCallback(() => {
-    if (!currentConfirmTarget?.participantId) return
-    const { participantId, slotId } = currentConfirmTarget
+  const approveRequest = useCallback((requestId?: string) => {
+    const id = requestId ?? sessionRef.current.activeRequest?.id
+    if (!id) return
     setIsResponding(true)
+    const submitting = beginAttendeeResponse(sessionRef.current, id)
+    commit(submitting, setSession)
     window.setTimeout(() => {
-      setResponseOverrides((prev) =>
-        withOverride(prev, participantId, slotId, 'approved'),
-      )
+      const done = completeAttendeeResponse(submitting, id, 'approved')
+      commit(done, setSession)
       setIsResponding(false)
-      setState('attendee-approved')
     }, ATTENDEE_RESPONSE_MS)
-  }, [currentConfirmTarget])
+  }, [])
 
-  const rejectRequest = useCallback(() => {
-    if (!currentConfirmTarget?.participantId) return
-    const { participantId, slotId } = currentConfirmTarget
+  const rejectRequest = useCallback((requestId?: string) => {
+    const id = requestId ?? sessionRef.current.activeRequest?.id
+    if (!id) return
     setIsResponding(true)
+    const submitting = beginAttendeeResponse(sessionRef.current, id)
+    commit(submitting, setSession)
     window.setTimeout(() => {
-      setResponseOverrides((prev) =>
-        withOverride(prev, participantId, slotId, 'declined'),
-      )
+      const done = completeAttendeeResponse(submitting, id, 'declined')
+      commit(done, setSession)
       setIsResponding(false)
-      setState('attendee-rejected')
     }, ATTENDEE_RESPONSE_MS)
-  }, [currentConfirmTarget])
+  }, [])
 
   const finishAttendeeApproved = useCallback(() => {
-    const result = runRecommendation(attendanceTypes, overridesRef.current)
-    setRecommendation(result)
-    setIsNextAlternative(false)
-    pendingAlternativeRef.current = false
-    setPlayCardEnter(false)
-    if (result.status === 'READY') {
-      setState('ready-after-confirmation')
-      return
-    }
-    applyRecommendation(result, { animate: false })
-  }, [attendanceTypes, applyRecommendation])
+    commit(resolveAfterAttendeeResponse(sessionRef.current), setSession)
+  }, [])
 
   const finishAttendeeRejected = useCallback(() => {
-    const result = runRecommendation(attendanceTypes, overridesRef.current)
-    pendingAlternativeRef.current = true
-    applyRecommendation(result, { isNextAlternative: true, animate: false })
-  }, [attendanceTypes, applyRecommendation])
-
-  const changeConditions = useCallback(() => {
-    setRecommendation(null)
-    setReasonExpanded(false)
-    setIsNextAlternative(false)
-    pendingAlternativeRef.current = false
-    setPlayCardEnter(false)
-    setState('participant-setup')
+    commit(resolveAfterAttendeeResponse(sessionRef.current), setSession)
   }, [])
 
-  const backFromPreview = useCallback(() => {
-    setState(isNextAlternative ? 'next-alternative' : 'need-confirmation')
-  }, [isNextAlternative])
-
-  const toggleReasonExpanded = useCallback(() => {
-    setReasonExpanded((prev) => !prev)
+  const returnToOrganizerFlow = useCallback(() => {
+    commit(returnToOrganizer(sessionRef.current), setSession)
   }, [])
 
-  const updateMeeting = useCallback((draft: Partial<MeetingDraft>) => {
-    setMeeting((prev) => ({ ...prev, ...draft }))
+  const reloadFromStorage = useCallback(() => {
+    const loaded = loadSession()
+    if (loaded) setSession(loaded)
   }, [])
-
-  const selectScenario = useCallback(
-    (id: ScenarioPresetId) => {
-      bootstrap(id)
-    },
-    [bootstrap],
-  )
 
   return {
+    session,
     state,
-    scenarioId,
+    scenarioId: session.scenarioSeed,
     participants,
-    attendanceTypes,
-    meeting,
+    attendanceTypes: session.attendanceTypes,
+    meeting: session.meeting,
     isSendingRequest,
     isResponding,
     reasonExpanded,
     playCardEnter,
     recommendation,
     uiView,
-    confirmationTarget,
-    isNextAlternative,
-    acknowledgeCardEnter,
-    selectScenario,
+    confirmationTarget: uiView?.confirmation,
+    isNextAlternative: session.isNextAlternative,
+    surfaceMode,
+    activeRequest,
+    sessionId: session.id,
+    acknowledgeCardEnter: () => setPlayCardEnter(false),
+    selectScenario: bootstrap,
     setAttendanceType,
-    startAnalyzing,
-    goToMeetingDetails,
-    completeMeeting,
-    finishReview,
-    backToDecision,
-    openRequestPreview,
+    startAnalyzing: startAnalyzingFlow,
+    goToMeetingDetails: () =>
+      commit(goToMeetingDetails(sessionRef.current), setSession),
+    completeMeeting: () =>
+      commit(completeMeeting(sessionRef.current), setSession),
+    finishReview: () => commit(finishReview(sessionRef.current), setSession),
+    backToDecision: () =>
+      commit(backToDecision(sessionRef.current), setSession),
+    openRequestPreview: openRequestPreviewFlow,
     sendRequest,
     openAttendeeRequest,
     approveRequest,
     rejectRequest,
     finishAttendeeApproved,
     finishAttendeeRejected,
-    backFromPreview,
-    toggleReasonExpanded,
-    updateMeeting,
-    changeConditions,
+    returnToOrganizer: returnToOrganizerFlow,
+    backFromPreview: () =>
+      commit(backFromPreview(sessionRef.current), setSession),
+    toggleReasonExpanded: () => setReasonExpanded((prev) => !prev),
+    updateMeeting: (draft: Partial<MeetingDraft>) =>
+      commit(updateMeetingDraft(sessionRef.current, draft), setSession),
+    changeConditions: () =>
+      commit(changeConditions(sessionRef.current), setSession),
+    reloadFromStorage,
   }
 }

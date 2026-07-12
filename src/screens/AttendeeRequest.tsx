@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/Button'
 interface AttendeeRequestProps {
   dateDisplay: string
   timeLabel: string
+  meetingTitle: string
+  organizerName: string
+  conflictLabel: string
   loading: boolean
   onApprove: () => void
   onReject: () => void
@@ -12,12 +15,18 @@ interface AttendeeRequestProps {
 export function AttendeeRequest({
   dateDisplay,
   timeLabel,
+  meetingTitle,
+  organizerName,
+  conflictLabel,
   loading,
   onApprove,
   onReject,
 }: AttendeeRequestProps) {
   return (
     <div className="flex flex-1 flex-col">
+      <p className="mb-2 text-[13px] text-meeting-text-tertiary">
+        {organizerName} · {meetingTitle}
+      </p>
       <div className="mb-6">
         <DateTimeBlock dateLabel={dateDisplay} timeLabel={timeLabel} compact />
       </div>
@@ -25,13 +34,14 @@ export function AttendeeRequest({
       <h2
         className="mb-5 text-[21px] font-bold leading-[30px] text-meeting-text"
         style={{ wordBreak: 'keep-all' }}
+        aria-label={`회의 시간 확인 요청, ${dateDisplay} ${timeLabel}`}
       >
         이 시간, 괜찮으세요?
       </h2>
 
       <div className="mb-5 rounded-[20px] bg-meeting-panel p-5">
         <p className="mb-2 text-[16px] font-medium leading-6 text-meeting-text">
-          개인 보호 시간과 겹쳐요.
+          {conflictLabel}과 겹쳐요.
         </p>
         <p className="text-[14px] leading-[21px] text-meeting-text-secondary">
           일정 내용과 응답 사유는 공개되지 않아요.

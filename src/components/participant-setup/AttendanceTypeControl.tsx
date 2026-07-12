@@ -29,7 +29,7 @@ export function AttendanceTypeControl({
     <div
       role="radiogroup"
       aria-label={`${name} 참석 조건`}
-      className="relative flex shrink-0 rounded-full bg-meeting-panel p-1"
+      className="relative flex shrink-0 rounded-full bg-meeting-panel p-1 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--meeting-focus)]"
       onKeyDown={onKeyDown}
     >
       <span
@@ -57,7 +57,7 @@ export function AttendanceTypeControl({
             tabIndex={checked ? 0 : -1}
             onClick={() => onChange(option.type)}
             className={[
-              'relative z-[1] min-h-11 min-w-[52px] flex-1 rounded-full px-3 text-[13px] font-semibold transition-colors duration-[180ms] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
+              'relative z-[1] min-h-11 min-w-[52px] flex-1 rounded-full px-3 text-[13px] font-semibold transition-colors duration-[180ms] focus-visible:outline-none',
               checked
                 ? 'text-[color:var(--meeting-primary)]'
                 : 'text-meeting-text-secondary hover:text-meeting-text',

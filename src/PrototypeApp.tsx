@@ -1,11 +1,15 @@
-import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { DecisionSurface } from '@/components/decision-surface/DecisionSurface'
 import { ReviewComplete, ReviewNav } from '@/components/ReviewShell'
+import { Button } from '@/components/ui/Button'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
 import { parseScenarioParam } from '@/config/scenarios'
-import type { DecisionSurfaceMode } from '@/features/meeting-decision/view-model/decision-surface.mapper'
+import {
+  findSessionByRequestId,
+  loadSession,
+} from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
 import { usePrototypeFlow } from '@/hooks/usePrototypeFlow'
 import { Analyzing } from '@/screens/Analyzing'
 import { AttendeeRequest } from '@/screens/AttendeeRequest'
@@ -15,49 +19,88 @@ import { MeetingDetails } from '@/screens/MeetingDetails'
 import { ParticipantSetup } from '@/screens/ParticipantSetup'
 import { RequestPreview } from '@/screens/RequestPreview'
 
-const SURFACE_STATES = new Set([
-  'ready',
-  'need-confirmation',
-  'waiting',
-  'ready-after-confirmation',
-  'next-alternative',
-  'no-option',
-])
-
-function toSurfaceMode(state: string): DecisionSurfaceMode | null {
-  if (!SURFACE_STATES.has(state)) return null
-  return state as DecisionSurfaceMode
-}
-
-export function PrototypeApp() {
+function useScenarioId() {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const scenarioId = useMemo(
+  return useMemo(
     () => parseScenarioParam(searchParams.get('scenario')),
     [searchParams],
   )
+}
+
+type FlowApi = ReturnType<typeof usePrototypeFlow>
+
+export function PrototypeApp() {
+  const navigate = useNavigate()
+  const scenarioId = useScenarioId()
+  const flow = usePrototypeFlow(scenarioId)
+
+  useEffect(() => {
+    if (!flow.sessionId) return
+    navigate(
+      `/prototype/session/${flow.sessionId}/organizer${window.location.search}`,
+      { replace: true },
+    )
+  }, [flow.sessionId, navigate])
+
+  return null
+}
+
+export function OrganizerSessionApp() {
+  const { sessionId } = useParams()
+  const navigate = useNavigate()
+  const scenarioId = useScenarioId()
   const showReviewNav = shouldShowPrototypeControls()
   const flow = usePrototypeFlow(scenarioId)
 
-  const isAttendeeView =
-    flow.state === 'attendee-request' ||
-    flow.state === 'attendee-approved' ||
-    flow.state === 'attendee-rejected'
+  useEffect(() => {
+    const stored = loadSession()
+    if (sessionId && stored && stored.id !== sessionId) {
+      navigate(
+        `/prototype/session/${stored.id}/organizer${window.location.search}`,
+        { replace: true },
+      )
+    }
+  }, [sessionId, navigate])
 
-  const surfaceMode = toSurfaceMode(flow.state)
-  const showSurface = surfaceMode !== null && flow.recommendation !== null
+  useEffect(() => {
+    if (
+      flow.state === 'attendee-request' ||
+      flow.state === 'attendee-approved' ||
+      flow.state === 'attendee-rejected'
+    ) {
+      const requestId = flow.activeRequest?.id
+      if (requestId) {
+        navigate(`/prototype/respond/${requestId}${window.location.search}`, {
+          replace: true,
+        })
+      }
+    }
+  }, [flow.state, flow.activeRequest?.id, navigate])
+
+  return <OrganizerExperience flow={flow} showReviewNav={showReviewNav} />
+}
+
+function OrganizerExperience({
+  flow,
+  showReviewNav,
+}: {
+  flow: FlowApi
+  showReviewNav: boolean
+}) {
+  const navigate = useNavigate()
+  const showSurface = flow.surfaceMode !== null && flow.recommendation !== null
   const goHome = () => navigate('/')
 
   const onPrimary = () => {
-    if (!surfaceMode || !flow.recommendation) return
-    if (surfaceMode === 'no-option') {
+    if (!flow.surfaceMode || !flow.recommendation) return
+    if (flow.surfaceMode === 'no-option') {
       flow.changeConditions()
       return
     }
     if (
-      surfaceMode === 'ready' ||
-      surfaceMode === 'ready-after-confirmation' ||
-      (surfaceMode === 'next-alternative' &&
+      flow.surfaceMode === 'ready' ||
+      flow.surfaceMode === 'ready-after-confirmation' ||
+      (flow.surfaceMode === 'next-alternative' &&
         flow.recommendation.status === 'READY')
     ) {
       flow.goToMeetingDetails()
@@ -72,19 +115,25 @@ export function PrototypeApp() {
 
   return (
     <ScreenShell
-      title={isAttendeeView ? '일정 확인' : '회의 시간 잡기'}
-      layout={isAttendeeView ? 'mobile' : 'desktop'}
+      title="회의 시간 잡기"
+      layout="desktop"
       contentWidth={showSurface ? 'wide' : 'default'}
       onClose={goHome}
       footer={
-        !isAttendeeView ? (
-          <ReviewNav
-            visible={showReviewNav}
-            state={flow.state}
-            scenarioId={flow.scenarioId}
-            onOpenAttendee={flow.openAttendeeRequest}
-          />
-        ) : undefined
+        <ReviewNav
+          visible={showReviewNav}
+          state={flow.state}
+          scenarioId={flow.scenarioId}
+          requestId={flow.activeRequest?.id}
+          recipientName={flow.activeRequest?.targetParticipantName}
+          dateLabel={flow.activeRequest?.dateLabel}
+          timeLabel={flow.activeRequest?.timeLabel}
+          organizerNote={
+            flow.state === 'participant-setup'
+              ? '이번 플로우에서는 주최자가 직접 참석하는 회의를 가정했어요.'
+              : undefined
+          }
+        />
       }
     >
       {flow.state === 'participant-setup' && (
@@ -97,55 +146,36 @@ export function PrototypeApp() {
 
       {flow.state === 'analyzing' && <Analyzing />}
 
-      {showSurface && surfaceMode && flow.recommendation && (
+      {showSurface && flow.surfaceMode && flow.recommendation && (
         <DecisionSurface
-          mode={surfaceMode}
+          mode={flow.surfaceMode}
           recommendation={flow.recommendation}
           isReasonExpanded={flow.reasonExpanded}
           onToggleReason={
-            surfaceMode === 'waiting' || surfaceMode === 'no-option'
+            flow.surfaceMode === 'waiting' || flow.surfaceMode === 'no-option'
               ? undefined
               : flow.toggleReasonExpanded
           }
           onPrimaryAction={
-            surfaceMode === 'waiting' ? undefined : onPrimary
+            flow.surfaceMode === 'waiting' ? undefined : onPrimary
           }
           animateIn={flow.playCardEnter}
           onAnimateInEnd={flow.acknowledgeCardEnter}
         />
       )}
 
-      {flow.state === 'request-preview' && flow.uiView?.confirmation && (
-        <RequestPreview
-          recipientName={flow.uiView.confirmation.participantName}
-          dateDisplay={flow.uiView.dateLabel}
-          timeLabel={flow.uiView.timeLabel}
-          loading={flow.isSendingRequest}
-          onSend={flow.sendRequest}
-          onBack={flow.backFromPreview}
-        />
-      )}
-
-      {flow.state === 'attendee-request' && flow.uiView && (
-        <AttendeeRequest
-          dateDisplay={flow.uiView.dateLabel}
-          timeLabel={flow.uiView.timeLabel}
-          loading={flow.isResponding}
-          onApprove={flow.approveRequest}
-          onReject={flow.rejectRequest}
-        />
-      )}
-
-      {flow.state === 'attendee-approved' && (
-        <AttendeeResult approved onConfirm={flow.finishAttendeeApproved} />
-      )}
-
-      {flow.state === 'attendee-rejected' && (
-        <AttendeeResult
-          approved={false}
-          onConfirm={flow.finishAttendeeRejected}
-        />
-      )}
+      {(flow.state === 'request-preview' ||
+        flow.session.phase === 'sending-request') &&
+        flow.activeRequest && (
+          <RequestPreview
+            recipientName={flow.activeRequest.targetParticipantName}
+            dateDisplay={flow.activeRequest.dateLabel}
+            timeLabel={flow.activeRequest.timeLabel}
+            loading={flow.isSendingRequest}
+            onSend={flow.sendRequest}
+            onBack={flow.backFromPreview}
+          />
+        )}
 
       {flow.state === 'meeting-details' && flow.uiView && (
         <MeetingDetails
@@ -164,6 +194,147 @@ export function PrototypeApp() {
           dateDisplay={flow.uiView.dateLabel}
           timeLabel={flow.uiView.timeLabel}
           onComplete={flow.finishReview}
+        />
+      )}
+    </ScreenShell>
+  )
+}
+
+export function AttendeeRespondApp() {
+  const { requestId = '' } = useParams()
+  const navigate = useNavigate()
+  const scenarioId = useScenarioId()
+  const flow = usePrototypeFlow(scenarioId)
+  const showReviewNav = shouldShowPrototypeControls()
+
+  const storedMatch = findSessionByRequestId(requestId)
+  const request =
+    flow.activeRequest?.id === requestId
+      ? flow.activeRequest
+      : storedMatch?.activeRequest
+  const missing = !request
+
+  useEffect(() => {
+    if (!requestId || !storedMatch) return
+    if (
+      flow.activeRequest?.id === requestId &&
+      (flow.state === 'attendee-request' ||
+        flow.state === 'attendee-approved' ||
+        flow.state === 'attendee-rejected' ||
+        flow.session.phase === 'attendee-submitting')
+    ) {
+      return
+    }
+    flow.openAttendeeRequest(requestId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestId])
+
+  const goOrganizerAfterResolve = (finish: () => void) => {
+    finish()
+    // finish updates session; navigate after microtask so storage is written
+    window.setTimeout(() => {
+      const sessionId = loadSession()?.id ?? flow.sessionId
+      navigate(
+        `/prototype/session/${sessionId}/organizer${window.location.search}`,
+      )
+    }, 0)
+  }
+
+  if (missing) {
+    return (
+      <ScreenShell
+        title="일정 확인"
+        layout="mobile"
+        onClose={() => navigate('/')}
+      >
+        <div className="flex flex-1 flex-col justify-center py-16">
+          <h2
+            className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
+            style={{ wordBreak: 'keep-all' }}
+          >
+            요청을 찾을 수 없어요.
+          </h2>
+          <p className="mb-8 text-[16px] leading-6 text-meeting-text-secondary">
+            링크가 만료되었거나 잘못된 요청일 수 있어요.
+          </p>
+          <Link
+            to="/"
+            className="text-[15px] font-medium text-meeting-text-secondary underline"
+          >
+            처음으로
+          </Link>
+        </div>
+      </ScreenShell>
+    )
+  }
+
+  const alreadyResponded =
+    request.status === 'approved' ||
+    request.status === 'declined' ||
+    request.status === 'resolved'
+
+  const showApproved =
+    request.response === 'approved' || flow.state === 'attendee-approved'
+  const showDeclined =
+    request.response === 'declined' || flow.state === 'attendee-rejected'
+
+  return (
+    <ScreenShell
+      title="일정 확인"
+      layout="mobile"
+      onClose={() => navigate('/')}
+      footer={
+        showReviewNav && alreadyResponded ? (
+          <div className="mt-6 rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-5 py-5">
+            <p className="mb-1 text-[13px] font-semibold text-meeting-text-secondary">
+              다음 장면
+            </p>
+            <p className="mb-4 text-[15px] leading-[23px] text-meeting-text">
+              주최자 화면에 결과가 반영돼요.
+            </p>
+            <Button
+              onClick={() =>
+                goOrganizerAfterResolve(
+                  showApproved
+                    ? flow.finishAttendeeApproved
+                    : flow.finishAttendeeRejected,
+                )
+              }
+            >
+              주최자 화면 보기
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
+      {!alreadyResponded && (
+        <AttendeeRequest
+          dateDisplay={request.dateLabel}
+          timeLabel={request.timeLabel}
+          meetingTitle={request.meetingTitle}
+          organizerName={request.organizerName}
+          conflictLabel={request.conflictPublicLabel}
+          loading={flow.isResponding}
+          onApprove={() => flow.approveRequest(requestId)}
+          onReject={() => flow.rejectRequest(requestId)}
+        />
+      )}
+
+      {alreadyResponded && showApproved && (
+        <AttendeeResult
+          approved
+          onConfirm={() =>
+            goOrganizerAfterResolve(flow.finishAttendeeApproved)
+          }
+        />
+      )}
+
+      {alreadyResponded && showDeclined && (
+        <AttendeeResult
+          approved={false}
+          onConfirm={() =>
+            goOrganizerAfterResolve(flow.finishAttendeeRejected)
+          }
         />
       )}
     </ScreenShell>

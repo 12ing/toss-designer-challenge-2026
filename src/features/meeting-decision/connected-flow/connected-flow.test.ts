@@ -1,0 +1,132 @@
+import { describe, expect, it } from 'vitest'
+import { decisionParticipants } from '@/features/meeting-decision/data/participants'
+import {
+  applyAnalyzedRecommendation,
+  beginAttendeeResponse,
+  beginSendingRequest,
+  completeAttendeeResponse,
+  createSession,
+  markRequestPending,
+  openAttendeeView,
+  openRequestPreview,
+  resolveAfterAttendeeResponse,
+  runRecommendation,
+  withAttendanceType,
+} from './connected-flow.actions'
+
+describe('connected-flow request lifecycle', () => {
+  function sessionWithNeedConfirmation() {
+    let session = createSession('coordination')
+    const recommendation = runRecommendation(session.attendanceTypes, {})
+    expect(recommendation.status).toBe('NEED_CONFIRMATION')
+    session = applyAnalyzedRecommendation(session, recommendation)
+    return session
+  }
+
+  it('creates a draft request with exact slot and required target', () => {
+    const session = openRequestPreview(sessionWithNeedConfirmation())
+    const request = session.activeRequest
+    expect(request).toBeDefined()
+    expect(request?.status).toBe('draft')
+    expect(request?.targetParticipantId).toBe('jihoon')
+    expect(request?.slotId).toBe('thu-15')
+    expect(request?.conflictPublicLabel).toBe('개인 보호 시간')
+    expect(request?.meetingTitle).toBe('대시보드 개선 방향 논의')
+  })
+
+  it('rejects optional participants as request targets', () => {
+    let session = createSession('coordination')
+    session = withAttendanceType(session, 'jihoon', 'optional')
+    const recommendation = runRecommendation(session.attendanceTypes, {})
+    // With jihoon optional, READY is expected for default fixture
+    expect(recommendation.status).toBe('READY')
+    session = applyAnalyzedRecommendation(session, recommendation)
+    expect(() => openRequestPreview(session)).toThrow()
+  })
+
+  it('moves draft → sent → pending', () => {
+    let session = openRequestPreview(sessionWithNeedConfirmation())
+    session = beginSendingRequest(session)
+    expect(session.activeRequest?.status).toBe('sent')
+    expect(session.phase).toBe('sending-request')
+    session = markRequestPending(session)
+    expect(session.activeRequest?.status).toBe('pending')
+    expect(session.phase).toBe('organizer-waiting')
+  })
+
+  it('blocks a second response on the same request', () => {
+    let session = openRequestPreview(sessionWithNeedConfirmation())
+    session = beginSendingRequest(session)
+    session = markRequestPending(session)
+    const requestId = session.activeRequest!.id
+    session = beginAttendeeResponse(session, requestId)
+    session = completeAttendeeResponse(session, requestId, 'approved')
+    expect(() => beginAttendeeResponse(session, requestId)).toThrow(
+      /이미 응답한/,
+    )
+    expect(() =>
+      completeAttendeeResponse(session, requestId, 'declined'),
+    ).toThrow(/이미 응답한/)
+  })
+
+  it('approve recomputes to READY without hardcoding', () => {
+    let session = openRequestPreview(sessionWithNeedConfirmation())
+    session = beginSendingRequest(session)
+    session = markRequestPending(session)
+    const requestId = session.activeRequest!.id
+    session = completeAttendeeResponse(session, requestId, 'approved')
+    session = resolveAfterAttendeeResponse(session)
+    expect(session.activeRequest?.status).toBe('resolved')
+    expect(session.currentRecommendation?.status).toBe('READY')
+    expect(session.isReadyAfterConfirmation).toBe(true)
+    expect(
+      session.currentRecommendation &&
+        session.currentRecommendation.status !== 'NO_OPTION'
+        ? session.currentRecommendation.evaluation.slot.id
+        : null,
+    ).toBe('thu-15')
+  })
+
+  it('decline recomputes a new alternative without hardcoding', () => {
+    let session = openRequestPreview(sessionWithNeedConfirmation())
+    session = beginSendingRequest(session)
+    session = markRequestPending(session)
+    const requestId = session.activeRequest!.id
+    const declinedSlot = session.activeRequest!.slotId
+    session = completeAttendeeResponse(session, requestId, 'declined')
+    session = resolveAfterAttendeeResponse(session)
+    expect(session.isNextAlternative).toBe(true)
+    expect(session.currentRecommendation?.status).toBe('NEED_CONFIRMATION')
+    expect(
+      session.currentRecommendation &&
+        session.currentRecommendation.status !== 'NO_OPTION'
+        ? session.currentRecommendation.evaluation.slot.id
+        : null,
+    ).not.toBe(declinedSlot)
+    expect(
+      session.currentRecommendation &&
+        session.currentRecommendation.status === 'NEED_CONFIRMATION'
+        ? session.currentRecommendation.confirmationTargets[0]?.name
+        : null,
+    ).toBe('박서연')
+  })
+
+  it('openAttendeeView restores completion for already-responded requests', () => {
+    let session = openRequestPreview(sessionWithNeedConfirmation())
+    session = beginSendingRequest(session)
+    session = markRequestPending(session)
+    const requestId = session.activeRequest!.id
+    session = completeAttendeeResponse(session, requestId, 'declined')
+    const reopened = openAttendeeView(session, requestId)
+    expect(reopened.phase).toBe('attendee-declined')
+    expect(reopened.actor).toBe('attendee')
+  })
+
+  it('does not include organizer as a mutable target', () => {
+    const organizer = decisionParticipants.find((p) => p.isOrganizer)
+    expect(organizer?.id).toBe('minji')
+    const session = sessionWithNeedConfirmation()
+    const opened = openRequestPreview(session)
+    expect(opened.activeRequest?.targetParticipantId).not.toBe('minji')
+  })
+})
