@@ -1,8 +1,34 @@
 @import 'tailwindcss';
+@import '@toss/tds-colors/colors.light.css';
 
 @theme {
   --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui,
     sans-serif;
+
+  /* TDS adaptive color tokens → Tailwind */
+  --color-grey-50: var(--adaptiveGrey50);
+  --color-grey-100: var(--adaptiveGrey100);
+  --color-grey-200: var(--adaptiveGrey200);
+  --color-grey-300: var(--adaptiveGrey300);
+  --color-grey-400: var(--adaptiveGrey400);
+  --color-grey-500: var(--adaptiveGrey500);
+  --color-grey-600: var(--adaptiveGrey600);
+  --color-grey-700: var(--adaptiveGrey700);
+  --color-grey-800: var(--adaptiveGrey800);
+  --color-grey-900: var(--adaptiveGrey900);
+
+  --color-blue-50: var(--adaptiveBlue50);
+  --color-blue-100: var(--adaptiveBlue100);
+  --color-blue-500: var(--adaptiveBlue500);
+  --color-blue-600: var(--adaptiveBlue600);
+  --color-blue-700: var(--adaptiveBlue700);
+
+  --color-red-500: var(--adaptiveRed500);
+
+  --color-background: var(--adaptiveBackground);
+  --color-grey-background: var(--adaptiveGreyBackground);
+  --color-pc-screen: var(--adaptivePcScreenBg);
+  --color-hairline: var(--adaptiveHairlineBorder);
 }
 
 * {
@@ -18,6 +44,33 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
+  color: var(--adaptiveGrey900);
+  background: var(--adaptivePcScreenBg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: inherit;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
