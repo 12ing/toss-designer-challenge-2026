@@ -173,6 +173,29 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
     if (state !== 'analyzing') return
 
     const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('fixture') === 'no-option') {
+        const blocked = decisionParticipants.map((p) => {
+          if (p.id !== 'minji') return p
+          const schedule = { ...p.schedule }
+          for (const slot of candidateSlots) {
+            schedule[slot.id] = { type: 'hard-busy' as const, publicLabel: '일정 있음' }
+          }
+          return { ...p, schedule }
+        })
+        const result = recommendMeeting({
+          participants: blocked,
+          candidateSlots,
+          attendanceTypes,
+          responseOverrides: {},
+        })
+        applyRecommendation(result, {
+          isNextAlternative: false,
+          animate: true,
+        })
+        return
+      }
+
       const result = runRecommendation(attendanceTypes, responseOverrides)
       applyRecommendation(result, {
         isNextAlternative: pendingAlternativeRef.current,
@@ -281,19 +304,28 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
     setRecommendation(result)
     setIsNextAlternative(false)
     pendingAlternativeRef.current = false
-    setPlayCardEnter(true)
+    setPlayCardEnter(false)
     if (result.status === 'READY') {
       setState('ready-after-confirmation')
       return
     }
-    applyRecommendation(result, { animate: true })
+    applyRecommendation(result, { animate: false })
   }, [attendanceTypes, applyRecommendation])
 
   const finishAttendeeRejected = useCallback(() => {
     const result = runRecommendation(attendanceTypes, overridesRef.current)
     pendingAlternativeRef.current = true
-    applyRecommendation(result, { isNextAlternative: true, animate: true })
+    applyRecommendation(result, { isNextAlternative: true, animate: false })
   }, [attendanceTypes, applyRecommendation])
+
+  const changeConditions = useCallback(() => {
+    setRecommendation(null)
+    setReasonExpanded(false)
+    setIsNextAlternative(false)
+    pendingAlternativeRef.current = false
+    setPlayCardEnter(false)
+    setState('participant-setup')
+  }, [])
 
   const backFromPreview = useCallback(() => {
     setState(isNextAlternative ? 'next-alternative' : 'need-confirmation')
@@ -346,5 +378,6 @@ export function usePrototypeFlow(initialScenario: ScenarioPresetId) {
     backFromPreview,
     toggleReasonExpanded,
     updateMeeting,
+    changeConditions,
   }
 }

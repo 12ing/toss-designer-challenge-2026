@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { DecisionCard } from '@/components/DecisionCard'
+import { DecisionSurface } from '@/components/decision-surface/DecisionSurface'
 import { ReviewComplete, ReviewNav } from '@/components/ReviewShell'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
 import { parseScenarioParam } from '@/config/scenarios'
-import { CONTEXT_LABEL } from '@/features/meeting-decision/mappers/to-ui'
+import type { DecisionSurfaceMode } from '@/features/meeting-decision/view-model/decision-surface.mapper'
 import { usePrototypeFlow } from '@/hooks/usePrototypeFlow'
 import { Analyzing } from '@/screens/Analyzing'
 import { AttendeeRequest } from '@/screens/AttendeeRequest'
@@ -14,15 +14,20 @@ import { Completed } from '@/screens/Completed'
 import { MeetingDetails } from '@/screens/MeetingDetails'
 import { ParticipantSetup } from '@/screens/ParticipantSetup'
 import { RequestPreview } from '@/screens/RequestPreview'
-import type { DecisionCardState } from '@/types/schedule'
 
-const DECISION_STATES: DecisionCardState[] = [
+const SURFACE_STATES = new Set([
   'ready',
   'need-confirmation',
   'waiting',
   'ready-after-confirmation',
   'next-alternative',
-]
+  'no-option',
+])
+
+function toSurfaceMode(state: string): DecisionSurfaceMode | null {
+  if (!SURFACE_STATES.has(state)) return null
+  return state as DecisionSurfaceMode
+}
 
 export function PrototypeApp() {
   const [searchParams] = useSearchParams()
@@ -39,12 +44,27 @@ export function PrototypeApp() {
     flow.state === 'attendee-approved' ||
     flow.state === 'attendee-rejected'
 
-  const isDecisionSurface = DECISION_STATES.includes(
-    flow.state as DecisionCardState,
-  )
-  const decisionState = flow.state as DecisionCardState
-  const view = flow.uiView
+  const surfaceMode = toSurfaceMode(flow.state)
+  const showSurface = surfaceMode !== null && flow.recommendation !== null
   const goHome = () => navigate('/')
+
+  const onPrimary = () => {
+    if (!surfaceMode || !flow.recommendation) return
+    if (surfaceMode === 'no-option') {
+      flow.changeConditions()
+      return
+    }
+    if (
+      surfaceMode === 'ready' ||
+      surfaceMode === 'ready-after-confirmation' ||
+      (surfaceMode === 'next-alternative' &&
+        flow.recommendation.status === 'READY')
+    ) {
+      flow.goToMeetingDetails()
+      return
+    }
+    flow.openRequestPreview()
+  }
 
   if (flow.state === 'review-complete') {
     return <ReviewComplete />
@@ -54,6 +74,7 @@ export function PrototypeApp() {
     <ScreenShell
       title={isAttendeeView ? '일정 확인' : '회의 시간 잡기'}
       layout={isAttendeeView ? 'mobile' : 'desktop'}
+      contentWidth={showSurface ? 'wide' : 'default'}
       onClose={goHome}
       footer={
         !isAttendeeView ? (
@@ -77,143 +98,39 @@ export function PrototypeApp() {
 
       {flow.state === 'analyzing' && <Analyzing />}
 
-      {flow.state === 'no-option' && view?.blockingSummary && (
-        <div className="mx-auto w-full max-w-[560px] rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)]">
-          <h2
-            className="text-[22px] font-bold leading-8 text-meeting-text"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            {view.blockingSummary}
-          </h2>
-        </div>
-      )}
-
-      {isDecisionSurface && view && decisionState === 'ready' && (
-        <DecisionCard
-          state="ready"
-          contextLabel={CONTEXT_LABEL}
+      {showSurface && surfaceMode && flow.recommendation && (
+        <DecisionSurface
+          mode={surfaceMode}
+          recommendation={flow.recommendation}
+          isReasonExpanded={flow.reasonExpanded}
+          onToggleReason={
+            surfaceMode === 'waiting' || surfaceMode === 'no-option'
+              ? undefined
+              : flow.toggleReasonExpanded
+          }
+          onPrimaryAction={
+            surfaceMode === 'waiting' ? undefined : onPrimary
+          }
           animateIn={flow.playCardEnter}
           onAnimateInEnd={flow.acknowledgeCardEnter}
-          statusTitle="바로 확정할 수 있어요."
-          dateLabel={view.dateLabel}
-          timeLabel={view.timeLabel}
-          attendance={{
-            requiredAvailable: view.requiredAvailable,
-            requiredTotal: view.requiredTotal,
-            optionalAvailable: view.optionalAvailable,
-            optionalTotal: view.optionalTotal,
-          }}
-          details={view.details}
-          disclosureNote={view.disclosureNote}
-          isReasonExpanded={flow.reasonExpanded}
-          onToggleReason={flow.toggleReasonExpanded}
-          onPrimaryAction={flow.goToMeetingDetails}
         />
       )}
 
-      {isDecisionSurface && view && decisionState === 'need-confirmation' && (
-        <DecisionCard
-          state="need-confirmation"
-          contextLabel={CONTEXT_LABEL}
-          animateIn={flow.playCardEnter}
-          onAnimateInEnd={flow.acknowledgeCardEnter}
-          statusTitle="확인 한 번이면 필수 참석자 모두 가능해요."
-          dateLabel={view.dateLabel}
-          timeLabel={view.timeLabel}
-          confirmation={
-            view.confirmation
-              ? {
-                  participantName: view.confirmation.participantName,
-                  conflictLabel: view.confirmation.conflictLabel,
-                  resultLabel: view.confirmation.resultLabel,
-                }
-              : undefined
-          }
-          details={view.details}
-          disclosureNote={view.disclosureNote}
-          isReasonExpanded={flow.reasonExpanded}
-          onToggleReason={flow.toggleReasonExpanded}
-          onPrimaryAction={flow.openRequestPreview}
-        />
-      )}
-
-      {isDecisionSurface && view && decisionState === 'waiting' && (
-        <DecisionCard
-          state="waiting"
-          contextLabel={CONTEXT_LABEL}
-          statusTitle="응답을 기다리고 있어요."
-          dateLabel={view.dateLabel}
-          timeLabel={view.timeLabel}
-          supportingText="확인되면 회의를 확정할 수 있는지 알려드릴게요."
-          confirmationMeta={
-            view.confirmation
-              ? `확인 대상 · ${view.confirmation.participantName}`
-              : undefined
-          }
-        />
-      )}
-
-      {isDecisionSurface &&
-        view &&
-        decisionState === 'ready-after-confirmation' && (
-          <DecisionCard
-            state="ready-after-confirmation"
-            contextLabel={CONTEXT_LABEL}
-            statusTitle="바로 확정할 수 있어요."
-            dateLabel={view.dateLabel}
-            timeLabel={view.timeLabel}
-            attendance={{
-              requiredAvailable: view.requiredAvailable,
-              requiredTotal: view.requiredTotal,
-              optionalAvailable: view.optionalAvailable,
-              optionalTotal: view.optionalTotal,
-            }}
-            onPrimaryAction={flow.goToMeetingDetails}
-          />
-        )}
-
-      {isDecisionSurface && view && decisionState === 'next-alternative' && (
-        <DecisionCard
-          state="next-alternative"
-          contextLabel={CONTEXT_LABEL}
-          animateIn={flow.playCardEnter}
-          onAnimateInEnd={flow.acknowledgeCardEnter}
-          statusTitle="다음으로 조율이 적은 시간을 찾았어요."
-          dateLabel={view.dateLabel}
-          timeLabel={view.timeLabel}
-          confirmation={
-            view.confirmation
-              ? {
-                  participantName: view.confirmation.participantName,
-                  conflictLabel: view.confirmation.conflictLabel,
-                  resultLabel: view.confirmation.resultLabel,
-                }
-              : undefined
-          }
-          details={view.details}
-          disclosureNote={view.disclosureNote}
-          footnote="이전 시간은 일정 확인이 어려워 제외했어요."
-          isReasonExpanded={flow.reasonExpanded}
-          onToggleReason={flow.toggleReasonExpanded}
-          onPrimaryAction={flow.openRequestPreview}
-        />
-      )}
-
-      {flow.state === 'request-preview' && view?.confirmation && (
+      {flow.state === 'request-preview' && flow.uiView?.confirmation && (
         <RequestPreview
-          recipientName={view.confirmation.participantName}
-          dateDisplay={view.dateLabel}
-          timeLabel={view.timeLabel}
+          recipientName={flow.uiView.confirmation.participantName}
+          dateDisplay={flow.uiView.dateLabel}
+          timeLabel={flow.uiView.timeLabel}
           loading={flow.isSendingRequest}
           onSend={flow.sendRequest}
           onBack={flow.backFromPreview}
         />
       )}
 
-      {flow.state === 'attendee-request' && view && (
+      {flow.state === 'attendee-request' && flow.uiView && (
         <AttendeeRequest
-          dateDisplay={view.dateLabel}
-          timeLabel={view.timeLabel}
+          dateDisplay={flow.uiView.dateLabel}
+          timeLabel={flow.uiView.timeLabel}
           loading={flow.isResponding}
           onApprove={flow.approveRequest}
           onReject={flow.rejectRequest}
@@ -231,10 +148,10 @@ export function PrototypeApp() {
         />
       )}
 
-      {flow.state === 'meeting-details' && view && (
+      {flow.state === 'meeting-details' && flow.uiView && (
         <MeetingDetails
-          dateDisplay={view.dateLabel}
-          timeLabel={view.timeLabel}
+          dateDisplay={flow.uiView.dateLabel}
+          timeLabel={flow.uiView.timeLabel}
           meeting={flow.meeting}
           onChange={flow.updateMeeting}
           onSubmit={flow.completeMeeting}
@@ -242,11 +159,11 @@ export function PrototypeApp() {
         />
       )}
 
-      {flow.state === 'completed' && view && (
+      {flow.state === 'completed' && flow.uiView && (
         <Completed
           title={flow.meeting.title}
-          dateDisplay={view.dateLabel}
-          timeLabel={view.timeLabel}
+          dateDisplay={flow.uiView.dateLabel}
+          timeLabel={flow.uiView.timeLabel}
           onComplete={flow.finishReview}
         />
       )}

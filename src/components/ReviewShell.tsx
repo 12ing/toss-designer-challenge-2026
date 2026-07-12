@@ -28,7 +28,8 @@ export function ReviewNav({
     state === 'ready' ||
     state === 'need-confirmation' ||
     state === 'next-alternative' ||
-    state === 'ready-after-confirmation'
+    state === 'ready-after-confirmation' ||
+    state === 'no-option'
 
   if (!showWaitingNav && !showScenarioNote) return null
 

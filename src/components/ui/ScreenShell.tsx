@@ -6,6 +6,7 @@ interface ScreenShellProps {
   onClose?: () => void
   children: ReactNode
   layout?: 'desktop' | 'mobile'
+  contentWidth?: 'default' | 'wide'
   footer?: ReactNode
 }
 
@@ -14,9 +15,11 @@ export function ScreenShell({
   onClose,
   children,
   layout = 'desktop',
+  contentWidth = 'default',
   footer,
 }: ScreenShellProps) {
   const isMobile = layout === 'mobile'
+  const wide = contentWidth === 'wide'
 
   return (
     <div
@@ -30,7 +33,9 @@ export function ScreenShell({
           'mx-auto flex min-h-screen w-full flex-col',
           isMobile
             ? 'max-w-[390px] bg-meeting-surface'
-            : 'max-w-[640px] px-8 py-12',
+            : wide
+              ? 'max-w-[944px] px-8 py-12'
+              : 'max-w-[640px] px-8 py-12',
         ].join(' ')}
       >
         <header
