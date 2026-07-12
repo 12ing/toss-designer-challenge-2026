@@ -12,9 +12,11 @@ import {
   backToDecision,
   beginAttendeeResponse,
   beginSendingRequest,
+  canFinalizeRecommendation,
   changeConditions,
   completeAttendeeResponse,
   completeMeeting,
+  countAttendanceByType,
   createSession,
   finishReview,
   goToMeetingDetails,
@@ -71,10 +73,20 @@ export function usePrototypeFlow(
   initialScenario: ScenarioPresetId,
   expectedSessionId?: string,
 ) {
+  const [sessionNotFound] = useState(() => {
+    if (!expectedSessionId) return false
+    const existing = loadSession()
+    return !existing
+  })
+
   const [session, setSession] = useState<MeetingDecisionSession>(() => {
     // Prefer an explicitly created review/lab session so fresh runs are not wiped.
     const existing = loadSession()
     if (existing) return existing
+    // Dead URL with no storage — keep an in-memory shell and do not persist.
+    if (expectedSessionId) {
+      return createSession(initialScenario)
+    }
     const created = createSession(initialScenario)
     saveSession(created)
     return created
@@ -265,13 +277,23 @@ export function usePrototypeFlow(
     if (loaded) setSession(loaded)
   }, [])
 
+  const attendanceCounts = useMemo(
+    () => countAttendanceByType(session.attendanceTypes),
+    [session.attendanceTypes],
+  )
+
+  const canFinalize = canFinalizeRecommendation(session)
+
   return {
     session,
+    sessionNotFound,
     state,
     scenarioId: session.scenarioSeed,
     participants,
     attendanceTypes: session.attendanceTypes,
+    attendanceCounts,
     meeting: session.meeting,
+    meetingCreatedAt: session.meetingCreatedAt,
     isSendingRequest,
     isResponding,
     reasonExpanded,
@@ -283,14 +305,30 @@ export function usePrototypeFlow(
     surfaceMode,
     activeRequest,
     sessionId: session.id,
+    canFinalize,
     acknowledgeCardEnter: () => setPlayCardEnter(false),
     selectScenario: bootstrap,
     setAttendanceType,
     startAnalyzing: startAnalyzingFlow,
-    goToMeetingDetails: () =>
-      commit(goToMeetingDetails(sessionRef.current), setSession),
-    completeMeeting: () =>
-      commit(completeMeeting(sessionRef.current), setSession),
+    goToMeetingDetails: () => {
+      const current = sessionRef.current
+      if (!canFinalizeRecommendation(current)) return false
+      commit(goToMeetingDetails(current), setSession)
+      return true
+    },
+    completeMeeting: () => {
+      const current = sessionRef.current
+      if (current.meetingCreatedAt || current.phase === 'completed') {
+        commit(completeMeeting(current), setSession)
+        return true
+      }
+      if (!canFinalizeRecommendation(current)) return false
+      if (!current.meeting.title.trim()) return false
+      const next = completeMeeting(current)
+      if (next.phase !== 'completed') return false
+      commit(next, setSession)
+      return true
+    },
     finishReview: () => commit(finishReview(sessionRef.current), setSession),
     backToDecision: () =>
       commit(backToDecision(sessionRef.current), setSession),

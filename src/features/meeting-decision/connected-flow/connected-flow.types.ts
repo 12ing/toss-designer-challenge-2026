@@ -68,6 +68,8 @@ export type MeetingDecisionSession = {
   actor: PrototypeActor
   phase: ConnectedFlowPhase
   meeting: MeetingDraft
+  /** Set once when the meeting is created — prevents duplicate create. */
+  meetingCreatedAt?: string
   scenarioSeed: ScenarioPresetId
   createdAt: string
   updatedAt: string

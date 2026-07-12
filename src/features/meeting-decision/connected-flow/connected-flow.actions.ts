@@ -18,8 +18,33 @@ import type {
 
 const ORGANIZER_ID = 'minji'
 const DEFAULT_MEETING: MeetingDraft = {
-  title: '대시보드 개선 방향 논의',
-  location: '4층 회의실 A',
+  title: '',
+  location: '',
+}
+
+/** READY / READY_AFTER_CONFIRMATION — confirmable recommendation only. */
+export function canFinalizeRecommendation(
+  session: MeetingDecisionSession,
+): boolean {
+  const rec = session.currentRecommendation
+  if (!rec || rec.status !== 'READY') return false
+  if (session.meetingCreatedAt) return false
+  if (session.phase === 'completed' || session.phase === 'review-complete') {
+    return false
+  }
+  return true
+}
+
+export function countAttendanceByType(
+  attendanceTypes: Record<string, AttendanceType>,
+): { requiredCount: number; optionalCount: number } {
+  let requiredCount = 0
+  let optionalCount = 0
+  for (const type of Object.values(attendanceTypes)) {
+    if (type === 'required') requiredCount += 1
+    else optionalCount += 1
+  }
+  return { requiredCount, optionalCount }
 }
 
 export function createId(prefix: string) {
@@ -403,13 +428,48 @@ export function backFromPreview(
 export function goToMeetingDetails(
   session: MeetingDecisionSession,
 ): MeetingDecisionSession {
+  if (session.meetingCreatedAt || session.phase === 'completed') {
+    return stamp({ ...session, phase: 'completed', actor: 'organizer' })
+  }
+  if (!canFinalizeRecommendation(session)) {
+    return session
+  }
   return stamp({ ...session, phase: 'meeting-details', actor: 'organizer' })
 }
 
+/**
+ * Creates the meeting once. Returns the same completed session on repeat calls.
+ * Returns unchanged session when title is empty or recommendation is stale.
+ */
 export function completeMeeting(
   session: MeetingDecisionSession,
 ): MeetingDecisionSession {
-  return stamp({ ...session, phase: 'completed', actor: 'organizer' })
+  if (session.meetingCreatedAt || session.phase === 'completed') {
+    return stamp({
+      ...session,
+      phase: 'completed',
+      actor: 'organizer',
+      meetingCreatedAt:
+        session.meetingCreatedAt ?? new Date().toISOString(),
+    })
+  }
+  if (session.phase !== 'meeting-details') {
+    return session
+  }
+  if (!canFinalizeRecommendation(session)) {
+    return session
+  }
+  const title = session.meeting.title.trim()
+  if (!title) {
+    return session
+  }
+  return stamp({
+    ...session,
+    meeting: { ...session.meeting, title },
+    meetingCreatedAt: new Date().toISOString(),
+    phase: 'completed',
+    actor: 'organizer',
+  })
 }
 
 export function finishReview(
@@ -429,6 +489,8 @@ export function changeConditions(
     responseOverrides: {},
     isNextAlternative: false,
     isReadyAfterConfirmation: false,
+    meetingCreatedAt: undefined,
+    meeting: { ...DEFAULT_MEETING },
     phase: 'participant-setup',
     actor: 'organizer',
   })

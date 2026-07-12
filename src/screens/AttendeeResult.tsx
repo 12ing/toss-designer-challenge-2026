@@ -3,10 +3,16 @@ import { responseResultCopy } from '@/components/attendee/response-result.copy'
 
 interface AttendeeResultProps {
   approved: boolean
-  onConfirm: () => void
+  /** Review mode shows Primary CTA; usertest hides CTA entirely. */
+  showReviewCta: boolean
+  onContinue: () => void
 }
 
-export function AttendeeResult({ approved, onConfirm }: AttendeeResultProps) {
+export function AttendeeResult({
+  approved,
+  showReviewCta,
+  onContinue,
+}: AttendeeResultProps) {
   const copy = approved
     ? responseResultCopy.approved
     : responseResultCopy.declined
@@ -15,7 +21,9 @@ export function AttendeeResult({ approved, onConfirm }: AttendeeResultProps) {
     <ResponseResultLayout
       title={copy.title}
       description={copy.description}
-      onConfirm={onConfirm}
+      showCta={showReviewCta}
+      confirmLabel={copy.reviewCta}
+      onConfirm={showReviewCta ? onContinue : undefined}
     />
   )
 }

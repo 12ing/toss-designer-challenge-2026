@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { DecisionSurface } from '@/components/decision-surface/DecisionSurface'
+import { FlowRecovery } from '@/components/flow/FlowRecovery'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
 import { parseScenarioParam } from '@/config/scenarios'
@@ -21,9 +22,9 @@ import { reviewStepFromPhase } from '@/review/review-steps'
 import { Analyzing } from '@/screens/Analyzing'
 import { AttendeeRequest } from '@/screens/AttendeeRequest'
 import { AttendeeResult } from '@/screens/AttendeeResult'
-import { Completed } from '@/screens/Completed'
 import { MeetingDetails } from '@/screens/MeetingDetails'
 import { ParticipantSetup } from '@/screens/ParticipantSetup'
+import { ProductCompletion } from '@/screens/ProductCompletion'
 import { RequestPreview } from '@/screens/RequestPreview'
 
 function useScenarioId() {
@@ -115,6 +116,21 @@ export function OrganizerSessionApp() {
     }
   }, [flow.state, flow.sessionId, navigate])
 
+  if (flow.sessionNotFound) {
+    return (
+      <ReviewFrame showReviewNav={showReviewNav} step="time-recommendation">
+        <ScreenShell hideHeader embedded={showReviewNav} layout="desktop">
+          <FlowRecovery
+            title="세션을 찾을 수 없어요."
+            description="링크가 만료되었거나 잘못된 주소일 수 있어요."
+            actionLabel="처음으로"
+            href="/"
+          />
+        </ScreenShell>
+      </ReviewFrame>
+    )
+  }
+
   return (
     <OrganizerExperience
       key={sessionId ?? flow.sessionId}
@@ -134,6 +150,10 @@ function OrganizerExperience({
   const navigate = useNavigate()
   const showSurface = flow.surfaceMode !== null && flow.recommendation !== null
   const step = reviewStepFromPhase(flow.session.phase)
+  const waitingPadding =
+    flow.state === 'waiting' && showReviewNav
+      ? 'max-[719px]:pb-[200px]'
+      : ''
 
   const onPrimary = () => {
     if (!flow.surfaceMode || !flow.recommendation) return
@@ -187,72 +207,103 @@ function OrganizerExperience({
         layout="desktop"
         contentWidth={showSurface ? 'wide' : 'default'}
       >
-        {flow.state === 'participant-setup' && (
-          <ParticipantSetup
-            attendanceTypes={flow.attendanceTypes}
-            onAttendanceTypeChange={flow.setAttendanceType}
-            onFindTime={flow.startAnalyzing}
-          />
-        )}
-
-        {flow.state === 'analyzing' && <Analyzing />}
-
-        {showSurface && flow.surfaceMode && flow.recommendation && (
-          <DecisionSurface
-            mode={flow.surfaceMode}
-            recommendation={flow.recommendation}
-            isReasonExpanded={flow.reasonExpanded}
-            onToggleReason={
-              flow.surfaceMode === 'waiting' || flow.surfaceMode === 'no-option'
-                ? undefined
-                : flow.toggleReasonExpanded
-            }
-            onPrimaryAction={
-              flow.surfaceMode === 'waiting' ? undefined : onPrimary
-            }
-            animateIn={flow.playCardEnter}
-            onAnimateInEnd={flow.acknowledgeCardEnter}
-          />
-        )}
-
-        {(flow.state === 'request-preview' ||
-          flow.session.phase === 'sending-request') &&
-          flow.activeRequest && (
-            <RequestPreview
-              recipientName={flow.activeRequest.targetParticipantName}
-              dateDisplay={flow.activeRequest.dateLabel}
-              timeLabel={flow.activeRequest.timeLabel}
-              loading={flow.isSendingRequest}
-              onSend={flow.sendRequest}
-              onBack={flow.backFromPreview}
+        <div className={waitingPadding}>
+          {flow.state === 'participant-setup' && (
+            <ParticipantSetup
+              attendanceTypes={flow.attendanceTypes}
+              onAttendanceTypeChange={flow.setAttendanceType}
+              onFindTime={flow.startAnalyzing}
             />
           )}
 
-        {flow.state === 'meeting-details' && flow.uiView && (
-          <MeetingDetails
-            dateDisplay={flow.uiView.dateLabel}
-            timeLabel={flow.uiView.timeLabel}
-            meeting={flow.meeting}
-            onChange={flow.updateMeeting}
-            onSubmit={flow.completeMeeting}
-            onBack={flow.backToDecision}
-          />
-        )}
+          {flow.state === 'analyzing' && <Analyzing />}
 
-        {flow.state === 'completed' && flow.uiView && (
-          <Completed
-            title={flow.meeting.title}
-            dateDisplay={flow.uiView.dateLabel}
-            timeLabel={flow.uiView.timeLabel}
-            onComplete={() => {
-              if (showReviewNav) {
-                flow.finishReview()
-                return
+          {showSurface && flow.surfaceMode && flow.recommendation && (
+            <DecisionSurface
+              mode={flow.surfaceMode}
+              recommendation={flow.recommendation}
+              isReasonExpanded={flow.reasonExpanded}
+              onToggleReason={
+                flow.surfaceMode === 'waiting' ||
+                flow.surfaceMode === 'no-option'
+                  ? undefined
+                  : flow.toggleReasonExpanded
               }
-              navigate('/')
-            }}
-          />
-        )}
+              onPrimaryAction={
+                flow.surfaceMode === 'waiting' ? undefined : onPrimary
+              }
+              animateIn={flow.playCardEnter}
+              onAnimateInEnd={flow.acknowledgeCardEnter}
+            />
+          )}
+
+          {(flow.state === 'request-preview' ||
+            flow.session.phase === 'sending-request') &&
+            flow.activeRequest && (
+              <RequestPreview
+                recipientName={flow.activeRequest.targetParticipantName}
+                dateDisplay={flow.activeRequest.dateLabel}
+                timeLabel={flow.activeRequest.timeLabel}
+                loading={flow.isSendingRequest}
+                onSend={flow.sendRequest}
+                onBack={flow.backFromPreview}
+              />
+            )}
+
+          {flow.state === 'meeting-details' &&
+            (flow.meetingCreatedAt ? (
+              <FlowRecovery
+                title="이미 만든 회의예요."
+                description="생성 결과 화면으로 이동할 수 있어요."
+                actionLabel="회의 결과 보기"
+                onAction={() => flow.completeMeeting()}
+              />
+            ) : !flow.canFinalize || !flow.uiView ? (
+              <FlowRecovery
+                title="추천 시간이 더 이상 유효하지 않아요."
+                description="조건을 다시 확인해 시간을 찾아주세요."
+                actionLabel="시간 다시 보기"
+                onAction={flow.backToDecision}
+              />
+            ) : (
+              <MeetingDetails
+                dateDisplay={flow.uiView.dateLabel}
+                timeLabel={flow.uiView.timeLabel}
+                requiredCount={flow.attendanceCounts.requiredCount}
+                optionalCount={flow.attendanceCounts.optionalCount}
+                meeting={flow.meeting}
+                onChange={flow.updateMeeting}
+                onSubmit={flow.completeMeeting}
+                onBack={flow.backToDecision}
+              />
+            ))}
+
+          {flow.state === 'completed' && flow.uiView && (
+            <ProductCompletion
+              title={flow.meeting.title}
+              dateDisplay={flow.uiView.dateLabel}
+              timeLabel={flow.uiView.timeLabel}
+              requiredCount={flow.attendanceCounts.requiredCount}
+              optionalCount={flow.attendanceCounts.optionalCount}
+              onComplete={() => {
+                if (showReviewNav) {
+                  flow.finishReview()
+                  return
+                }
+                navigate('/')
+              }}
+            />
+          )}
+
+          {flow.state === 'completed' && !flow.uiView && (
+            <FlowRecovery
+              title="회의 결과를 불러올 수 없어요."
+              description="처음부터 다시 시작해 주세요."
+              actionLabel="처음으로"
+              href="/"
+            />
+          )}
+        </div>
       </ScreenShell>
     </ReviewFrame>
   )
@@ -302,17 +353,15 @@ export function AttendeeRespondApp() {
   const sessionId =
     routeSessionId ?? loadSession()?.id ?? flow.sessionId ?? storedMatch?.id
 
-  const onProductConfirm = (approved: boolean) => {
+  const onReviewContinue = (approved: boolean) => {
     if (approved) {
       flow.finishAttendeeApproved()
     } else {
       flow.finishAttendeeRejected()
     }
-    if (showReviewNav && sessionId) {
+    if (sessionId) {
       navigate(organizerPath(sessionId, showReviewNav), { replace: true })
-      return
     }
-    navigate('/')
   }
 
   const reviewStep = reviewStepFromPhase(
@@ -321,27 +370,31 @@ export function AttendeeRespondApp() {
       : flow.session.phase,
   )
 
+  if (flow.sessionNotFound && !storedMatch) {
+    return (
+      <ReviewFrame showReviewNav={showReviewNav} step="attendee-response">
+        <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
+          <FlowRecovery
+            title="세션을 찾을 수 없어요."
+            description="링크가 만료되었거나 잘못된 주소일 수 있어요."
+            actionLabel="처음으로"
+            href="/"
+          />
+        </ScreenShell>
+      </ReviewFrame>
+    )
+  }
+
   if (missing) {
     return (
       <ReviewFrame showReviewNav={showReviewNav} step="attendee-response">
         <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
-          <div className="flex flex-1 flex-col justify-center py-16">
-            <h2
-              className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
-              style={{ wordBreak: 'keep-all' }}
-            >
-              요청을 찾을 수 없어요.
-            </h2>
-            <p className="mb-8 text-[16px] leading-6 text-meeting-text-secondary">
-              링크가 만료되었거나 잘못된 요청일 수 있어요.
-            </p>
-            <Link
-              to="/"
-              className="text-[15px] font-medium text-meeting-text-secondary underline"
-            >
-              처음으로
-            </Link>
-          </div>
+          <FlowRecovery
+            title="요청을 찾을 수 없어요."
+            description="링크가 만료되었거나 잘못된 요청일 수 있어요."
+            actionLabel="처음으로"
+            href="/"
+          />
         </ScreenShell>
       </ReviewFrame>
     )
@@ -376,7 +429,8 @@ export function AttendeeRespondApp() {
         {alreadyResponded && step === 'result' && (
           <AttendeeResult
             approved={approved}
-            onConfirm={() => onProductConfirm(approved)}
+            showReviewCta={showReviewNav}
+            onContinue={() => onReviewContinue(approved)}
           />
         )}
       </ScreenShell>

@@ -2,14 +2,23 @@ type ReasonPanelProps = {
   rows: Array<{ label: string; value: string }>
   note?: string
   onShowPeople: () => void
+  /** Hide h3 when parent sheet already shows the title. */
+  hideTitle?: boolean
 }
 
-export function ReasonPanel({ rows, note, onShowPeople }: ReasonPanelProps) {
+export function ReasonPanel({
+  rows,
+  note,
+  onShowPeople,
+  hideTitle = false,
+}: ReasonPanelProps) {
   return (
     <section className="min-w-0" aria-label="이 시간을 고른 이유" aria-live="polite">
-      <h3 className="mb-2 text-[15px] font-bold leading-[23px] text-meeting-text">
-        이 시간을 고른 이유
-      </h3>
+      {hideTitle ? null : (
+        <h3 className="mb-2 text-[15px] font-bold leading-[23px] text-meeting-text">
+          이 시간을 고른 이유
+        </h3>
+      )}
       <dl>
         {rows.map((item, index) => (
           <div

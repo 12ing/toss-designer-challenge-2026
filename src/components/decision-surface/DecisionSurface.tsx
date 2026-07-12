@@ -180,6 +180,20 @@ export function DecisionSurface({
     />
   )
 
+  const peopleSheetPanel = (
+    <PeopleImpactPanel
+      title={vm.peoplePanelTitle}
+      requiredRows={vm.requiredRows}
+      optionalRows={vm.optionalRows}
+      blockingRows={vm.blockingRows}
+      mobileSummary={vm.mobilePeopleSummary}
+      mobileConfirmationHint={vm.mobileConfirmationHint}
+      collapsibleOnMobile={false}
+      forceExpanded
+      hideTitle
+    />
+  )
+
   const reasonPanel = (
     <ReasonPanel
       rows={vm.reasonRows}
@@ -301,7 +315,7 @@ export function DecisionSurface({
     <div className="mx-auto w-full max-w-[880px]">
       <article
         className={[
-          'w-full rounded-3xl border border-meeting-divider bg-meeting-surface px-7 py-7 shadow-[0_12px_32px_rgba(0,27,55,0.06)] max-[719px]:p-5',
+          'w-full overflow-visible rounded-3xl border border-meeting-divider bg-meeting-surface px-7 py-7 shadow-[0_12px_32px_rgba(0,27,55,0.06)] max-[719px]:p-5',
           animateIn
             ? 'animate-[card-in_var(--meeting-motion-standard)_var(--meeting-ease-standard)] motion-reduce:animate-none'
             : '',
@@ -310,7 +324,7 @@ export function DecisionSurface({
         <div className="grid grid-cols-1 gap-6 min-[720px]:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] min-[720px]:items-start min-[720px]:gap-7">
           {decisionColumn}
 
-          <div className="hidden border-l border-meeting-divider pl-6 min-[720px]:block">
+          <div className="hidden min-w-0 overflow-visible border-l border-meeting-divider pl-6 min-[720px]:block">
             <div
               key={contextView}
               className="animate-[panel-fade_160ms_ease] motion-reduce:animate-none"
@@ -333,7 +347,7 @@ export function DecisionSurface({
         title={vm.peoplePanelTitle}
         onClose={() => setMobileSheet(null)}
       >
-        {peoplePanel}
+        {peopleSheetPanel}
       </MobileBottomSheet>
 
       <MobileBottomSheet
@@ -347,6 +361,7 @@ export function DecisionSurface({
         <ReasonPanel
           rows={vm.reasonRows}
           note={vm.reasonNote}
+          hideTitle
           onShowPeople={() => setMobileSheet('people')}
         />
       </MobileBottomSheet>

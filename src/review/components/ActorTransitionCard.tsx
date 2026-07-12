@@ -33,7 +33,7 @@ export function ActorTransitionCard({
           className="mb-1.5 text-[15px] font-semibold leading-[22px] text-meeting-text"
           style={{ wordBreak: 'keep-all' }}
         >
-          참석자에게 확인 요청을 보냈어요
+          참석자에게 확인 요청을 보냈어요.
         </p>
         <p
           className="mb-4 text-[14px] leading-[21px] text-meeting-text-secondary"

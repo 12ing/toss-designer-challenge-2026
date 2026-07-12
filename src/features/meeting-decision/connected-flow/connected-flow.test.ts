@@ -4,13 +4,17 @@ import {
   applyAnalyzedRecommendation,
   beginAttendeeResponse,
   beginSendingRequest,
+  canFinalizeRecommendation,
   completeAttendeeResponse,
+  completeMeeting,
   createSession,
+  goToMeetingDetails,
   markRequestPending,
   openAttendeeView,
   openRequestPreview,
   resolveAfterAttendeeResponse,
   runRecommendation,
+  updateMeetingDraft,
   withAttendanceType,
 } from './connected-flow.actions'
 
@@ -31,7 +35,7 @@ describe('connected-flow request lifecycle', () => {
     expect(request?.targetParticipantId).toBe('jihoon')
     expect(request?.slotId).toBe('thu-15')
     expect(request?.conflictPublicLabel).toBe('개인 보호 시간')
-    expect(request?.meetingTitle).toBe('대시보드 개선 방향 논의')
+    expect(request?.meetingTitle).toBe('')
   })
 
   it('rejects optional participants as request targets', () => {
@@ -128,5 +132,42 @@ describe('connected-flow request lifecycle', () => {
     const session = sessionWithNeedConfirmation()
     const opened = openRequestPreview(session)
     expect(opened.activeRequest?.targetParticipantId).not.toBe('minji')
+  })
+})
+
+describe('connected-flow meeting finalize', () => {
+  it('only finalizes READY recommendations and prevents duplicate create', () => {
+    let session = createSession('coordination')
+    session = withAttendanceType(session, 'jihoon', 'optional')
+    const recommendation = runRecommendation(session.attendanceTypes, {})
+    expect(recommendation.status).toBe('READY')
+    session = applyAnalyzedRecommendation(session, recommendation)
+    expect(canFinalizeRecommendation(session)).toBe(true)
+
+    session = goToMeetingDetails(session)
+    expect(session.phase).toBe('meeting-details')
+
+    const blocked = completeMeeting(session)
+    expect(blocked.phase).toBe('meeting-details')
+    expect(blocked.meetingCreatedAt).toBeUndefined()
+
+    session = updateMeetingDraft(session, { title: '킥오프 미팅' })
+    session = completeMeeting(session)
+    expect(session.phase).toBe('completed')
+    expect(session.meetingCreatedAt).toBeDefined()
+    expect(session.meeting.title).toBe('킥오프 미팅')
+
+    const again = completeMeeting(session)
+    expect(again.phase).toBe('completed')
+    expect(again.meetingCreatedAt).toBe(session.meetingCreatedAt)
+  })
+
+  it('blocks finalize for NEED_CONFIRMATION', () => {
+    let session = createSession('coordination')
+    const recommendation = runRecommendation(session.attendanceTypes, {})
+    expect(recommendation.status).toBe('NEED_CONFIRMATION')
+    session = applyAnalyzedRecommendation(session, recommendation)
+    expect(canFinalizeRecommendation(session)).toBe(false)
+    expect(goToMeetingDetails(session).phase).toBe('organizer-result')
   })
 })
