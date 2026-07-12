@@ -1,8 +1,7 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { DecisionSurface } from '@/components/decision-surface/DecisionSurface'
 import { ReviewComplete, ReviewNav } from '@/components/ReviewShell'
-import { Button } from '@/components/ui/Button'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
 import { parseScenarioParam } from '@/config/scenarios'
@@ -14,6 +13,7 @@ import { usePrototypeFlow } from '@/hooks/usePrototypeFlow'
 import { Analyzing } from '@/screens/Analyzing'
 import { AttendeeRequest } from '@/screens/AttendeeRequest'
 import { AttendeeResult } from '@/screens/AttendeeResult'
+import { AttendeeReviewTransition } from '@/screens/AttendeeReviewTransition'
 import { Completed } from '@/screens/Completed'
 import { MeetingDetails } from '@/screens/MeetingDetails'
 import { ParticipantSetup } from '@/screens/ParticipantSetup'
@@ -206,6 +206,9 @@ export function AttendeeRespondApp() {
   const scenarioId = useScenarioId()
   const flow = usePrototypeFlow(scenarioId)
   const showReviewNav = shouldShowPrototypeControls()
+  const [step, setStep] = useState<'response' | 'result' | 'review-transition'>(
+    'response',
+  )
 
   const storedMatch = findSessionByRequestId(requestId)
   const request =
@@ -229,15 +232,36 @@ export function AttendeeRespondApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestId])
 
-  const goOrganizerAfterResolve = (finish: () => void) => {
-    finish()
-    // finish updates session; navigate after microtask so storage is written
-    window.setTimeout(() => {
-      const sessionId = loadSession()?.id ?? flow.sessionId
-      navigate(
-        `/prototype/session/${sessionId}/organizer${window.location.search}`,
-      )
-    }, 0)
+  useEffect(() => {
+    if (!request) return
+    const responded =
+      request.status === 'approved' ||
+      request.status === 'declined' ||
+      request.status === 'resolved'
+    if (responded && step === 'response') {
+      setStep('result')
+    }
+  }, [request, step])
+
+  const goOrganizer = () => {
+    const sessionId = loadSession()?.id ?? flow.sessionId
+    navigate(
+      `/prototype/session/${sessionId}/organizer${window.location.search}`,
+    )
+  }
+
+  const onProductConfirm = (approved: boolean) => {
+    if (approved) {
+      flow.finishAttendeeApproved()
+    } else {
+      flow.finishAttendeeRejected()
+    }
+    if (showReviewNav) {
+      setStep('review-transition')
+      return
+    }
+    // usertest: end attendee product flow only
+    navigate('/')
   }
 
   if (missing) {
@@ -277,6 +301,7 @@ export function AttendeeRespondApp() {
     request.response === 'approved' || flow.state === 'attendee-approved'
   const showDeclined =
     request.response === 'declined' || flow.state === 'attendee-rejected'
+  const approved = showApproved && !showDeclined
 
   return (
     <ScreenShell
@@ -284,30 +309,15 @@ export function AttendeeRespondApp() {
       layout="mobile"
       onClose={() => navigate('/')}
       footer={
-        showReviewNav && alreadyResponded ? (
-          <div className="mt-6 rounded-2xl border border-[#d1d6db] bg-[#eef0f3] px-5 py-5">
-            <p className="mb-1 text-[13px] font-semibold text-meeting-text-secondary">
-              다음 장면
-            </p>
-            <p className="mb-4 text-[15px] leading-[23px] text-meeting-text">
-              주최자 화면에 결과가 반영돼요.
-            </p>
-            <Button
-              onClick={() =>
-                goOrganizerAfterResolve(
-                  showApproved
-                    ? flow.finishAttendeeApproved
-                    : flow.finishAttendeeRejected,
-                )
-              }
-            >
-              주최자 화면 보기
-            </Button>
-          </div>
+        step === 'review-transition' && showReviewNav ? (
+          <AttendeeReviewTransition
+            approved={approved}
+            onContinue={goOrganizer}
+          />
         ) : undefined
       }
     >
-      {!alreadyResponded && (
+      {!alreadyResponded && step === 'response' && (
         <AttendeeRequest
           dateDisplay={request.dateLabel}
           timeLabel={request.timeLabel}
@@ -320,23 +330,31 @@ export function AttendeeRespondApp() {
         />
       )}
 
-      {alreadyResponded && showApproved && (
+      {alreadyResponded && step === 'result' && (
         <AttendeeResult
-          approved
-          onConfirm={() =>
-            goOrganizerAfterResolve(flow.finishAttendeeApproved)
-          }
+          approved={approved}
+          onConfirm={() => onProductConfirm(approved)}
         />
       )}
 
-      {alreadyResponded && showDeclined && (
-        <AttendeeResult
-          approved={false}
-          onConfirm={() =>
-            goOrganizerAfterResolve(flow.finishAttendeeRejected)
-          }
-        />
-      )}
+      {step === 'review-transition' && showReviewNav ? (
+        <div className="flex flex-1 flex-col justify-center py-16">
+          <h2
+            className="mb-3 text-[24px] font-bold leading-[34px] text-meeting-text"
+            style={{ wordBreak: 'keep-all' }}
+          >
+            {approved ? '가능하다고 전달했어요.' : '어렵다고 전달했어요.'}
+          </h2>
+          <p
+            className="text-[16px] leading-6 text-meeting-text-secondary"
+            style={{ wordBreak: 'keep-all' }}
+          >
+            {approved
+              ? '회의가 확정되면 캘린더에 반영돼요.'
+              : '다른 시간을 다시 찾을게요.'}
+          </p>
+        </div>
+      ) : null}
     </ScreenShell>
   )
 }

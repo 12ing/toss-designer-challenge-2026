@@ -15,7 +15,8 @@
     "screenshots:hierarchy": "node scripts/capture-hierarchy-screenshots.mjs",
     "screenshots:p3-visual": "node scripts/capture-p3-visual-screenshots.mjs",
     "screenshots:p3-dedupe": "node scripts/capture-p3-dedupe-screenshots.mjs",
-    "screenshots:p4": "node scripts/capture-p4-screenshots.mjs"
+    "screenshots:p4": "node scripts/capture-p4-screenshots.mjs",
+    "screenshots:p4-ux": "node scripts/capture-p4-ux-screenshots.mjs"
   },
   "dependencies": {
     "@toss/tds-colors": "^0.1.0",

@@ -1,5 +1,4 @@
 import { DateTimeBlock } from '@/components/DateTimeBlock'
-import { Button } from '@/components/ui/Button'
 
 interface AttendeeRequestProps {
   dateDisplay: string
@@ -11,6 +10,9 @@ interface AttendeeRequestProps {
   onApprove: () => void
   onReject: () => void
 }
+
+const choiceButtonClass =
+  'inline-flex w-full min-h-14 items-center justify-center rounded-[var(--meeting-radius-button)] border border-meeting-divider bg-meeting-surface px-5 text-[16px] font-semibold leading-6 text-meeting-text transition-[background-color,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] hover:bg-meeting-primary-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] disabled:opacity-50'
 
 export function AttendeeRequest({
   dateDisplay,
@@ -52,18 +54,22 @@ export function AttendeeRequest({
       </div>
 
       <div className="mt-auto flex flex-col gap-3 pb-2">
-        <Button size="mobile" onClick={onApprove} disabled={loading}>
-          {loading ? '전달하는 중' : '이 시간 사용 가능'}
-        </Button>
-        <Button
-          size="mobile"
-          variant="secondary"
-          onClick={onReject}
+        <button
+          type="button"
+          className={choiceButtonClass}
           disabled={loading}
-          className="!min-h-14"
+          onClick={onApprove}
+        >
+          {loading ? '전달하는 중' : '이 시간 사용 가능'}
+        </button>
+        <button
+          type="button"
+          className={choiceButtonClass}
+          disabled={loading}
+          onClick={onReject}
         >
           이 시간은 어려워요
-        </Button>
+        </button>
       </div>
     </div>
   )

@@ -41,9 +41,7 @@ export function RequestPreview({
         </div>
 
         <p className="mb-8 text-[14px] leading-[21px] text-meeting-text-tertiary">
-          개인 일정의 상세 내용과 응답 사유는
-          <br />
-          다른 참석자에게 공개되지 않아요.
+          개인 일정의 상세 내용과 응답 사유는 공유되지 않아요.
         </p>
 
         <Button onClick={onSend} loading={loading}>
