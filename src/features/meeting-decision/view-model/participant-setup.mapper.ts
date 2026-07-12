@@ -7,6 +7,8 @@ export type ParticipantSetupRowViewModel = {
   id: string
   name: string
   role: string
+  /** Display role line, e.g. `PO · 주최자` for organizer */
+  roleLabel: string
   isOrganizer: boolean
   attendanceType: AttendanceType
   attendanceLocked: boolean
@@ -43,16 +45,20 @@ export function mapParticipantsToSetupViewModel(params: {
         ? 'required'
         : (params.attendanceTypes[person.id] ?? person.defaultAttendanceType)
       const context = getPublicContextForParticipant(person.id)
-      const roleLabel = attendanceType === 'required' ? '필수' : '선택'
+      const roleLabel = person.isOrganizer
+        ? `${person.role} · 주최자`
+        : person.role
+      const roleTag = attendanceType === 'required' ? '필수' : '선택'
 
       const accessibleSummary = person.isOrganizer
-        ? `${person.name}, ${person.role}, 주최자, 필수 참석자, 변경할 수 없음`
-        : `${person.name}, ${person.role}, ${context.shortLabel}, ${roleLabel} 참석자로 설정됨`
+        ? `${person.name}, ${person.role}, 주최자, 필수 참석 고정`
+        : `${person.name}, ${person.role}, ${context.shortLabel}, ${roleTag} 참석자로 설정됨`
 
       return {
         id: person.id,
         name: person.name,
         role: person.role,
+        roleLabel,
         isOrganizer: person.isOrganizer,
         attendanceType,
         attendanceLocked: person.isOrganizer,

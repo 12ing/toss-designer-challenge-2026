@@ -42,17 +42,25 @@ export function ParticipantSetup({
       </div>
 
       <p
-        className="mb-4 text-[14px] font-medium text-meeting-text-secondary transition-opacity duration-[180ms]"
+        className="mb-5 text-[14px] font-medium text-meeting-text-secondary transition-opacity duration-[180ms]"
         aria-live="polite"
       >
         {viewModel.summaryLabel}
       </p>
 
-      <div className="mb-2 flex items-center justify-between gap-3">
+      <div className="mb-3 hidden grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_minmax(120px,auto)] items-end gap-5 min-[640px]:grid">
         <p className="text-[13px] font-medium text-meeting-text-secondary">
           참석자
         </p>
-        <SchedulingPrivacyPopover />
+        <div className="flex min-w-0 items-center gap-1">
+          <p className="text-[13px] font-medium text-meeting-text-secondary">
+            공유된 일정 조건
+          </p>
+          <SchedulingPrivacyPopover variant="icon" />
+        </div>
+        <p className="justify-self-end text-[13px] font-medium text-meeting-text-secondary">
+          참석 구분
+        </p>
       </div>
 
       <section

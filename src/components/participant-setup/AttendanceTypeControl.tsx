@@ -33,9 +33,10 @@ export function AttendanceTypeControl({
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full border border-[color:color-mix(in_srgb,var(--meeting-primary)_22%,transparent)] bg-meeting-primary-subtle shadow-sm motion-safe:transition-transform motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+        className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-meeting-primary-subtle shadow-sm motion-safe:transition-transform motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
         style={{
           transform: `translateX(${selectedIndex * 100}%)`,
+          border: '1px solid color-mix(in srgb, var(--meeting-primary) 22%, transparent)',
         }}
       />
 

@@ -49,7 +49,10 @@ describe('mapParticipantsToSetupViewModel', () => {
     const organizer = vm.rows[0]
     expect(organizer.attendanceLocked).toBe(true)
     expect(organizer.attendanceType).toBe('required')
-    expect(organizer.publicContext.label).toBe('주최자 · 필수 참석')
+    expect(organizer.roleLabel).toBe('PO · 주최자')
+    expect(organizer.accessibleSummary).toBe(
+      '김민지, PO, 주최자, 필수 참석 고정',
+    )
   })
 
   it('includes organizer in required count', () => {
