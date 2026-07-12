@@ -1,10 +1,13 @@
 import { Fragment } from 'react'
+import {
+  formatMeetingAttendeeTotal,
+  formatOptionalAttendeeHeading,
+  formatRequiredAttendeeHeading,
+} from '@/copy/formatters'
 import type { MeetingParticipantSnapshot } from '@/types/schedule'
 
 type MeetingParticipantsSummaryProps = {
   participants: MeetingParticipantSnapshot[]
-  /** Defaults to 회의 참석자 */
-  totalLabel?: string
   className?: string
 }
 
@@ -30,7 +33,6 @@ function NameList({ names }: { names: string[] }) {
 /** Shared attendee list for MeetingDetails and ProductCompletion. */
 export function MeetingParticipantsSummary({
   participants,
-  totalLabel = '회의 참석자',
   className = '',
 }: MeetingParticipantsSummaryProps) {
   const required = participants.filter((p) => p.role === 'required')
@@ -39,28 +41,28 @@ export function MeetingParticipantsSummary({
   return (
     <div className={`flex flex-col ${className}`.trim()}>
       <p className="mb-3.5 text-[15px] font-semibold leading-[23px] text-meeting-text">
-        {totalLabel} {participants.length}명
+        {formatMeetingAttendeeTotal(participants.length)}
       </p>
 
       {required.length > 0 ? (
         <div className="flex flex-col gap-1">
           <p className="text-[13px] font-medium leading-5 text-meeting-text-secondary">
-            필수 참석자
+            {formatRequiredAttendeeHeading(required.length)}
           </p>
           <NameList names={required.map((p) => p.name)} />
         </div>
       ) : null}
 
-      {optional.length > 0 ? (
-        <div
-          className={`flex flex-col gap-1 ${required.length > 0 ? 'mt-2.5' : ''}`}
-        >
-          <p className="text-[13px] font-medium leading-5 text-meeting-text-secondary">
-            선택 참석자
-          </p>
+      <div
+        className={`flex flex-col gap-1 ${required.length > 0 ? 'mt-2.5' : ''}`}
+      >
+        <p className="text-[13px] font-medium leading-5 text-meeting-text-secondary">
+          {formatOptionalAttendeeHeading(optional.length)}
+        </p>
+        {optional.length > 0 ? (
           <NameList names={optional.map((p) => p.name)} />
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   )
 }

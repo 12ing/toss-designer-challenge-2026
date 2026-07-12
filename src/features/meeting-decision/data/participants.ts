@@ -8,7 +8,7 @@ const baseParticipants: Omit<DecisionParticipant, 'schedule'>[] = [
     role: 'PO',
     isOrganizer: true,
     defaultAttendanceType: 'required',
-    contextSummary: '주최자 · 필수 참석',
+    contextSummary: '주최자 · 필수 고정',
   },
   {
     id: 'jihoon',
@@ -24,7 +24,7 @@ const baseParticipants: Omit<DecisionParticipant, 'schedule'>[] = [
     role: '프로덕트 디자이너',
     isOrganizer: false,
     defaultAttendanceType: 'required',
-    contextSummary: '점심 직후 회피',
+    contextSummary: '점심 직후 선호하지 않음',
   },
   {
     id: 'doyoon',

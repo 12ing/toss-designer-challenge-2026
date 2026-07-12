@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { ParticipantConditionRow } from '@/components/participant-setup/ParticipantConditionRow'
 import { SchedulingPrivacyPopover } from '@/components/participant-setup/SchedulingPrivacyPopover'
 import { Button } from '@/components/ui/Button'
+import { productCopy } from '@/copy/product.copy'
 import { mapParticipantsToSetupViewModel } from '@/features/meeting-decision/view-model/participant-setup.mapper'
 import type { AttendanceType } from '@/types/schedule'
 
@@ -16,6 +17,7 @@ export function ParticipantSetup({
   onAttendanceTypeChange,
   onFindTime,
 }: ParticipantSetupProps) {
+  const copy = productCopy.setup
   const viewModel = useMemo(
     () => mapParticipantsToSetupViewModel({ attendanceTypes }),
     [attendanceTypes],
@@ -30,18 +32,18 @@ export function ParticipantSetup({
           className="mb-2 text-[24px] font-bold leading-[34px] tracking-tight text-meeting-text outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
-          참석 조건을 확인해주세요
+          {copy.title}
         </h2>
         <p
           className="text-[15px] leading-[23px] text-meeting-text-secondary"
           style={{ wordBreak: 'keep-all' }}
         >
-          필수 참석자가 모두 가능한 시간을 먼저 찾을게요.
+          {copy.description}
         </p>
       </div>
 
       <div className="mb-4 flex items-baseline justify-between gap-3">
-        <p className="text-[13px] text-meeting-text-tertiary">다음 주 · 1시간</p>
+        <p className="text-[13px] text-meeting-text-tertiary">{copy.meta}</p>
         <p
           className="text-[13px] font-medium text-meeting-text-secondary transition-opacity duration-[180ms]"
           aria-live="polite"
@@ -56,11 +58,11 @@ export function ParticipantSetup({
       >
         <div className="flex items-center justify-between gap-3 border-b border-meeting-divider px-5 py-3 min-[640px]:hidden">
           <p className="text-[13px] font-medium text-meeting-text-secondary">
-            참석자
+            {copy.columnParticipant}
           </p>
           <div className="flex items-center gap-1">
             <p className="text-[13px] font-medium text-meeting-text-secondary">
-              일정 조건
+              {copy.columnCondition}
             </p>
             <SchedulingPrivacyPopover variant="icon" />
           </div>
@@ -68,16 +70,16 @@ export function ParticipantSetup({
 
         <div className="hidden grid-cols-[minmax(140px,1.1fr)_minmax(150px,1.2fr)_120px] items-center gap-5 border-b border-meeting-divider px-5 py-3 min-[640px]:grid">
           <p className="text-[13px] font-medium text-meeting-text-secondary">
-            참석자
+            {copy.columnParticipant}
           </p>
           <div className="flex min-w-0 items-center gap-1">
             <p className="text-[13px] font-medium text-meeting-text-secondary">
-              일정 조건
+              {copy.columnCondition}
             </p>
             <SchedulingPrivacyPopover variant="icon" />
           </div>
           <p className="justify-self-end text-[13px] font-medium text-meeting-text-secondary">
-            참석 구분
+            {copy.columnAttendance}
           </p>
         </div>
 
@@ -94,7 +96,7 @@ export function ParticipantSetup({
       </section>
 
       <Button onClick={onFindTime} className="min-h-[52px] max-[639px]:min-h-14">
-        이 조건으로 시간 찾기
+        {copy.primaryAction}
       </Button>
     </div>
   )

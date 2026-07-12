@@ -29,8 +29,8 @@ async function seedPendingRequest(page) {
   await waitVisible(page, '참석 조건을 확인해주세요')
   await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(page, '확인 한 번이면')
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(page, '응답을 기다리고 있어요.')
   return page.evaluate(() => {
     const raw = sessionStorage.getItem('toss-meeting-decision-session-v1')
@@ -92,7 +92,7 @@ async function main() {
   // 3. after confirm → review transition
   await a1.page.getByRole('button', { name: '확인' }).click()
   await waitVisible(a1.page, '응답이 주최자에게 반영됐어요.')
-  await waitVisible(a1.page, '확정 가능한 시간 보기')
+  await waitVisible(a1.page, '주최자 결과 보기')
   const confirmStill = await a1.page.getByRole('button', { name: '확인' }).count()
   if (confirmStill > 0) {
     console.warn('warning: product confirm still visible with review CTA')
@@ -108,7 +108,7 @@ async function main() {
   await shot(a2.page, '04-decline-complete-no-review')
   await a2.page.getByRole('button', { name: '확인' }).click()
   await waitVisible(a2.page, '응답이 주최자에게 반영됐어요.')
-  await waitVisible(a2.page, '새로 계산된 시간 보기')
+  await waitVisible(a2.page, '주최자 결과 보기')
   await shot(a2.page, '05-decline-review-transition')
   await a2.ctx.close()
 

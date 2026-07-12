@@ -57,7 +57,7 @@ export const scheduleByParticipant: Record<
   seoyeon: {
     'mon-10': free(),
     'mon-16': free(),
-    'tue-13': soft(3, 'preference', '점심 직후 회피'),
+        'tue-13': soft(3, 'preference', '점심 직후 선호하지 않음'),
     'wed-15': hard('일정 있음'),
     'thu-10': free(),
     'thu-15': free(),

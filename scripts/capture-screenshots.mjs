@@ -54,8 +54,8 @@ async function main() {
   await shot(page, '06-need-confirmation')
 
   // 7. 대기 + ReviewShell
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(page, '응답을 기다리고 있어요.')
   await waitVisible(page, '다음 장면')
   await shot(page, '07-waiting-reviewshell')
@@ -65,8 +65,8 @@ async function main() {
   await attendeePage.goto(`${BASE}/prototype?scenario=coordination`)
   await attendeePage.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(attendeePage, '확인 한 번이면 필수 참석자 모두 가능해요.')
-  await attendeePage.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await attendeePage.getByRole('button', { name: '요청 보내기' }).click()
+  await attendeePage.getByRole('button', { name: '확인 요청하기' }).click()
+  await attendeePage.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(attendeePage, '응답을 기다리고 있어요.')
   await attendeePage.getByRole('button', { name: '참석자 화면 보기' }).click()
   await waitVisible(attendeePage, '이 시간, 괜찮으세요?')
@@ -80,8 +80,8 @@ async function main() {
   await page.goto(`${BASE}/prototype?scenario=coordination`)
   await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(page, '확인 한 번이면 필수 참석자 모두 가능해요.')
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await page.getByRole('button', { name: '참석자 화면 보기' }).click()
   await page.getByRole('button', { name: '이 시간 사용 가능' }).click()
   await page.getByRole('button', { name: '확인' }).click()
@@ -92,7 +92,7 @@ async function main() {
   await page.getByRole('button', { name: '이 시간으로 확정' }).click()
   await page.getByRole('button', { name: '회의 만들기' }).click()
   await page.getByRole('button', { name: '완료' }).click()
-  await waitVisible(page, '핵심 플로우를 확인했어요.')
+  await waitVisible(page, '핵심 흐름를 확인했어요.')
   await shot(page, '12-review-complete')
 
   // 4–5. 정상 추천

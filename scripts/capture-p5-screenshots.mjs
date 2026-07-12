@@ -26,8 +26,8 @@ async function startCore(page) {
   await page.goto(`${BASE}/`)
   await page.evaluate(() => sessionStorage.clear())
   await page.goto(`${BASE}/`)
-  await waitVisible(page, '핵심 플로우 시작')
-  await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await waitVisible(page, '핵심 흐름 시작')
+  await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(page, '참석 조건을 확인해주세요')
 }
 
@@ -41,7 +41,7 @@ async function main() {
   })
   const d = await desktop.newPage()
   await d.goto(`${BASE}/`)
-  await waitVisible(d, '핵심 플로우 시작')
+  await waitVisible(d, '핵심 흐름 시작')
   await shot(d, '01-review-landing-desktop')
 
   // 3. live preview crop focus
@@ -53,7 +53,7 @@ async function main() {
   })
   const m = await mobile.newPage()
   await m.goto(`${BASE}/`)
-  await waitVisible(m, '핵심 플로우 시작')
+  await waitVisible(m, '핵심 흐름 시작')
   await shot(m, '02-review-landing-mobile')
 
   // 14. 200% text zoom
@@ -69,22 +69,22 @@ async function main() {
   await startCore(d)
   await shot(d, '04-product-with-review-chrome')
 
-  await d.getByRole('button', { name: '설계 의도' }).click()
+  await d.getByRole('button', { name: '설계 근거' }).click()
   await waitVisible(d, '설계한 문제')
   await shot(d, '05-design-note-attendance')
   await d.getByRole('button', { name: '닫기' }).first().click()
 
   await d.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(d, '확인 한 번이면')
-  await d.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await waitVisible(d, '요청 보내기')
-  await d.getByRole('button', { name: '설계 의도' }).click()
+  await d.getByRole('button', { name: '확인 요청하기' }).click()
+  await waitVisible(d, '확인 요청 보내기')
+  await d.getByRole('button', { name: '설계 근거' }).click()
   await waitVisible(d, '이동 가능한 보호 시간')
   await shot(d, '06-design-note-confirmation')
   await d.getByRole('button', { name: '닫기' }).first().click()
 
   // 7. actor transition to attendee
-  await d.getByRole('button', { name: '요청 보내기' }).click()
+  await d.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(d, '다음 장면')
   await shot(d, '07-actor-transition-attendee')
 
@@ -117,7 +117,7 @@ async function main() {
   await waitVisible(a, '응답이 주최자에게 반영됐어요')
   await shot(a, '08-actor-transition-organizer')
 
-  await a.getByRole('button', { name: '확정 가능한 시간 보기' }).click()
+  await a.getByRole('button', { name: '주최자 결과 보기' }).click()
   await waitVisible(a, '바로 확정할 수 있어요').catch(async () => {
     await waitVisible(a, '회의 시간을 확정할까요').catch(() => {})
   })
@@ -135,7 +135,7 @@ async function main() {
   await d.getByRole('button', { name: '회의 만들기' }).click()
   await waitVisible(d, '회의 시간을 확정했어요')
   await d.getByRole('button', { name: '완료' }).click()
-  await waitVisible(d, '핵심 플로우 완료')
+  await waitVisible(d, '핵심 흐름 완료')
   await shot(d, '09-review-completion')
 
   // 10–12 Rule Lab
@@ -147,7 +147,7 @@ async function main() {
   await waitVisible(d, '바로 확정 가능')
   await shot(d, '11-rule-lab-after-change')
 
-  await d.getByRole('button', { name: '기본 조율 필요' }).click()
+  await d.getByRole('button', { name: '확인 요청 필요' }).click()
   await waitVisible(d, '확인 필요')
   // Decline until NO_OPTION or several alternatives exhausted
   for (let i = 0; i < 8; i += 1) {
@@ -175,7 +175,7 @@ async function main() {
   // 13. user-test mode
   await d.goto(`${BASE}/`)
   await d.evaluate(() => sessionStorage.clear())
-  await d.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await d.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(d, '참석 조건을 확인해주세요')
   const pathOnly = new URL(d.url())
   pathOnly.searchParams.delete('review')
@@ -183,7 +183,7 @@ async function main() {
   await d.goto(pathOnly.toString())
   await waitVisible(d, '참석 조건을 확인해주세요')
   await d.waitForTimeout(300)
-  const hasChrome = await d.getByText('핵심 플로우').isVisible().catch(() => false)
+  const hasChrome = await d.getByText('핵심 흐름').isVisible().catch(() => false)
   if (hasChrome) throw new Error('Review chrome visible in usertest mode')
   await shot(d, '13-usertest-mode')
 
@@ -196,14 +196,14 @@ async function main() {
   await rec.goto(`${BASE}/`)
   await rec.evaluate(() => sessionStorage.clear())
   await rec.goto(`${BASE}/`)
-  await waitVisible(rec, '핵심 플로우 시작')
-  await rec.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await waitVisible(rec, '핵심 흐름 시작')
+  await rec.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(rec, '참석 조건을 확인해주세요')
   await rec.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(rec, '확인 한 번이면')
-  await rec.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await waitVisible(rec, '요청 보내기')
-  await rec.getByRole('button', { name: '요청 보내기' }).click()
+  await rec.getByRole('button', { name: '확인 요청하기' }).click()
+  await waitVisible(rec, '확인 요청 보내기')
+  await rec.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(rec, '다음 장면')
   const seed = await rec.evaluate(() => {
     const raw = sessionStorage.getItem('toss-meeting-decision-session-v1')
@@ -217,15 +217,15 @@ async function main() {
   await rec.getByRole('button', { name: '이 시간 사용 가능' }).click()
   await waitVisible(rec, '확인')
   await rec.getByRole('button', { name: '확인' }).click()
-  await waitVisible(rec, '확정 가능한 시간 보기')
-  await rec.getByRole('button', { name: '확정 가능한 시간 보기' }).click()
+  await waitVisible(rec, '주최자 결과 보기')
+  await rec.getByRole('button', { name: '주최자 결과 보기' }).click()
   await waitVisible(rec, '이 시간으로 확정')
   await rec.getByRole('button', { name: '이 시간으로 확정' }).click()
   await waitVisible(rec, '회의 만들기')
   await rec.getByRole('button', { name: '회의 만들기' }).click()
   await waitVisible(rec, '완료')
   await rec.getByRole('button', { name: '완료' }).click()
-  await waitVisible(rec, '핵심 플로우 완료')
+  await waitVisible(rec, '핵심 흐름 완료')
   await rec.waitForTimeout(800)
   const video1 = await rec.video()
   await rec.close()

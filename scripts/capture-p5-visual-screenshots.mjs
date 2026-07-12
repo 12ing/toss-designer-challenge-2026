@@ -42,7 +42,7 @@ async function main() {
   const d = await d1440.newPage()
   await clear(d)
   await d.goto(`${BASE}/`)
-  await waitVisible(d, '핵심 플로우 시작')
+  await waitVisible(d, '핵심 흐름 시작')
   await waitVisible(d, '직접 비교하지 않아도')
   await shot(d, '01-review-landing-desktop')
 
@@ -60,7 +60,7 @@ async function main() {
   const m = await m390.newPage()
   await clear(m)
   await m.goto(`${BASE}/`)
-  await waitVisible(m, '핵심 플로우 시작')
+  await waitVisible(m, '핵심 흐름 시작')
   await shot(m, '02-review-landing-mobile')
 
   // 6. preview mobile
@@ -76,7 +76,7 @@ async function main() {
   const z = await d720.newPage()
   await clear(z)
   await z.goto(`${BASE}/`)
-  await waitVisible(z, '핵심 플로우 시작')
+  await waitVisible(z, '핵심 흐름 시작')
   await shot(z, '03-review-landing-200pct')
 
   // 4. 320 CSS px
@@ -86,7 +86,7 @@ async function main() {
   const narrow = await d320.newPage()
   await clear(narrow)
   await narrow.goto(`${BASE}/`)
-  await waitVisible(narrow, '핵심 플로우 시작')
+  await waitVisible(narrow, '핵심 흐름 시작')
   await shot(narrow, '04-review-landing-320')
 
   // 7–10 Rule Lab widths
@@ -109,7 +109,7 @@ async function main() {
   // 11. NO_OPTION lab
   await d.goto(`${BASE}/lab`)
   await waitVisible(d, '결정 규칙 실험')
-  await d.getByRole('button', { name: '기본 조율 필요' }).click()
+  await d.getByRole('button', { name: '확인 요청 필요' }).click()
   for (let i = 0; i < 4; i += 1) {
     if (await d.getByText('조건 변경 필요').isVisible().catch(() => false)) break
     const decline = d.getByRole('button', { name: '어려움으로 응답' })
@@ -124,12 +124,12 @@ async function main() {
   // 12. Review Completion
   await clear(d)
   await d.goto(`${BASE}/`)
-  await d.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await d.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(d, '참석 조건을 확인해주세요')
   await d.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(d, '확인 한 번이면')
-  await d.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await d.getByRole('button', { name: '요청 보내기' }).click()
+  await d.getByRole('button', { name: '확인 요청하기' }).click()
+  await d.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(d, '다음 장면')
   const seed = await d.evaluate(() => {
     const raw = sessionStorage.getItem('toss-meeting-decision-session-v1')
@@ -147,8 +147,8 @@ async function main() {
   await d.getByRole('button', { name: '이 시간 사용 가능' }).click()
   await waitVisible(d, '확인')
   await d.getByRole('button', { name: '확인' }).click()
-  await waitVisible(d, '확정 가능한 시간 보기')
-  await d.getByRole('button', { name: '확정 가능한 시간 보기' }).click()
+  await waitVisible(d, '주최자 결과 보기')
+  await d.getByRole('button', { name: '주최자 결과 보기' }).click()
   await waitVisible(d, '이 시간으로 확정')
   await d.getByRole('button', { name: '이 시간으로 확정' }).click()
   await waitVisible(d, '회의 만들기')
@@ -165,7 +165,7 @@ async function main() {
   // Render via app route instead — use product need-confirmation + waiting crops
   await clear(d)
   await d.goto(`${BASE}/`)
-  await d.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await d.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(d, '참석 조건')
   await d.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(d, '확인 필요')
@@ -197,18 +197,18 @@ async function main() {
   const flow = await flowCtx.newPage()
   await clear(flow)
   await flow.goto(`${BASE}/`)
-  await waitVisible(flow, '핵심 플로우 시작')
+  await waitVisible(flow, '핵심 흐름 시작')
   await pause(flow, 1200)
-  await flow.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await flow.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(flow, '참석 조건을 확인해주세요')
   await pause(flow, 1400)
   await flow.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(flow, '확인 한 번이면')
   await pause(flow, 1500)
-  await flow.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await waitVisible(flow, '요청 보내기')
+  await flow.getByRole('button', { name: '확인 요청하기' }).click()
+  await waitVisible(flow, '확인 요청 보내기')
   await pause(flow, 1200)
-  await flow.getByRole('button', { name: '요청 보내기' }).click()
+  await flow.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(flow, '다음 장면')
   await pause(flow, 1400)
   const fseed = await flow.evaluate(() => {
@@ -228,9 +228,9 @@ async function main() {
   await waitVisible(flow, '확인')
   await pause(flow, 1000)
   await flow.getByRole('button', { name: '확인' }).click()
-  await waitVisible(flow, '확정 가능한 시간 보기')
+  await waitVisible(flow, '주최자 결과 보기')
   await pause(flow, 1200)
-  await flow.getByRole('button', { name: '확정 가능한 시간 보기' }).click()
+  await flow.getByRole('button', { name: '주최자 결과 보기' }).click()
   await waitVisible(flow, '이 시간으로 확정')
   await pause(flow, 1400)
   await flow.getByRole('button', { name: '이 시간으로 확정' }).click()

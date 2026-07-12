@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { productCopy } from '@/copy/product.copy'
 
 export function Analyzing() {
-  const [phase, setPhase] = useState<'primary' | 'secondary'>('primary')
+  const [showSecondary, setShowSecondary] = useState(false)
+  const copy = productCopy.analyzing
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setPhase('secondary'), 550)
+    const timer = window.setTimeout(() => setShowSecondary(true), 550)
     return () => window.clearTimeout(timer)
   }, [])
 
@@ -14,10 +16,7 @@ export function Analyzing() {
       role="status"
       aria-live="polite"
     >
-      <div
-        aria-hidden
-        className="mb-3 flex items-center gap-1.5"
-      >
+      <div aria-hidden className="mb-3 flex items-center gap-1.5">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
@@ -31,16 +30,22 @@ export function Analyzing() {
         className="text-[22px] font-bold leading-8 text-meeting-text transition-opacity duration-[var(--meeting-motion-standard)]"
         style={{ wordBreak: 'keep-all' }}
       >
-        {phase === 'primary'
-          ? '필수 참석자가 모두 가능한 시간을 찾고 있어요.'
-          : '일정 충돌과 개인 선호를 함께 비교하고 있어요.'}
+        {copy.title}
       </h2>
       <p
         className="max-w-md text-[15px] leading-[23px] text-meeting-text-secondary"
         style={{ wordBreak: 'keep-all' }}
       >
-        없다면 확인이 가장 적게 필요한 시간까지 함께 제안할게요.
+        {copy.description}
       </p>
+      {showSecondary ? (
+        <p
+          className="max-w-md text-[14px] leading-[21px] text-meeting-text-tertiary"
+          style={{ wordBreak: 'keep-all' }}
+        >
+          {copy.secondary}
+        </p>
+      ) : null}
     </div>
   )
 }

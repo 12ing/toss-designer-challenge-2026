@@ -62,8 +62,8 @@ async function main() {
   await shot(page, '03-need-confirmation-desktop')
 
   // 4. WAITING desktop
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitText(page, '응답을 기다리고 있어요.')
   await shot(page, '04-waiting-desktop')
 

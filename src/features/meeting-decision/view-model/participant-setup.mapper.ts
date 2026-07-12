@@ -1,7 +1,10 @@
+import { formatAttendanceSummary } from '@/copy/formatters'
 import { decisionParticipants } from '@/features/meeting-decision/data/participants'
 import { getPublicContextForParticipant } from '@/features/meeting-decision/privacy/public-scheduling-context.mapper'
 import type { AttendanceType } from '@/features/meeting-decision/engine/decision-engine.types'
 import type { PublicSchedulingContextKind } from '@/features/meeting-decision/privacy/public-scheduling-context.mapper'
+
+export { formatAttendanceSummary }
 
 export type ParticipantSetupRowViewModel = {
   id: string
@@ -24,16 +27,6 @@ export type ParticipantSetupViewModel = {
   optionalCount: number
   summaryLabel: string
   rows: ParticipantSetupRowViewModel[]
-}
-
-export function formatAttendanceSummary(
-  requiredCount: number,
-  optionalCount: number,
-) {
-  if (optionalCount === 0) {
-    return `필수 ${requiredCount}명 · 선택 없음`
-  }
-  return `필수 ${requiredCount}명 · 선택 ${optionalCount}명`
 }
 
 export function mapParticipantsToSetupViewModel(params: {

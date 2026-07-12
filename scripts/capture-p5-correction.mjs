@@ -48,7 +48,7 @@ async function forceNoOptionInLab(page) {
   if (status > 0) return
 
   // Decline confirmation path repeatedly from coordination if needed
-  await page.getByRole('button', { name: '기본 조율 필요' }).click()
+  await page.getByRole('button', { name: '확인 요청 필요' }).click()
   await waitText(page, '확인 필요')
   for (let i = 0; i < 8; i++) {
     const decline = page.getByRole('button', { name: '이 시간은 어려움' })
@@ -77,7 +77,7 @@ async function main() {
     })
     const page = await ctx.newPage()
     await page.goto(`${BASE}/`)
-    await waitText(page, '핵심 플로우 시작')
+    await waitText(page, '핵심 흐름 시작')
     // Ensure no DecisionPreview
     const preview = await page.getByLabel('핵심 경험 미리보기').count()
     if (preview > 0) throw new Error('DecisionPreview still on landing')
@@ -95,7 +95,7 @@ async function main() {
     })
     const page = await ctx.newPage()
     await page.goto(`${BASE}/`)
-    await waitText(page, '핵심 플로우 시작')
+    await waitText(page, '핵심 흐름 시작')
     await shot(page, name)
     await ctx.close()
   }
@@ -107,7 +107,7 @@ async function main() {
     })
     const page = await ctx.newPage()
     await openLab(page)
-    await page.getByRole('button', { name: '기본 조율 필요' }).click()
+    await page.getByRole('button', { name: '확인 요청 필요' }).click()
     await waitText(page, '확인 필요')
     await page.getByRole('button', { name: '사용 가능' }).waitFor({
       state: 'visible',
@@ -180,7 +180,7 @@ async function main() {
     })
     const page = await ctx.newPage()
     await openLab(page)
-    await page.getByRole('button', { name: '기본 조율 필요' }).click()
+    await page.getByRole('button', { name: '확인 요청 필요' }).click()
     await page.getByRole('button', { name: '사용 가능' }).waitFor({
       state: 'visible',
     })
@@ -204,10 +204,10 @@ async function main() {
     await page.goto(`${BASE}/`)
     await page.evaluate(() => sessionStorage.clear())
     await page.goto(`${BASE}/`)
-    await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+    await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
     await waitText(page, '참석 조건을 확인해주세요')
-    await page.getByRole('button', { name: '다른 장면' }).click()
-    await page.getByRole('button', { name: '바로 확정 가능한 경우' }).click()
+    await page.getByRole('button', { name: '상황 선택' }).click()
+    await page.getByRole('button', { name: '바로 확정되는 경우' }).click()
     await waitText(page, '참석 조건을 확인해주세요')
     await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
     await waitText(page, '바로 확정할 수 있어요')
@@ -216,10 +216,10 @@ async function main() {
     await page.getByRole('button', { name: '회의 만들기' }).click()
     await waitText(page, '회의 시간을 확정했어요')
     await page.getByRole('button', { name: '완료' }).click()
-    await waitText(page, '핵심 플로우 완료')
-    await page.getByRole('link', { name: '처음으로' }).click()
-    await waitText(page, '핵심 플로우 시작')
-    await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+    await waitText(page, '핵심 흐름 완료')
+    await page.getByRole('link', { name: '처음부터 다시 시작' }).click()
+    await waitText(page, '핵심 흐름 시작')
+    await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
     await waitText(page, '참석 조건을 확인해주세요')
     if ((await page.getByText('바로 확정할 수 있어요').count()) > 0) {
       throw new Error('Previous complete/ready state leaked')
@@ -238,7 +238,7 @@ async function main() {
     await page.goto(`${BASE}/`)
     await page.evaluate(() => sessionStorage.clear())
     await page.goto(`${BASE}/?review=1&fixture=no-option`)
-    await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+    await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
     await waitText(page, '참석 조건을 확인해주세요')
     const url = page.url()
     if (!url.includes('fixture=no-option')) {

@@ -15,7 +15,7 @@ async function clearAndStart(page, query = 'review=1') {
   await page.goto(`${BASE}/?${query}`)
   await page.evaluate(() => sessionStorage.clear())
   await page.goto(`${BASE}/?${query}`)
-  await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await page.getByText('참석 조건을 확인해주세요').waitFor()
 }
 
@@ -187,7 +187,7 @@ async function main() {
     )
     await page.evaluate(() => sessionStorage.clear())
     await page.reload()
-    await page.getByText('세션을 찾을 수 없어요.').waitFor()
+    await page.getByText('진행 중이던 내용을 찾을 수 없어요.').waitFor()
     report.e2e.missingSession = true
     await page.goto(
       `${BASE}/prototype/session/session_missing_xyz/respond/req_missing?review=1`,
@@ -227,9 +227,9 @@ async function main() {
     await makeReady(page)
     await createMeeting(page, { title: '유저테스트 회의' })
     report.modes.usertestNoReviewChrome =
-      (await page.getByText('설계 의도').count()) === 0
+      (await page.getByText('설계 근거').count()) === 0
     await page.getByRole('button', { name: '완료' }).click()
-    await page.getByRole('button', { name: '핵심 플로우 시작' }).waitFor({
+    await page.getByRole('button', { name: '핵심 흐름 시작' }).waitFor({
       timeout: 5000,
     })
     report.modes.usertestEndsAtLanding = true
@@ -246,7 +246,7 @@ async function main() {
     await makeReady(page)
     await createMeeting(page, { title: 'READY 직접 확정', location: 'Zoom' })
     await page.getByRole('button', { name: '완료' }).click()
-    await page.getByText('핵심 플로우 완료').waitFor()
+    await page.getByText('핵심 흐름 완료').waitFor()
     const v = await page.video().path()
     await context.close()
     fs.renameSync(v, path.join(OUT, '11-ready-direct-confirm.webm'))
@@ -261,11 +261,11 @@ async function main() {
     const page = await context.newPage()
     await clearAndStart(page)
     await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
-    await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-    await page.getByRole('button', { name: '요청 보내기' }).click()
+    await page.getByRole('button', { name: '확인 요청하기' }).click()
+    await page.getByRole('button', { name: '확인 요청 보내기' }).click()
     await page.getByRole('button', { name: '참석자 응답 보기' }).click()
     await page.getByRole('button', { name: '이 시간 사용 가능' }).click()
-    await page.getByRole('button', { name: '확정 가능한 시간 보기' }).click()
+    await page.getByRole('button', { name: '주최자 결과 보기' }).click()
     await page.getByText('이제 확정할 수 있어요').waitFor({ timeout: 5000 })
     await createMeeting(page, { title: '승인 후 회의' })
     const v = await page.video().path()
@@ -282,19 +282,19 @@ async function main() {
     const page = await context.newPage()
     await clearAndStart(page)
     await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
-    await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-    await page.getByRole('button', { name: '요청 보내기' }).click()
+    await page.getByRole('button', { name: '확인 요청하기' }).click()
+    await page.getByRole('button', { name: '확인 요청 보내기' }).click()
     await page.getByRole('button', { name: '참석자 응답 보기' }).click()
     await page.getByRole('button', { name: '이 시간은 어려워요' }).click()
-    await page.getByRole('button', { name: '새로 계산된 시간 보기' }).click()
+    await page.getByRole('button', { name: '주최자 결과 보기' }).click()
     await page
       .getByText('다음으로 조율이 적은 시간을 찾았어요')
       .waitFor({ timeout: 5000 })
-    await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-    await page.getByRole('button', { name: '요청 보내기' }).click()
+    await page.getByRole('button', { name: '확인 요청하기' }).click()
+    await page.getByRole('button', { name: '확인 요청 보내기' }).click()
     await page.getByRole('button', { name: '참석자 응답 보기' }).click()
     await page.getByRole('button', { name: '이 시간 사용 가능' }).click()
-    await page.getByRole('button', { name: '확정 가능한 시간 보기' }).click()
+    await page.getByRole('button', { name: '주최자 결과 보기' }).click()
     await page
       .getByRole('button', { name: '이 시간으로 확정' })
       .waitFor({ timeout: 5000 })
@@ -311,8 +311,8 @@ async function main() {
     ).newPage()
     await clearAndStart(page)
     await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
-    await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-    await page.getByRole('button', { name: '요청 보내기' }).click()
+    await page.getByRole('button', { name: '확인 요청하기' }).click()
+    await page.getByRole('button', { name: '확인 요청 보내기' }).click()
     await page.getByRole('button', { name: '참석자 응답 보기' }).click()
     await page.getByRole('button', { name: '이 시간 사용 가능' }).click()
     await page.getByText('주최자가 회의를 확정하면').waitFor()

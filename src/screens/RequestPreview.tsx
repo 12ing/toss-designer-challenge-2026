@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
+import { productCopy } from '@/copy/product.copy'
 
 interface RequestPreviewProps {
   recipientName: string
@@ -18,38 +19,41 @@ export function RequestPreview({
   onSend,
   onBack,
 }: RequestPreviewProps) {
+  const copy = productCopy.requestPreview
+  const [bodyLine1, bodyLine2] = copy
+    .body(dateDisplay, timeLabel)
+    .split('\n')
+
   return (
     <div className="mx-auto w-full max-w-[560px]">
       <div className="rounded-[var(--meeting-radius-card)] bg-meeting-surface p-8 shadow-[var(--meeting-shadow)]">
         <h2 className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text">
-          이렇게 확인할게요.
+          {copy.title(recipientName)}
         </h2>
-
-        <p className="mb-4 text-[15px] text-meeting-text-secondary">
-          받는 사람{' '}
-          <span className="font-semibold text-meeting-text">
-            {recipientName} 님
-          </span>
-        </p>
 
         <div className="mb-5 rounded-[var(--meeting-radius-panel)] bg-meeting-panel px-4 py-4 text-[15px] leading-[23px] text-meeting-text">
           <p>
-            {dateDisplay} {timeLabel}에
+            {bodyLine1}
             <br />
-            회의 참석이 가능한지 확인해주세요.
+            {bodyLine2}
           </p>
         </div>
 
         <p className="mb-8 text-[14px] leading-[21px] text-meeting-text-tertiary">
-          개인 일정의 상세 내용과 응답 사유는 공유되지 않아요.
+          {copy.privacy.split('\n').map((line, i, arr) => (
+            <span key={line}>
+              {line}
+              {i < arr.length - 1 ? <br /> : null}
+            </span>
+          ))}
         </p>
 
         <Button onClick={onSend} loading={loading}>
-          요청 보내기
+          {copy.primaryAction}
         </Button>
         <div className="mt-4 flex justify-center">
           <TextButton onClick={onBack} disabled={loading}>
-            돌아가기
+            {copy.secondaryAction}
           </TextButton>
         </div>
       </div>

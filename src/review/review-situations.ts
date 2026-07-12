@@ -31,7 +31,7 @@ export const REVIEW_SITUATION_GROUPS: ReviewSituationGroup[] = [
     items: [
       {
         id: 'core',
-        title: '핵심 흐름 처음부터',
+        title: '핵심 흐름 다시 보기',
         description: '공통 시간이 없는 상황에서 시작해요.',
       },
     ],
@@ -43,7 +43,7 @@ export const REVIEW_SITUATION_GROUPS: ReviewSituationGroup[] = [
       {
         id: 'ready',
         title: '바로 확정되는 경우',
-        description: '추가 확인 없이 회의를 확정해요.',
+        description: '추가 확인 없이 회의를 바로 확정해요.',
       },
       {
         id: 'decline',
@@ -59,7 +59,7 @@ export const REVIEW_SITUATION_GROUPS: ReviewSituationGroup[] = [
       {
         id: 'lab',
         title: '결정 규칙 확인하기',
-        description: '조건을 바꿔 추천 결과를 비교해요.',
+        description: '조건을 바꿔 추천 결과를 비교해보세요.',
       },
       {
         id: 'landing',
@@ -67,6 +67,25 @@ export const REVIEW_SITUATION_GROUPS: ReviewSituationGroup[] = [
         description: '문제 정의와 핵심 경험으로 돌아가요.',
       },
     ],
+  },
+]
+
+/** Completion inline picker — subset of situations, shared copy with Chrome menu. */
+export const REVIEW_COMPLETION_SCENARIOS: ReviewSituationItem[] = [
+  {
+    id: 'ready',
+    title: '바로 확정되는 경우',
+    description: '추가 확인 없이 회의를 바로 확정해요.',
+  },
+  {
+    id: 'decline',
+    title: '거절 후 다시 찾는 경우',
+    description: '거절 응답을 반영해 다음 시간을 찾아요.',
+  },
+  {
+    id: 'lab',
+    title: '결정 규칙 확인하기',
+    description: '조건을 바꿔 추천 결과를 비교해보세요.',
   },
 ]
 

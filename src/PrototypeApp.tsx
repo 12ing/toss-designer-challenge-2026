@@ -4,6 +4,7 @@ import { DecisionSurface } from '@/components/decision-surface/DecisionSurface'
 import { FlowRecovery } from '@/components/flow/FlowRecovery'
 import { ScreenShell } from '@/components/ui/ScreenShell'
 import { shouldShowPrototypeControls } from '@/config/prototype'
+import { recoveryCopy } from '@/copy/recovery.copy'
 import { parseScenarioParam } from '@/config/scenarios'
 import {
   findSessionByRequestId,
@@ -122,9 +123,9 @@ export function OrganizerSessionApp() {
       <ReviewFrame showReviewNav={showReviewNav} step="time-recommendation">
         <ScreenShell hideHeader embedded={showReviewNav} layout="desktop">
           <FlowRecovery
-            title="세션을 찾을 수 없어요."
-            description="링크가 만료되었거나 잘못된 주소일 수 있어요."
-            actionLabel="처음으로"
+            title={recoveryCopy.sessionMissing.title}
+            description={recoveryCopy.sessionMissing.description}
+            actionLabel={recoveryCopy.sessionMissing.action}
             href="/"
           />
         </ScreenShell>
@@ -255,16 +256,16 @@ function OrganizerExperience({
           {flow.state === 'meeting-details' &&
             (flow.createdMeeting || flow.meetingCreatedAt ? (
               <FlowRecovery
-                title="이미 만든 회의가 있어요."
-                description="앞서 만든 회의 정보를 다시 확인할 수 있어요."
-                actionLabel="회의 보기"
+                title={recoveryCopy.meetingExists.title}
+                description={recoveryCopy.meetingExists.description}
+                actionLabel={recoveryCopy.meetingExists.action}
                 onAction={() => flow.completeMeeting()}
               />
             ) : !flow.canFinalize || !flow.uiView ? (
               <FlowRecovery
-                title="추천한 시간이 더 이상 유효하지 않아요."
-                description="현재 참석 조건으로 시간을 다시 찾아주세요."
-                actionLabel="시간 다시 찾기"
+                title={recoveryCopy.recommendationInvalid.title}
+                description={recoveryCopy.recommendationInvalid.description}
+                actionLabel={recoveryCopy.recommendationInvalid.action}
                 onAction={flow.changeConditions}
               />
             ) : (
@@ -311,9 +312,9 @@ function OrganizerExperience({
             !flow.createdMeeting &&
             !flow.uiView && (
               <FlowRecovery
-                title="회의 결과를 불러올 수 없어요."
-                description="처음부터 다시 시작해 주세요."
-                actionLabel="처음으로"
+                title={recoveryCopy.meetingMissing.title}
+                description={recoveryCopy.meetingMissing.description}
+                actionLabel={recoveryCopy.meetingMissing.action}
                 href="/"
               />
             )}
@@ -390,9 +391,9 @@ export function AttendeeRespondApp() {
       <ReviewFrame showReviewNav={showReviewNav} step="attendee-response">
         <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
           <FlowRecovery
-            title="세션을 찾을 수 없어요."
-            description="링크가 만료되었거나 잘못된 주소일 수 있어요."
-            actionLabel="처음으로"
+            title={recoveryCopy.sessionMissing.title}
+            description={recoveryCopy.sessionMissing.description}
+            actionLabel={recoveryCopy.sessionMissing.action}
             href="/"
           />
         </ScreenShell>
@@ -405,9 +406,9 @@ export function AttendeeRespondApp() {
       <ReviewFrame showReviewNav={showReviewNav} step="attendee-response">
         <ScreenShell hideHeader embedded={showReviewNav} layout="mobile">
           <FlowRecovery
-            title="요청을 찾을 수 없어요."
-            description="링크가 만료되었거나 잘못된 요청일 수 있어요."
-            actionLabel="처음으로"
+            title={recoveryCopy.requestMissing.title}
+            description={recoveryCopy.requestMissing.description}
+            actionLabel={recoveryCopy.requestMissing.action}
             href="/"
           />
         </ScreenShell>

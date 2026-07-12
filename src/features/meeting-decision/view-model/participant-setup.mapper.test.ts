@@ -11,16 +11,22 @@ import { coordinationAttendance } from '../data/scenario-presets'
 
 describe('formatAttendanceSummary', () => {
   it('formats normal counts', () => {
-    expect(formatAttendanceSummary(4, 2)).toBe('필수 4명 · 선택 2명')
+    expect(formatAttendanceSummary(4, 2)).toBe(
+      '필수 참석자 4명 · 선택 참석자 2명',
+    )
   })
 
-  it('uses 선택 없음 when optional is zero', () => {
-    expect(formatAttendanceSummary(6, 0)).toBe('필수 6명 · 선택 없음')
+  it('uses 선택 참석자 없음 when optional is zero', () => {
+    expect(formatAttendanceSummary(6, 0)).toBe(
+      '필수 참석자 6명 · 선택 참석자 없음',
+    )
     expect(formatAttendanceSummary(6, 0)).not.toContain('선택 0명')
   })
 
   it('supports organizer-only required', () => {
-    expect(formatAttendanceSummary(1, 5)).toBe('필수 1명 · 선택 5명')
+    expect(formatAttendanceSummary(1, 5)).toBe(
+      '필수 참석자 1명 · 선택 참석자 5명',
+    )
   })
 })
 
@@ -61,7 +67,7 @@ describe('mapParticipantsToSetupViewModel', () => {
     })
     expect(vm.requiredCount).toBe(4)
     expect(vm.optionalCount).toBe(2)
-    expect(vm.summaryLabel).toBe('필수 4명 · 선택 2명')
+    expect(vm.summaryLabel).toBe('필수 참석자 4명 · 선택 참석자 2명')
   })
 
   it('does not reorder when toggling optional to required', () => {
@@ -76,7 +82,7 @@ describe('mapParticipantsToSetupViewModel', () => {
       },
     })
     expect(after.rows.map((r) => r.id)).toEqual(before.rows.map((r) => r.id))
-    expect(after.summaryLabel).toBe('필수 6명 · 선택 없음')
+    expect(after.summaryLabel).toBe('필수 참석자 6명 · 선택 참석자 없음')
   })
 
   it('exposes public context labels without private titles', () => {
@@ -85,7 +91,7 @@ describe('mapParticipantsToSetupViewModel', () => {
     })
     const labels = vm.rows.map((r) => r.publicContext.label)
     expect(labels).toContain('개인 보호 시간 있음')
-    expect(labels).toContain('점심 직후 회피')
+    expect(labels).toContain('점심 직후 선호하지 않음')
     expect(labels).toContain('화·목 외근')
     expect(labels).toContain('수요일 오후 고객 대응')
     for (const label of labels) {
@@ -112,6 +118,6 @@ describe('mapPrivateScheduleToPublicContext', () => {
         participantId: 'x',
         hints: ['lunch-preference'],
       }).shortLabel,
-    ).toBe('점심 직후 회피')
+    ).toBe('점심 직후 선호하지 않음')
   })
 })

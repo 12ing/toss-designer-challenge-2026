@@ -30,7 +30,7 @@ async function clear(page) {
 async function openSetup(page, query = 'review=1') {
   await clear(page)
   await page.goto(`${BASE}/`)
-  await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(page, '참석 조건을 확인해주세요')
   if (!page.url().includes('review=1') && query.includes('review')) {
     const url = new URL(page.url())
@@ -172,15 +172,15 @@ async function main() {
   // 6. NEED_CONFIRMATION
   await clear(page)
   await page.goto(`${BASE}/`)
-  await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitVisible(page, '참석 조건을 확인해주세요')
   await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(page, '확인 한 번이면')
   await shot(page, '06-need-confirmation-people')
 
   // 7. WAITING
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(page, '응답을 기다리고')
   await shot(page, '07-waiting-people')
 

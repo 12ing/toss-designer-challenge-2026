@@ -1,4 +1,4 @@
-import { ATTENDEE_ACTION_COPY } from '@/copy/product.copy'
+import { ATTENDEE_ACTION_COPY, productCopy } from '@/copy/product.copy'
 
 interface AttendeeRequestProps {
   dateDisplay: string
@@ -28,6 +28,7 @@ export function AttendeeRequest({
   onApprove,
   onReject,
 }: AttendeeRequestProps) {
+  const copy = productCopy.attendeeRequest
   const showMeetingTitle = isRealMeetingTitle(meetingTitle)
   const scheduleLabel = `${dateDisplay} ${timeLabel}`
 
@@ -40,14 +41,14 @@ export function AttendeeRequest({
           className="mb-3 text-[22px] font-bold leading-[32px] text-meeting-text outline-none focus:outline-none focus-visible:outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
-          이 시간, 괜찮으세요?
+          {copy.title}
         </h2>
 
         <p
           className="mb-9 text-[15px] leading-[23px] text-meeting-text-secondary"
           style={{ wordBreak: 'keep-all' }}
         >
-          {organizerName} 님이 회의 참석 가능 여부를 물었어요.
+          {copy.description(organizerName)}
         </p>
 
         {showMeetingTitle ? (
@@ -73,13 +74,13 @@ export function AttendeeRequest({
             className="mb-2 text-[15px] font-medium leading-[22px] text-meeting-text"
             style={{ wordBreak: 'keep-all' }}
           >
-            {conflictLabel}과 겹쳐요.
+            {copy.conflict(conflictLabel)}
           </p>
           <p
             className="text-[13px] leading-5 text-meeting-text-secondary"
             style={{ wordBreak: 'keep-all' }}
           >
-            일정 내용과 응답 사유는 다른 사람에게 공개되지 않아요.
+            {copy.privacy}
           </p>
         </div>
       </div>
@@ -93,7 +94,7 @@ export function AttendeeRequest({
             aria-busy={loading || undefined}
             onClick={onApprove}
           >
-            {loading ? '전달하는 중' : ATTENDEE_ACTION_COPY.approve}
+            {loading ? ATTENDEE_ACTION_COPY.delivering : ATTENDEE_ACTION_COPY.approve}
           </button>
           <button
             type="button"

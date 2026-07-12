@@ -78,8 +78,7 @@ const REASON_CLOSED_LABEL = '이 시간을 고른 이유'
 
 const ALLOWED_CONTEXT = new Set([
   '개인 보호 시간',
-  '점심 직후 회피',
-  '점심 직후 회피 반영',
+  '점심 직후 선호하지 않음',
   '외근',
   '외근 이후 이동',
   '고객 대응',
@@ -91,7 +90,7 @@ function sanitizeContext(raw?: string): string | undefined {
   if (!raw) return undefined
   if (ALLOWED_CONTEXT.has(raw)) return raw
   if (raw.includes('보호')) return '개인 보호 시간'
-  if (raw.includes('점심')) return '점심 직후 회피 반영'
+  if (raw.includes('점심')) return '점심 직후 선호하지 않음'
   if (raw.includes('외근 이후') || raw.includes('이동')) return '외근 이후 이동'
   if (raw.includes('외근')) return '외근'
   if (raw.includes('고객')) return '고객 대응'
@@ -147,7 +146,7 @@ function mapImpactStatus(
       const ctx = impact.publicContext ?? ''
       let contextLabel = sanitizeContext(ctx)
       if (ctx.includes('점심') || ctx.includes('선호')) {
-        contextLabel = '점심 직후 회피'
+        contextLabel = '점심 직후 선호하지 않음'
       } else if (ctx.includes('외근 이후') || ctx.includes('이동')) {
         contextLabel = '외근 이후 이동'
       }
@@ -309,11 +308,13 @@ function buildBlockingRows(
 
   const rows: Array<{ label: string; value: string }> = [
     {
-      label: '필수 참석자의 고정 일정이 서로 겹쳐요.',
+      label:
+        '필수 참석자들의 고정 일정 때문에 공통으로 비는 시간이 없어요.',
       value: '',
     },
     {
-      label: '외근 시간을 제외하면 1시간 연속으로 가능한 구간이 없어요.',
+      label:
+        '외근 시간을 제외하면 1시간 연속으로 가능한 구간이 없어요.',
       value: '',
     },
   ]
@@ -378,16 +379,18 @@ export function mapRecommendationToDecisionSurface(params: {
         label: surfaceStatusCopy.NO_OPTION.primaryCta!,
         kind: 'edit-conditions',
       },
-      peoplePanelTitle: '현재 조건에서 막히는 이유',
+      peoplePanelTitle: '현재 조건에서 어려운 이유',
       blockingRows: blocking
         ? buildBlockingRows(blocking.evaluations, { debug })
         : [
             {
-              label: '필수 참석자의 고정 일정이 서로 겹쳐요.',
+              label:
+                '필수 참석자들의 고정 일정 때문에 공통으로 비는 시간이 없어요.',
               value: '',
             },
             {
-              label: '외근 시간을 제외하면 1시간 연속으로 가능한 구간이 없어요.',
+              label:
+                '외근 시간을 제외하면 1시간 연속으로 가능한 구간이 없어요.',
               value: '',
             },
           ],
@@ -454,9 +457,12 @@ export function mapRecommendationToDecisionSurface(params: {
       break
     case 'need-confirmation':
       stateLabel = needConfirmationStateLabel(confirmationCount)
-      confirmationLine = `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
+      confirmationLine =
+        confirmationCount <= 1
+          ? '개인 보호 시간과 겹쳐요.'
+          : `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
       primaryAction = {
-        label: PRODUCT_TERMS.askAvailability,
+        label: PRODUCT_TERMS.askConfirmation,
         kind: 'request',
       }
       break
@@ -466,7 +472,7 @@ export function mapRecommendationToDecisionSurface(params: {
       break
     case 'next-alternative':
       stateLabel = surfaceStatusCopy.NEXT_ALTERNATIVE.stateLabel
-      supportingLabel = '이전 시간은 일정 확인이 어려워 제외했어요.'
+      supportingLabel = surfaceStatusCopy.NEXT_ALTERNATIVE.supportingLabel
       if (recommendation.status === 'READY') {
         primaryAction = {
           label: PRODUCT_TERMS.confirmTime,
@@ -475,10 +481,12 @@ export function mapRecommendationToDecisionSurface(params: {
       } else {
         confirmationLine =
           confirmationCount > 0
-            ? `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
+            ? confirmationCount <= 1
+              ? '개인 보호 시간과 겹쳐요.'
+              : `개인 보호 시간 ${confirmationCount}건과 겹쳐요.`
             : undefined
         primaryAction = {
-          label: PRODUCT_TERMS.askAvailability,
+          label: PRODUCT_TERMS.askConfirmation,
           kind: 'request',
         }
       }

@@ -37,7 +37,7 @@ export const organizerOnlyAttendance: Record<string, AttendanceType> = {
 export const labPresets: LabPreset[] = [
   {
     id: 'coordination',
-    label: '기본 조율 필요',
+    label: '확인 요청 필요',
     attendanceTypes: { ...coordinationAttendance },
   },
   {

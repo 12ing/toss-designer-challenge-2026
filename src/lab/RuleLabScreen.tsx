@@ -135,27 +135,28 @@ export function RuleLabScreen() {
         <div className="mb-8 flex min-w-0 flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 max-w-[640px]">
             <p className="mb-2 text-[13px] font-medium text-meeting-text-tertiary">
-              규칙 검증 도구
+              결정 규칙 확인
             </p>
             <h1
               className="mb-2 text-[clamp(1.35rem,3vw,1.625rem)] font-bold leading-9 text-meeting-text"
               style={{ wordBreak: 'keep-all' }}
             >
-              조건을 바꾸면 같은 기준으로 다시 계산해요
+              조건을 바꾸면 같은 기준으로 다시 계산해요.
             </h1>
             <p
               className="text-[15px] leading-[23px] text-meeting-text-secondary"
               style={{ wordBreak: 'keep-all' }}
             >
-              필수·선택 조건에 따라 추천 시간과 필요한 다음 행동이 어떻게
-              달라지는지 확인해보세요.
+              필수·선택 조건에 따라
+              <br />
+              추천 시간과 다음 행동이 어떻게 달라지는지 확인해보세요.
             </p>
           </div>
           <Link
             to="/"
             className="inline-flex min-h-11 items-center text-[14px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
           >
-            소개로 돌아가기
+            과제 소개로 돌아가기
           </Link>
         </div>
 

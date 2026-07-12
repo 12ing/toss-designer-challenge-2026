@@ -42,7 +42,7 @@ function primaryLabel(state: DecisionCardState) {
     return '이 시간으로 확정'
   }
   if (state === 'need-confirmation' || state === 'next-alternative') {
-    return '가능 여부 묻기'
+    return '확인 요청하기'
   }
   return ''
 }

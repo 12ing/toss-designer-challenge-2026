@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { reviewCopy } from '@/copy/review.copy'
 import { trackReviewEvent } from '@/review/review-analytics'
 import { preserveModeQuery } from '@/review/review-mode'
 
@@ -17,6 +18,8 @@ export function ActorTransitionCard({
   recipientName,
   href,
 }: ActorTransitionCardProps) {
+  const copy = reviewCopy.actorTransition
+
   useEffect(() => {
     trackReviewEvent('actor_transition_opened', { variant })
   }, [variant])
@@ -33,27 +36,22 @@ export function ActorTransitionCard({
           className="mb-1.5 text-[15px] font-semibold leading-[22px] text-meeting-text"
           style={{ wordBreak: 'keep-all' }}
         >
-          참석자에게 확인 요청을 보냈어요.
+          {copy.toAttendeeTitle(name)}
         </p>
         <p
           className="mb-4 text-[14px] leading-[21px] text-meeting-text-secondary"
           style={{ wordBreak: 'keep-all' }}
         >
-          {name} 님의 응답 화면을 확인해보세요.
+          {copy.toAttendeeDescription}
         </p>
         <Link to={preserveModeQuery(href)} className="block">
           <Button type="button" variant="primary" className="!min-h-[54px]">
-            참석자 응답 보기
+            {copy.toAttendeeCta}
           </Button>
         </Link>
       </aside>
     )
   }
-
-  const cta =
-    variant === 'to-organizer-approved'
-      ? '확정 가능한 시간 보기'
-      : '새로 계산된 시간 보기'
 
   return (
     <div
@@ -61,14 +59,20 @@ export function ActorTransitionCard({
       aria-label="주최자 화면으로 이동"
     >
       <p
-        className="mb-4 text-[15px] leading-[23px] text-meeting-text"
+        className="mb-1.5 text-[15px] font-semibold leading-[22px] text-meeting-text"
         style={{ wordBreak: 'keep-all' }}
       >
-        응답이 주최자에게 반영됐어요.
+        {copy.toOrganizerTitle}
+      </p>
+      <p
+        className="mb-4 text-[14px] leading-[21px] text-meeting-text-secondary"
+        style={{ wordBreak: 'keep-all' }}
+      >
+        {copy.toOrganizerDescription}
       </p>
       <Link to={preserveModeQuery(href)} className="block">
         <Button type="button" variant="secondary">
-          {cta}
+          {copy.toOrganizerCta}
         </Button>
       </Link>
     </div>

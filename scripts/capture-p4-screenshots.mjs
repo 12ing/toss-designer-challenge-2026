@@ -36,10 +36,10 @@ async function startCoordination(page) {
 }
 
 async function sendRequestFlow(page, { shotPreview = false } = {}) {
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
   await waitVisible(page, '이렇게 확인할게요')
   if (shotPreview) await shot(page, '01-request-preview')
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(page, '응답을 기다리고 있어요.')
 }
 
@@ -166,8 +166,8 @@ async function main() {
   await waitVisible(page, '참석 조건을 확인해주세요')
   await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(page, '확인 한 번이면 필수 참석자 모두 가능해요.')
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(page, '응답을 기다리고 있어요.')
   await page.waitForTimeout(400)
   const hasReview = await page.getByText('참석자 알림 열기').count()
@@ -187,8 +187,8 @@ async function main() {
   await waitVisible(va, '참석 조건을 확인해주세요')
   await va.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(va, '확인 한 번이면')
-  await va.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await va.getByRole('button', { name: '요청 보내기' }).click()
+  await va.getByRole('button', { name: '확인 요청하기' }).click()
+  await va.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(va, '응답을 기다리고 있어요.')
   await va.getByRole('link', { name: '참석자 알림 열기' }).click()
   await waitVisible(va, '이 시간, 괜찮으세요?')
@@ -212,8 +212,8 @@ async function main() {
   await waitVisible(vd, '참석 조건을 확인해주세요')
   await vd.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
   await waitVisible(vd, '확인 한 번이면')
-  await vd.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await vd.getByRole('button', { name: '요청 보내기' }).click()
+  await vd.getByRole('button', { name: '확인 요청하기' }).click()
+  await vd.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitVisible(vd, '응답을 기다리고 있어요.')
   await vd.getByRole('link', { name: '참석자 알림 열기' }).click()
   await waitVisible(vd, '이 시간, 괜찮으세요?')

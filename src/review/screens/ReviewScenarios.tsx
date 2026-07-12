@@ -1,4 +1,5 @@
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { reviewCopy } from '@/copy/review.copy'
 import { useFocusPageHeading } from '@/hooks/useFocusPageHeading'
 import { navigateReviewSituation } from '@/review/navigate-review-situation'
 import { isReviewMode, isUserTestMode } from '@/review/review-mode'
@@ -13,20 +14,20 @@ type ScenarioRow = {
 const SCENARIO_ROWS: ScenarioRow[] = [
   {
     id: 'ready',
-    title: '바로 확정되는 경우',
-    description: '추가 확인 없이 회의를 바로 확정해요.',
+    title: reviewCopy.scenarios.ready.title,
+    description: reviewCopy.scenarios.ready.description,
     actionHint: '살펴보기',
   },
   {
     id: 'decline',
-    title: '거절 후 다시 찾는 경우',
-    description: '거절 응답을 반영해 다음 시간을 찾아요.',
+    title: reviewCopy.scenarios.decline.title,
+    description: reviewCopy.scenarios.decline.description,
     actionHint: '살펴보기',
   },
   {
     id: 'lab',
-    title: '결정 규칙 확인하기',
-    description: '조건을 바꿔 추천 결과를 비교해보세요.',
+    title: reviewCopy.scenarios.lab.title,
+    description: reviewCopy.scenarios.lab.description,
     actionHint: '확인하기',
   },
 ]
@@ -78,9 +79,9 @@ export function ReviewScenarios() {
           className="mb-9 text-[15px] leading-[23px] text-meeting-text-secondary min-[720px]:mb-10 min-[720px]:text-[16px] min-[720px]:leading-6"
           style={{ wordBreak: 'keep-all' }}
         >
-          같은 결정 기준이 조건에 따라
+          같은 기준이 조건에 따라
           <br />
-          어떻게 다른 결과로 이어지는지 확인할 수 있어요.
+          어떻게 다른 결과로 이어지는지 확인해보세요.
         </p>
 
         <ul className="flex flex-col gap-3">

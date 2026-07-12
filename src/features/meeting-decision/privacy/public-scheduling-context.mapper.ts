@@ -30,22 +30,21 @@ const FORBIDDEN_SUBSTRINGS = [
 
 const ALLOWED_LABELS = new Set([
   '개인 보호 시간 있음',
-  '점심 직후 회피',
+  '점심 직후 선호하지 않음',
   '화·목 외근',
   '외근 이후 이동',
   '수요일 오후 고객 대응',
   '연속 회의가 많은 시간',
-  '공유된 추가 조건 없음',
-  '주최자 · 필수 참석',
+  '공유된 조건 없음',
+  '주최자 · 필수 고정',
   '일정 있음',
-  '공유된 추가 조건 있음',
 ])
 
 /** 참가자별 공개 가능한 기본 맥락 (프라이버시 매퍼 결과) */
 const DEFAULT_PUBLIC_CONTEXT: Record<string, PublicSchedulingContext> = {
   minji: {
     kind: 'none',
-    shortLabel: '주최자 · 필수 참석',
+    shortLabel: '주최자 · 필수 고정',
   },
   jihoon: {
     kind: 'protected-time',
@@ -53,7 +52,7 @@ const DEFAULT_PUBLIC_CONTEXT: Record<string, PublicSchedulingContext> = {
   },
   seoyeon: {
     kind: 'lunch-preference',
-    shortLabel: '점심 직후 회피',
+    shortLabel: '점심 직후 선호하지 않음',
   },
   doyoon: {
     kind: 'offsite',
@@ -61,7 +60,7 @@ const DEFAULT_PUBLIC_CONTEXT: Record<string, PublicSchedulingContext> = {
   },
   yujin: {
     kind: 'none',
-    shortLabel: '공유된 추가 조건 없음',
+    shortLabel: '공유된 조건 없음',
   },
   hyunwoo: {
     kind: 'customer-response',
@@ -82,7 +81,7 @@ export function mapPrivateScheduleToPublicContext(
 ): PublicSchedulingContext {
   const fallback = DEFAULT_PUBLIC_CONTEXT[source.participantId] ?? {
     kind: 'none' as const,
-    shortLabel: '공유된 추가 조건 없음',
+    shortLabel: '공유된 조건 없음',
   }
 
   if (source.privateLabels?.some(containsForbidden)) {
@@ -93,7 +92,7 @@ export function mapPrivateScheduleToPublicContext(
     return { kind: 'protected-time', shortLabel: '개인 보호 시간 있음' }
   }
   if (source.hints?.includes('lunch-preference')) {
-    return { kind: 'lunch-preference', shortLabel: '점심 직후 회피' }
+    return { kind: 'lunch-preference', shortLabel: '점심 직후 선호하지 않음' }
   }
   if (source.hints?.includes('offsite')) {
     return { kind: 'offsite', shortLabel: '화·목 외근' }
@@ -106,7 +105,7 @@ export function mapPrivateScheduleToPublicContext(
   }
 
   if (!ALLOWED_LABELS.has(fallback.shortLabel)) {
-    return { kind: 'none', shortLabel: '공유된 추가 조건 있음' }
+    return { kind: 'none', shortLabel: '공유된 조건 없음' }
   }
 
   return fallback
@@ -121,5 +120,5 @@ export function getPublicContextForParticipant(
 /** 테스트/회귀용: 금칙 문자열이 공개 라벨에 섞였는지 검사 */
 export function assertPublicLabelSafe(label: string): boolean {
   if (containsForbidden(label)) return false
-  return ALLOWED_LABELS.has(label) || label === '일정 있음' || label === '공유된 추가 조건 있음'
+  return ALLOWED_LABELS.has(label) || label === '일정 있음'
 }

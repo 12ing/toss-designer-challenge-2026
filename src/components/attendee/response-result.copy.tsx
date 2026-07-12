@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { productCopy } from '@/copy/product.copy'
+import { reviewCopy } from '@/copy/review.copy'
 
 export type ResponseResultType = 'approved' | 'declined'
 
@@ -7,7 +9,7 @@ export const responseResultCopy: Record<
   { title: string; description: ReactNode; reviewCta: string }
 > = {
   approved: {
-    title: '가능하다고 전달했어요.',
+    title: productCopy.attendeeResult.approved.title,
     description: (
       <>
         주최자가 회의를 확정하면
@@ -15,11 +17,11 @@ export const responseResultCopy: Record<
         일정이 만들어져요.
       </>
     ),
-    reviewCta: '확정 가능한 시간 보기',
+    reviewCta: reviewCopy.actorTransition.toOrganizerCta,
   },
   declined: {
-    title: '어렵다고 전달했어요.',
-    description: '다른 시간을 다시 찾을게요.',
-    reviewCta: '새로 계산된 시간 보기',
+    title: productCopy.attendeeResult.declined.title,
+    description: productCopy.attendeeResult.declined.description,
+    reviewCta: reviewCopy.actorTransition.toOrganizerCta,
   },
 }

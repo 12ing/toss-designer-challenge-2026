@@ -103,7 +103,7 @@ export function DesignNoteDrawer({
           </section>
           <section>
             <h3 className="mb-2 text-[13px] font-semibold text-meeting-text-secondary">
-              적용된 규칙
+              적용한 규칙
             </h3>
             <p
               className="text-[15px] leading-[23px] text-meeting-text"

@@ -8,6 +8,7 @@ import {
   mapRecommendationToDecisionSurface,
   type DecisionSurfaceMode,
 } from '@/features/meeting-decision/view-model/decision-surface.mapper'
+import { productCopy } from '@/copy/product.copy'
 
 export type DecisionSurfaceProps = {
   mode: DecisionSurfaceMode
@@ -22,10 +23,10 @@ export type DecisionSurfaceProps = {
 type ContextView = 'people' | 'reason'
 type MobileSheet = 'people' | 'reason' | null
 
-const PEOPLE_VIEW_LABEL = '참석 상황 보기'
-const REASON_VIEW_LABEL = '이 시간을 고른 이유'
-const PEOPLE_SHEET_TITLE = '참석 상황'
-const REASON_SHEET_TITLE = '이 시간을 고른 이유'
+const PEOPLE_VIEW_LABEL = productCopy.surface.peopleView
+const REASON_VIEW_LABEL = productCopy.surface.reasonTitle
+const PEOPLE_SHEET_TITLE = productCopy.surface.peopleTitle
+const REASON_SHEET_TITLE = productCopy.surface.reasonTitle
 
 function useIsDesktopSurface() {
   const [isDesktop, setIsDesktop] = useState(() =>

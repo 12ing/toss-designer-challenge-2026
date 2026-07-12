@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button'
 import { MeetingParticipantsSummary } from '@/components/meeting/MeetingParticipantsSummary'
+import { productCopy } from '@/copy/product.copy'
 import type { MeetingParticipantSnapshot } from '@/types/schedule'
 import { normalizeMeetingTitle, normalizeMeetingLocation } from '@/lib/meeting-display'
 import {
@@ -25,6 +26,7 @@ export function ProductCompletion({
   location,
   onComplete,
 }: ProductCompletionProps) {
+  const copy = productCopy.productCompletion
   const safeTitle = normalizeMeetingTitle(title)
   const locationValue = normalizeMeetingLocation(location)
   const locationIsUrl = isMeetingLocationUrl(locationValue)
@@ -38,7 +40,7 @@ export function ProductCompletion({
           className="mb-6 text-[22px] font-bold leading-8 text-meeting-text outline-none focus:outline-none focus-visible:outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
-          회의를 만들었어요.
+          {copy.title}
         </h2>
 
         <div className="mb-6 flex flex-col gap-1.5">
@@ -61,7 +63,7 @@ export function ProductCompletion({
                 className="mt-0.5 inline-flex w-fit max-w-full text-[15px] font-medium text-meeting-primary underline underline-offset-2 hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
                 style={{ wordBreak: 'keep-all' }}
               >
-                화상 회의 참여하기
+                {copy.joinVideo}
               </a>
             ) : (
               <p
@@ -80,7 +82,7 @@ export function ProductCompletion({
         />
 
         <Button type="button" onClick={onComplete}>
-          완료
+          {copy.primaryAction}
         </Button>
       </div>
     </div>

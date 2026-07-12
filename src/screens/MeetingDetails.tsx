@@ -3,7 +3,7 @@ import { MeetingParticipantsSummary } from '@/components/meeting/MeetingParticip
 import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
 import { TextField } from '@/components/ui/TextField'
-import { PRODUCT_TERMS } from '@/copy/product.copy'
+import { productCopy } from '@/copy/product.copy'
 import { isMeetingTitleValid } from '@/lib/meeting-display'
 import type { MeetingDraft } from '@/types/schedule'
 
@@ -26,6 +26,7 @@ export function MeetingDetails({
   onSubmit,
   onBack,
 }: MeetingDetailsProps) {
+  const copy = productCopy.meetingDetails
   const [submitting, setSubmitting] = useState(false)
   const [titleError, setTitleError] = useState(false)
   const isComposingRef = useRef(false)
@@ -66,7 +67,7 @@ export function MeetingDetails({
           className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text outline-none focus:outline-none focus-visible:outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
-          이 시간으로 회의를 만들까요?
+          {copy.title}
         </h2>
 
         <div className="mb-5">
@@ -88,11 +89,11 @@ export function MeetingDetails({
             <TextField
               ref={titleInputRef}
               id="meeting-title"
-              label="회의 제목"
+              label={copy.titleField}
               value={meeting.title}
               required
               autoComplete="off"
-              placeholder="회의 제목을 입력하세요"
+              placeholder={copy.titlePlaceholder}
               invalid={titleError}
               errorId={titleErrorId}
               onCompositionStart={() => {
@@ -121,20 +122,20 @@ export function MeetingDetails({
             ) : null}
           </div>
           <TextField
-            label="장소 또는 화상 회의 링크"
+            label={copy.locationField}
             value={meeting.location}
             autoComplete="off"
-            placeholder="예: 4층 A 또는 화상 회의 링크"
+            placeholder={copy.locationPlaceholder}
             onChange={(e) => onChange({ location: e.target.value })}
           />
         </div>
 
         <Button type="button" disabled={busy} onClick={handleSubmit}>
-          {busy ? '만드는 중' : PRODUCT_TERMS.createMeeting}
+          {busy ? copy.creating : copy.primaryAction}
         </Button>
         <div className="mt-4 flex justify-center">
           <TextButton type="button" onClick={onBack} disabled={busy}>
-            {PRODUCT_TERMS.reviewConditions}
+            {copy.secondaryAction}
           </TextButton>
         </div>
       </div>

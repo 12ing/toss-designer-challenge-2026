@@ -19,7 +19,7 @@ export function ParticipantConditionRow({
     !row.isOrganizer &&
     row.publicContext.kind !== 'none' &&
     row.publicContext.label.length > 0 &&
-    row.publicContext.label !== '공유된 추가 조건 없음'
+    row.publicContext.label !== '공유된 조건 없음'
 
   const renderAttendance = () =>
     row.attendanceLocked ? (

@@ -26,8 +26,8 @@ async function startCore(page) {
   await page.goto(`${BASE}/`)
   await page.evaluate(() => sessionStorage.clear())
   await page.goto(`${BASE}/`)
-  await waitText(page, '핵심 플로우 시작')
-  await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await waitText(page, '핵심 흐름 시작')
+  await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitText(page, '참석 조건을 확인해주세요')
 }
 
@@ -39,9 +39,9 @@ async function goToNeedConfirmation(page) {
 
 async function goToWaiting(page) {
   await goToNeedConfirmation(page)
-  await page.getByRole('button', { name: '가능 여부 묻기' }).click()
-  await waitText(page, '요청 보내기')
-  await page.getByRole('button', { name: '요청 보내기' }).click()
+  await page.getByRole('button', { name: '확인 요청하기' }).click()
+  await waitText(page, '확인 요청 보내기')
+  await page.getByRole('button', { name: '확인 요청 보내기' }).click()
   await waitText(page, '응답을 기다리고 있어요')
   await waitText(page, '참석자 화면 보기')
 }
@@ -50,7 +50,7 @@ async function goToNoOption(page) {
   await page.goto(`${BASE}/`)
   await page.evaluate(() => sessionStorage.clear())
   await page.goto(`${BASE}/?review=1&fixture=no-option`)
-  await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+  await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
   await waitText(page, '참석 조건을 확인해주세요')
   // Keep review query + fixture through analyzing
   const url = page.url()
@@ -85,7 +85,7 @@ async function main() {
     })
     const page = await ctx.newPage()
     await page.goto(`${BASE}/`)
-    await waitText(page, '핵심 플로우 시작')
+    await waitText(page, '핵심 흐름 시작')
     await shot(page, '09-landing-desktop')
     await ctx.close()
   }
@@ -95,7 +95,7 @@ async function main() {
     })
     const page = await ctx.newPage()
     await page.goto(`${BASE}/`)
-    await waitText(page, '핵심 플로우 시작')
+    await waitText(page, '핵심 흐름 시작')
     await shot(page, '10-landing-mobile')
     await ctx.close()
   }
@@ -254,8 +254,8 @@ async function main() {
     const page = await ctx.newPage()
     await goToNeedConfirmation(page)
     // Jump via ready branch for faster completion path
-    await page.getByRole('button', { name: '다른 장면' }).click()
-    await page.getByRole('button', { name: '바로 확정 가능한 경우' }).click()
+    await page.getByRole('button', { name: '상황 선택' }).click()
+    await page.getByRole('button', { name: '바로 확정되는 경우' }).click()
     await waitText(page, '참석 조건을 확인해주세요')
     await page.getByRole('button', { name: '이 조건으로 시간 찾기' }).click()
     await waitText(page, '바로 확정할 수 있어요')
@@ -264,11 +264,11 @@ async function main() {
     await page.getByRole('button', { name: '회의 만들기' }).click()
     await waitText(page, '회의 시간을 확정했어요')
     await page.getByRole('button', { name: '완료' }).click()
-    await waitText(page, '핵심 플로우 완료')
-    await page.getByRole('link', { name: '처음으로' }).click()
-    await waitText(page, '핵심 플로우 시작')
+    await waitText(page, '핵심 흐름 완료')
+    await page.getByRole('link', { name: '처음부터 다시 시작' }).click()
+    await waitText(page, '핵심 흐름 시작')
     await page.waitForTimeout(600)
-    await page.getByRole('button', { name: '핵심 플로우 시작' }).click()
+    await page.getByRole('button', { name: '핵심 흐름 시작' }).click()
     await waitText(page, '참석 조건을 확인해주세요')
     const waiting = await page.getByText('응답을 기다리고 있어요').count()
     const ready = await page.getByText('바로 확정할 수 있어요').count()

@@ -99,7 +99,7 @@ export function SchedulingPrivacyPopover({
       aria-expanded={open}
       aria-controls={panelId}
       aria-describedby={open ? panelId : undefined}
-      aria-label="일정 조건 안내"
+      aria-label="공유되는 일정 조건"
       onClick={(event) => {
         if (event.detail === 0) {
           openPanel()
@@ -178,7 +178,7 @@ export function SchedulingPrivacyPopover({
             id={panelId}
             role="dialog"
             aria-modal="true"
-            aria-label="일정 조건 안내"
+            aria-label="공유되는 일정 조건"
             className="relative z-10 w-full rounded-t-2xl border border-meeting-divider bg-meeting-surface px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_24px_rgba(0,27,55,0.1)]"
           >
             <div className="mb-4 flex flex-col gap-1.5">
