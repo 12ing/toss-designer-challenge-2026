@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
-import { reviewNotesByStep } from '@/review/review-notes'
+import { PRODUCT_PHILOSOPHY, reviewNotesByStep } from '@/review/review-notes'
 import type { ReviewStep } from '@/review/review.types'
 import { trackReviewEvent } from '@/review/review-analytics'
 
@@ -68,6 +68,17 @@ export function DesignNoteDrawer({ open, step, onClose }: DesignNoteDrawerProps)
         </div>
 
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-5 py-5">
+          <section>
+            <h3 className="mb-2 text-[13px] font-semibold text-meeting-text-secondary">
+              제품 철학
+            </h3>
+            <p
+              className="text-[15px] leading-[23px] text-meeting-text"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {PRODUCT_PHILOSOPHY}
+            </p>
+          </section>
           <section>
             <h3 className="mb-2 text-[13px] font-semibold text-meeting-text-secondary">
               설계한 문제

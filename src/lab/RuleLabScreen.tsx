@@ -224,7 +224,7 @@ export function RuleLabScreen() {
       </div>
 
       {showResultJump ? (
-        <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4 @[1100px]/lab:hidden">
+        <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4 min-[1100px]:hidden">
           <button
             type="button"
             className="inline-flex min-h-11 items-center rounded-full border border-meeting-divider bg-meeting-surface px-4 text-[14px] font-semibold text-meeting-text shadow-[0_8px_24px_rgba(0,27,55,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"

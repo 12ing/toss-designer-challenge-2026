@@ -1,5 +1,9 @@
 import type { ReviewNote, ReviewStep } from './review.types'
 
+/** Shared product philosophy shown in every design-intent drawer. */
+export const PRODUCT_PHILOSOPHY =
+  '캘린더가 일정 정보를 보여준다면, 이 제품은 합의를 위한 기준과 다음 행동을 제공합니다.'
+
 export const reviewNotesByStep: Record<ReviewStep, ReviewNote> = {
   'attendance-conditions': {
     title: '참석 조건',

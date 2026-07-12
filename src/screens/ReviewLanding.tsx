@@ -32,18 +32,18 @@ export function ReviewLanding() {
           className="mb-5 text-[clamp(1.5rem,4.5vw,2rem)] font-bold leading-[1.35] tracking-tight text-meeting-text"
           style={{ wordBreak: 'keep-all', overflowWrap: 'break-word' }}
         >
-          빈 시간을 찾는 대신,
+          회의 일정 조율은 빈 시간을 찾는 일이 아니라,
           <br />
-          가장 적은 조율로 회의 시간을 정합니다.
+          무엇을 먼저 지킬지 결정하는 일입니다.
         </h1>
 
         <p
           className="mb-8 text-[16px] leading-6 text-meeting-text-secondary"
           style={{ wordBreak: 'keep-all' }}
         >
-          필수 참석, 외근, 개인 선호를 함께 보고
+          필수 참석, 외근, 개인 선호를 같은 기준으로 정리해
           <br />
-          지금 확정할 수 있는 한 시간과
+          가장 적은 조율로 확정할 수 있는 한 시간과
           <br />
           필요한 다음 행동을 제안했습니다.
         </p>
@@ -54,7 +54,7 @@ export function ReviewLanding() {
             className="mt-3 text-[13px] leading-5 text-meeting-text-tertiary"
             style={{ wordBreak: 'keep-all' }}
           >
-            약 2분 · 공통 시간이 없는 상황
+            약 2분 · 공통 시간이 없는 상황부터 시작해요
           </p>
           <Link
             to="/lab"

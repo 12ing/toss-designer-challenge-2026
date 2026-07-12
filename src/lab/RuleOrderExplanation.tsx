@@ -44,12 +44,12 @@ export function RuleOrderExplanation({
         </h2>
         <button
           type="button"
-          className="inline-flex min-h-10 shrink-0 items-center text-[13px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] @[1100px]/lab:hidden"
+          className="inline-flex min-h-10 shrink-0 items-center text-[13px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] min-[1100px]:hidden"
           aria-expanded={open}
           aria-controls="rule-order-list"
           onClick={() => setOpen(!open)}
         >
-          {open ? '접기' : '보기'}
+          {open ? '기준 접기' : '시간을 비교하는 기준 보기'}
         </button>
       </div>
 
@@ -57,8 +57,7 @@ export function RuleOrderExplanation({
         id="rule-order-list"
         className={[
           'mt-3 flex-col gap-2 text-[13px] leading-5 text-meeting-text-secondary',
-          open ? 'flex' : 'hidden',
-          '@[1100px]/lab:flex',
+          open ? 'flex' : 'hidden min-[1100px]:flex',
         ].join(' ')}
       >
         <li style={{ wordBreak: 'keep-all' }}>
