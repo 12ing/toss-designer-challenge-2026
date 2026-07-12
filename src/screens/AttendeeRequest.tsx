@@ -1,5 +1,4 @@
 import { DateTimeBlock } from '@/components/DateTimeBlock'
-import { ShieldIcon } from '@/components/icons'
 import { Button } from '@/components/ui/Button'
 
 interface AttendeeRequestProps {
@@ -24,26 +23,19 @@ export function AttendeeRequest({
       </h2>
 
       <div className="mb-5">
-        <DateTimeBlock
-          dateLabel={dateDisplay}
-          timeLabel={timeLabel}
-          compact
-        />
+        <DateTimeBlock dateLabel={dateDisplay} timeLabel={timeLabel} compact />
       </div>
 
-      <div className="mb-8 rounded-[20px] bg-meeting-panel p-5">
-        <div className="mb-3 flex items-start gap-2">
-          <span className="mt-0.5 text-meeting-text-secondary">
-            <ShieldIcon />
-          </span>
-          <p className="text-[16px] font-medium leading-6 text-meeting-text">
-            개인 보호 시간과 겹쳐요
-          </p>
-        </div>
-        <p className="pl-[26px] text-[14px] leading-[21px] text-meeting-text-tertiary">
-          응답 사유와 일정 내용은
-          <br />
-          다른 사람에게 공개되지 않아요
+      <div className="mb-5 rounded-[20px] bg-meeting-panel p-5">
+        <p className="mb-2 text-[16px] font-medium leading-6 text-meeting-text">
+          개인 보호 시간과 겹쳐요
+        </p>
+        <p className="text-[14px] leading-[21px] text-meeting-text-secondary">
+          이 시간을 사용할 수 있는지 알려주면 다른 참석자의 일정과 함께 다시
+          확인할게요.
+        </p>
+        <p className="mt-3 text-[14px] leading-[21px] text-meeting-text-tertiary">
+          응답 사유와 일정 내용은 다른 사람에게 공개되지 않아요
         </p>
       </div>
 

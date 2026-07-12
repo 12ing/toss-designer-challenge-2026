@@ -5,14 +5,18 @@ interface CompletedProps {
   title: string
   dateDisplay: string
   timeLabel: string
-  onClose: () => void
+  onComplete: () => void
+  onBackToScenarios: () => void
+  showDoneMessage?: boolean
 }
 
 export function Completed({
   title,
   dateDisplay,
   timeLabel,
-  onClose,
+  onComplete,
+  onBackToScenarios,
+  showDoneMessage = false,
 }: CompletedProps) {
   return (
     <div className="mx-auto w-full max-w-[560px]">
@@ -32,11 +36,19 @@ export function Completed({
           <p>참석하면 좋은 2명에게도 초대를 보냈어요.</p>
         </div>
 
-        <Button onClick={onClose} className="mb-3">
-          캘린더에서 보기
-        </Button>
-        <div className="flex justify-center">
-          <TextButton onClick={onClose}>닫기</TextButton>
+        {showDoneMessage ? (
+          <p
+            className="mb-4 text-[15px] leading-[23px] text-meeting-text-secondary"
+            aria-live="polite"
+          >
+            일정이 확정된 상태로 저장됐어요.
+          </p>
+        ) : (
+          <Button onClick={onComplete}>완료</Button>
+        )}
+
+        <div className="mt-4 flex justify-center">
+          <TextButton onClick={onBackToScenarios}>시나리오 처음으로</TextButton>
         </div>
       </div>
     </div>

@@ -68,6 +68,9 @@ export type ConfirmationScenario = {
   optionalAvailable: number
   optionalTotal: number
   resultMessage: string
+  reasonSummary: string
+  details: DecisionCriterion[]
+  disclosureNote: string
 }
 
 export type RejectedScenario = {
@@ -86,6 +89,9 @@ export type RejectedScenario = {
   optionalAvailable: number
   optionalTotal: number
   resultMessage: string
+  reasonSummary: string
+  details: DecisionCriterion[]
+  disclosureNote: string
 }
 
 export type MeetingDraft = {

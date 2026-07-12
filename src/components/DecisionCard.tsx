@@ -1,8 +1,8 @@
+import { useEffect } from 'react'
 import { AttendanceSummary } from '@/components/AttendanceSummary'
 import { ConfirmationPanel } from '@/components/ConfirmationPanel'
 import { DateTimeBlock } from '@/components/DateTimeBlock'
 import { DecisionStatus } from '@/components/DecisionStatus'
-import { SpinnerIcon } from '@/components/icons'
 import { ReasonDisclosure } from '@/components/ReasonDisclosure'
 import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
@@ -10,6 +10,7 @@ import type { DecisionCardState } from '@/types/schedule'
 
 export type DecisionCardProps = {
   state: DecisionCardState
+  contextLabel?: string
   dateLabel: string
   timeLabel: string
   statusTitle: string | string[]
@@ -25,10 +26,11 @@ export type DecisionCardProps = {
     resultLabel: string
   }
   reasons?: string[]
+  reasonSummary?: string
   details?: Array<{ label: string; value: string }>
   disclosureNote?: string
   supportingText?: string
-  waitingImpact?: string
+  footnote?: string
   isReasonExpanded?: boolean
   isLoading?: boolean
   onPrimaryAction?: () => void
@@ -36,6 +38,7 @@ export type DecisionCardProps = {
   onCancelRequest?: () => void
   onChangeConditions?: () => void
   animateIn?: boolean
+  onAnimateInEnd?: () => void
 }
 
 function primaryLabel(state: DecisionCardState) {
@@ -50,16 +53,18 @@ function primaryLabel(state: DecisionCardState) {
 
 export function DecisionCard({
   state,
+  contextLabel = '다음 주 · 1시간 · 6명',
   dateLabel,
   timeLabel,
   statusTitle,
   attendance,
   confirmation,
   reasons = [],
+  reasonSummary,
   details = [],
   disclosureNote,
   supportingText,
-  waitingImpact,
+  footnote,
   isReasonExpanded = false,
   isLoading = false,
   onPrimaryAction,
@@ -67,6 +72,7 @@ export function DecisionCard({
   onCancelRequest,
   onChangeConditions,
   animateIn = false,
+  onAnimateInEnd,
 }: DecisionCardProps) {
   const showPrimary = state !== 'waiting'
   const showAttendance =
@@ -75,8 +81,21 @@ export function DecisionCard({
     (state === 'need-confirmation' || state === 'next-alternative') &&
     confirmation
   const showReasons = state === 'ready' && reasons.length > 0
+  const showInlineSummary =
+    (state === 'need-confirmation' || state === 'next-alternative') &&
+    Boolean(reasonSummary)
   const showDisclosure =
-    state === 'ready' && details.length > 0 && onToggleReason
+    (state === 'ready' ||
+      state === 'need-confirmation' ||
+      state === 'next-alternative') &&
+    details.length > 0 &&
+    onToggleReason
+
+  useEffect(() => {
+    if (!animateIn || !onAnimateInEnd) return
+    const timer = window.setTimeout(onAnimateInEnd, 280)
+    return () => window.clearTimeout(timer)
+  }, [animateIn, onAnimateInEnd])
 
   return (
     <div className="mx-auto flex w-full max-w-[560px] flex-col">
@@ -87,42 +106,38 @@ export function DecisionCard({
             ? 'animate-[card-in_var(--meeting-motion-standard)_var(--meeting-ease-standard)] motion-reduce:animate-none'
             : '',
         ].join(' ')}
-        aria-live="polite"
       >
-        <div className="mb-6">
-          <DecisionStatus state={state} title={statusTitle} />
-        </div>
+        <p className="mb-4 text-[13px] leading-5 text-meeting-text-tertiary">
+          {contextLabel}
+        </p>
 
-        <div className="mb-6">
+        {/* DateTime stays visually stable across state changes */}
+        <div className="mb-5">
           <DateTimeBlock dateLabel={dateLabel} timeLabel={timeLabel} />
         </div>
 
-        <div className="mb-6">
+        <div
+          className="mb-6 transition-opacity duration-[var(--meeting-motion-standard)] ease-[var(--meeting-ease-standard)]"
+          aria-live="polite"
+        >
+          <DecisionStatus state={state} title={statusTitle} />
+        </div>
+
+        <div className="mb-6 transition-[opacity,max-height] duration-[var(--meeting-motion-standard)] ease-[var(--meeting-ease-standard)]">
           {showAttendance && <AttendanceSummary {...attendance} />}
           {showConfirmation && <ConfirmationPanel {...confirmation} />}
-          {state === 'waiting' && (
-            <div className="flex flex-col gap-2 text-[15px] leading-[23px] text-meeting-text-secondary">
-              {waitingImpact && <p>{waitingImpact}</p>}
-              {supportingText && <p>{supportingText}</p>}
-            </div>
+          {state === 'waiting' && supportingText && (
+            <p className="text-[15px] leading-[23px] text-meeting-text-secondary">
+              {supportingText}
+            </p>
           )}
         </div>
 
         {showPrimary && onPrimaryAction && (
-          <div className="mb-6">
+          <div className="mb-6 transition-opacity duration-[var(--meeting-motion-standard)] ease-[var(--meeting-ease-standard)]">
             <Button onClick={onPrimaryAction} loading={isLoading}>
               {primaryLabel(state)}
             </Button>
-          </div>
-        )}
-
-        {state === 'waiting' && (
-          <div
-            className="mb-6 flex min-h-[52px] items-center gap-2 rounded-[var(--meeting-radius-button)] bg-meeting-panel px-4 text-[15px] text-meeting-text-secondary"
-            role="status"
-          >
-            <SpinnerIcon className="h-4 w-4 text-meeting-text-tertiary" />
-            응답을 기다리는 중
           </div>
         )}
 
@@ -149,6 +164,18 @@ export function DecisionCard({
               </li>
             ))}
           </ul>
+        )}
+
+        {showInlineSummary && reasonSummary && (
+          <p className="mb-4 text-[14px] leading-[21px] text-meeting-text-secondary">
+            {reasonSummary}
+          </p>
+        )}
+
+        {footnote && (
+          <p className="mb-4 text-[13px] leading-5 text-meeting-text-tertiary">
+            {footnote}
+          </p>
         )}
 
         {showDisclosure && (
