@@ -6,13 +6,14 @@ type AttendanceSummaryProps = {
 }
 
 function formatRequired(available: number, total: number) {
-  if (available === total) return `${total}명 모두 가능`
-  return `${available}명 가능`
+  if (available === total) return `필수 ${total}명 모두 가능`
+  return `필수 ${available}명 가능`
 }
 
 function formatOptional(available: number, total: number) {
-  if (available === total) return `${total}명 모두 가능`
-  return `${total}명 중 ${available}명 가능`
+  if (total === 0) return null
+  if (available === total) return `선택 ${total}명 모두 가능`
+  return `선택 ${total}명 중 ${available}명 가능`
 }
 
 export function AttendanceSummary({
@@ -21,22 +22,14 @@ export function AttendanceSummary({
   optionalAvailable,
   optionalTotal,
 }: AttendanceSummaryProps) {
+  const optionalLine = formatOptional(optionalAvailable, optionalTotal)
+
   return (
-    <div className="flex flex-col gap-3 text-[16px] leading-6">
-      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-        <span className="font-medium text-meeting-text-secondary">
-          필수 참석자
-        </span>
-        <span className="font-medium text-meeting-text">
-          {formatRequired(requiredAvailable, requiredTotal)}
-        </span>
-        <span className="font-medium text-meeting-text-secondary">
-          선택 참석자
-        </span>
-        <span className="font-medium text-meeting-text">
-          {formatOptional(optionalAvailable, optionalTotal)}
-        </span>
-      </div>
+    <div className="flex flex-col gap-2 text-[16px] leading-6 text-meeting-text">
+      <p className="font-medium">
+        {formatRequired(requiredAvailable, requiredTotal)}
+      </p>
+      {optionalLine && <p className="font-medium">{optionalLine}</p>}
     </div>
   )
 }

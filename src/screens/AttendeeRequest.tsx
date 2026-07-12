@@ -18,24 +18,26 @@ export function AttendeeRequest({
 }: AttendeeRequestProps) {
   return (
     <div className="flex flex-1 flex-col">
-      <h2 className="mb-6 text-[24px] font-bold leading-[34px] text-meeting-text">
-        이 시간에 회의가 가능한지 확인해주세요
-      </h2>
-
-      <div className="mb-5">
+      <div className="mb-6">
         <DateTimeBlock dateLabel={dateDisplay} timeLabel={timeLabel} compact />
       </div>
 
+      <h2
+        className="mb-5 text-[21px] font-bold leading-[30px] text-meeting-text"
+        style={{ wordBreak: 'keep-all' }}
+      >
+        이 시간, 괜찮으세요?
+      </h2>
+
       <div className="mb-5 rounded-[20px] bg-meeting-panel p-5">
         <p className="mb-2 text-[16px] font-medium leading-6 text-meeting-text">
-          개인 보호 시간과 겹쳐요
+          개인 보호 시간과 겹쳐요.
         </p>
         <p className="text-[14px] leading-[21px] text-meeting-text-secondary">
-          이 시간을 사용할 수 있는지 알려주면 다른 참석자의 일정과 함께 다시
-          확인할게요.
+          일정 내용과 응답 사유는 공개되지 않아요.
         </p>
-        <p className="mt-3 text-[14px] leading-[21px] text-meeting-text-tertiary">
-          응답 사유와 일정 내용은 다른 사람에게 공개되지 않아요
+        <p className="mt-3 text-[13px] leading-5 text-meeting-text-tertiary">
+          응답하면 다른 참석자 일정과 다시 확인할게요.
         </p>
       </div>
 
@@ -48,6 +50,7 @@ export function AttendeeRequest({
           variant="secondary"
           onClick={onReject}
           disabled={loading}
+          className="!min-h-14"
         >
           이 시간은 어려워요
         </Button>

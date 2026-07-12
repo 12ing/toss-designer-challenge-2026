@@ -1,13 +1,10 @@
 import { Button } from '@/components/ui/Button'
-import { TextButton } from '@/components/ui/TextButton'
 
 interface CompletedProps {
   title: string
   dateDisplay: string
   timeLabel: string
   onComplete: () => void
-  onBackToScenarios: () => void
-  showDoneMessage?: boolean
 }
 
 export function Completed({
@@ -15,8 +12,6 @@ export function Completed({
   dateDisplay,
   timeLabel,
   onComplete,
-  onBackToScenarios,
-  showDoneMessage = false,
 }: CompletedProps) {
   return (
     <div className="mx-auto w-full max-w-[560px]">
@@ -32,24 +27,11 @@ export function Completed({
         </div>
 
         <div className="mb-8 flex flex-col gap-1.5 text-[15px] leading-[23px] text-meeting-text-secondary">
-          <p>꼭 참석해야 하는 4명 모두 초대했어요.</p>
-          <p>참석하면 좋은 2명에게도 초대를 보냈어요.</p>
+          <p>필수 참석자 4명 모두 초대했어요.</p>
+          <p>선택 참석자 2명에게도 초대를 보냈어요.</p>
         </div>
 
-        {showDoneMessage ? (
-          <p
-            className="mb-4 text-[15px] leading-[23px] text-meeting-text-secondary"
-            aria-live="polite"
-          >
-            일정이 확정된 상태로 저장됐어요.
-          </p>
-        ) : (
-          <Button onClick={onComplete}>완료</Button>
-        )}
-
-        <div className="mt-4 flex justify-center">
-          <TextButton onClick={onBackToScenarios}>시나리오 처음으로</TextButton>
-        </div>
+        <Button onClick={onComplete}>완료</Button>
       </div>
     </div>
   )

@@ -62,7 +62,15 @@ export function ScreenShell({
           {children}
         </main>
 
-        {footer}
+        {footer ? (
+          <div
+            className={
+              isMobile ? 'px-5 pb-[max(1rem,env(safe-area-inset-bottom))]' : ''
+            }
+          >
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   )

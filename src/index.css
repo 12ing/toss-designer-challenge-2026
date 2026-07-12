@@ -36,6 +36,7 @@
   --color-meeting-surface: var(--meeting-surface);
   --color-meeting-text: var(--meeting-text-primary);
   --color-meeting-text-secondary: var(--meeting-text-secondary);
+  --color-meeting-text-body: var(--meeting-text-body);
   --color-meeting-text-tertiary: var(--meeting-text-tertiary);
   --color-meeting-divider: var(--meeting-divider);
   --color-meeting-panel: var(--meeting-panel);

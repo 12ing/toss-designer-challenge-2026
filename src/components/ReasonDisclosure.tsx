@@ -18,13 +18,13 @@ export function ReasonDisclosure({
   details,
   note,
 }: ReasonDisclosureProps) {
-  const headingRef = useRef<HTMLParagraphElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const wasOpen = useRef(open)
 
   useEffect(() => {
     if (open && !wasOpen.current) {
-      headingRef.current?.focus()
+      panelRef.current?.focus()
     }
     if (!open && wasOpen.current) {
       buttonRef.current?.focus()
@@ -37,11 +37,11 @@ export function ReasonDisclosure({
       <button
         ref={buttonRef}
         type="button"
-        className="min-h-11 text-[14px] leading-[21px] text-meeting-text-tertiary underline underline-offset-2 transition-colors hover:text-meeting-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+        className="min-h-11 text-[14px] leading-[21px] text-meeting-text-secondary underline underline-offset-2 transition-colors hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
         onClick={onToggle}
         aria-expanded={open}
       >
-        {open ? '추천 기준 접기' : '추천 기준 보기'}
+        {open ? '이유 숨기기' : '이 시간인 이유'}
       </button>
 
       <div
@@ -50,17 +50,22 @@ export function ReasonDisclosure({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="mt-4">
-            <p
-              ref={headingRef}
-              tabIndex={-1}
-              className="mb-4 text-[15px] font-semibold text-meeting-text outline-none"
-            >
-              이 시간을 추천한 이유
-            </p>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              {details.map((item) => (
-                <div key={item.label} className="flex flex-col gap-1">
+          <div
+            ref={panelRef}
+            tabIndex={-1}
+            className="mt-2 outline-none"
+          >
+            <dl>
+              {details.map((item, index) => (
+                <div
+                  key={item.label}
+                  className={[
+                    'grid grid-cols-[120px_1fr] items-start gap-4 py-4',
+                    index < details.length - 1
+                      ? 'border-b border-meeting-divider'
+                      : '',
+                  ].join(' ')}
+                >
                   <dt className="text-[14px] leading-[21px] text-meeting-text-secondary">
                     {item.label}
                   </dt>
@@ -71,7 +76,7 @@ export function ReasonDisclosure({
               ))}
             </dl>
             {note && (
-              <p className="mt-4 text-[14px] leading-[21px] text-meeting-text-tertiary">
+              <p className="mt-2 text-[14px] leading-[21px] text-meeting-text-secondary">
                 {note}
               </p>
             )}

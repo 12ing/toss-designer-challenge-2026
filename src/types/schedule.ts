@@ -11,13 +11,13 @@ export type Participant = {
 export type ScenarioId = 'ready' | 'need-confirmation' | 'rejected'
 
 export type DecisionState =
-  | 'scenario-hub'
   | 'participant-setup'
   | 'analyzing'
   | 'ready'
   | 'reason-expanded'
   | 'meeting-details'
   | 'completed'
+  | 'review-complete'
   | 'need-confirmation'
   | 'request-preview'
   | 'waiting'

@@ -28,64 +28,63 @@ type DecisionSurfaceState = Extract<
   | 'next-alternative'
 >
 
-function snapshotAttendance(list: Participant[]) {
-  return list
-    .map((p) => `${p.id}:${p.attendanceType}`)
-    .sort()
-    .join('|')
-}
-
 function defaultResumeState(scenarioId: ScenarioId): DecisionSurfaceState {
   if (scenarioId === 'ready') return 'ready'
   if (scenarioId === 'rejected') return 'next-alternative'
   return 'need-confirmation'
 }
 
-export function usePrototypeFlow() {
-  const [state, setState] = useState<DecisionState>('scenario-hub')
-  const [scenarioId, setScenarioId] = useState<ScenarioId | null>(null)
-  const [confirmSource, setConfirmSource] =
-    useState<ConfirmSource>('initial')
+export function usePrototypeFlow(initialScenario: ScenarioId) {
+  const [state, setState] = useState<DecisionState>(() =>
+    initialScenario === 'rejected' ? 'next-alternative' : 'participant-setup',
+  )
+  const [scenarioId, setScenarioId] = useState<ScenarioId>(initialScenario)
+  const [confirmSource, setConfirmSource] = useState<ConfirmSource>(() =>
+    initialScenario === 'rejected' ? 'alternative' : 'initial',
+  )
   const [participants, setParticipants] =
     useState<Participant[]>(seedParticipants)
   const [meeting, setMeeting] = useState<MeetingDraft>(defaultMeeting)
   const [isSendingRequest, setIsSendingRequest] = useState(false)
   const [isResponding, setIsResponding] = useState(false)
   const [reasonExpanded, setReasonExpanded] = useState(false)
-  const [isRevisedRecommendation, setIsRevisedRecommendation] = useState(false)
   const [playCardEnter, setPlayCardEnter] = useState(false)
 
-  const resumeStateRef = useRef<DecisionSurfaceState | null>(null)
-  const conditionsBaselineRef = useRef<string | null>(null)
-  const editingConditionsRef = useRef(false)
-  const participantsAtAnalyzeRef = useRef(snapshotAttendance(seedParticipants))
+  const resumeStateRef = useRef<DecisionSurfaceState | null>(
+    defaultResumeState(initialScenario),
+  )
+  const bootstrappedScenario = useRef(initialScenario)
 
-  const resetToHub = useCallback(() => {
-    setState('scenario-hub')
-    setScenarioId(null)
-    setConfirmSource('initial')
+  // URL 시나리오가 바뀌면 플로우를 다시 시작합니다.
+  useEffect(() => {
+    if (bootstrappedScenario.current === initialScenario) return
+    bootstrappedScenario.current = initialScenario
+    setScenarioId(initialScenario)
     setParticipants(seedParticipants)
     setMeeting(defaultMeeting)
     setIsSendingRequest(false)
     setIsResponding(false)
     setReasonExpanded(false)
-    setIsRevisedRecommendation(false)
+    setConfirmSource(initialScenario === 'rejected' ? 'alternative' : 'initial')
+    resumeStateRef.current = defaultResumeState(initialScenario)
     setPlayCardEnter(false)
-    resumeStateRef.current = null
-    conditionsBaselineRef.current = null
-    editingConditionsRef.current = false
-  }, [])
+    if (initialScenario === 'rejected') {
+      setState('next-alternative')
+    } else {
+      setState('participant-setup')
+    }
+  }, [initialScenario])
 
   const selectScenario = useCallback((id: ScenarioId) => {
     setScenarioId(id)
+    setParticipants(seedParticipants)
+    setMeeting(defaultMeeting)
     setReasonExpanded(false)
-    setIsRevisedRecommendation(false)
     setConfirmSource(id === 'rejected' ? 'alternative' : 'initial')
-    editingConditionsRef.current = false
-    conditionsBaselineRef.current = null
     resumeStateRef.current = defaultResumeState(id)
+    bootstrappedScenario.current = id
+    setPlayCardEnter(false)
     if (id === 'rejected') {
-      setPlayCardEnter(true)
       setState('next-alternative')
       return
     }
@@ -106,43 +105,14 @@ export function usePrototypeFlow() {
   )
 
   const startAnalyzing = useCallback(() => {
-    participantsAtAnalyzeRef.current = snapshotAttendance(participants)
     setReasonExpanded(false)
     setState('analyzing')
-  }, [participants])
+  }, [])
 
   useEffect(() => {
-    if (state !== 'analyzing' || !scenarioId) return
+    if (state !== 'analyzing') return
 
     const timer = window.setTimeout(() => {
-      if (editingConditionsRef.current) {
-        const baseline = conditionsBaselineRef.current
-        const current = participantsAtAnalyzeRef.current
-        const changed = baseline !== null && baseline !== current
-
-        editingConditionsRef.current = false
-        conditionsBaselineRef.current = null
-
-        if (changed) {
-          setIsRevisedRecommendation(true)
-          setConfirmSource('initial')
-          setPlayCardEnter(true)
-          setState('ready')
-          resumeStateRef.current = 'ready'
-          return
-        }
-
-        const resume = resumeStateRef.current ?? defaultResumeState(scenarioId)
-        setIsRevisedRecommendation(false)
-        setPlayCardEnter(false)
-        if (resume === 'next-alternative') {
-          setConfirmSource('alternative')
-        }
-        setState(resume)
-        return
-      }
-
-      setIsRevisedRecommendation(false)
       setPlayCardEnter(true)
       if (scenarioId === 'ready') {
         setState('ready')
@@ -173,13 +143,17 @@ export function usePrototypeFlow() {
     setState('completed')
   }, [])
 
+  const finishReview = useCallback(() => {
+    setState('review-complete')
+  }, [])
+
   const backToDecision = useCallback(() => {
-    if (isRevisedRecommendation || scenarioId === 'ready') {
+    if (scenarioId === 'ready') {
       setState('ready')
       return
     }
     setState('ready-after-confirmation')
-  }, [isRevisedRecommendation, scenarioId])
+  }, [scenarioId])
 
   const openRequestPreview = useCallback(() => {
     setState((current) => {
@@ -235,36 +209,12 @@ export function usePrototypeFlow() {
     resumeStateRef.current = 'next-alternative'
   }, [])
 
-  const cancelRequest = useCallback(() => {
+  const backFromPreview = useCallback(() => {
     const resume =
       confirmSource === 'alternative' ? 'next-alternative' : 'need-confirmation'
     resumeStateRef.current = resume
     setState(resume)
   }, [confirmSource])
-
-  const changeConditions = useCallback(() => {
-    const current = state
-    if (
-      current === 'ready' ||
-      current === 'need-confirmation' ||
-      current === 'waiting' ||
-      current === 'ready-after-confirmation' ||
-      current === 'next-alternative'
-    ) {
-      resumeStateRef.current = current === 'waiting'
-        ? confirmSource === 'alternative'
-          ? 'next-alternative'
-          : 'need-confirmation'
-        : current
-    } else if (scenarioId) {
-      resumeStateRef.current = defaultResumeState(scenarioId)
-    }
-
-    conditionsBaselineRef.current = snapshotAttendance(participants)
-    editingConditionsRef.current = true
-    setReasonExpanded(false)
-    setState('participant-setup')
-  }, [state, confirmSource, scenarioId, participants])
 
   const toggleReasonExpanded = useCallback(() => {
     setReasonExpanded((prev) => !prev)
@@ -283,15 +233,14 @@ export function usePrototypeFlow() {
     isSendingRequest,
     isResponding,
     reasonExpanded,
-    isRevisedRecommendation,
     playCardEnter,
     acknowledgeCardEnter,
-    resetToHub,
     selectScenario,
     setAttendanceType,
     startAnalyzing,
     goToMeetingDetails,
     completeMeeting,
+    finishReview,
     backToDecision,
     openRequestPreview,
     sendRequest,
@@ -300,8 +249,7 @@ export function usePrototypeFlow() {
     rejectRequest,
     finishAttendeeApproved,
     finishAttendeeRejected,
-    cancelRequest,
-    changeConditions,
+    backFromPreview,
     toggleReasonExpanded,
     updateMeeting,
   }
