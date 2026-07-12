@@ -1,10 +1,7 @@
 import { useId, useState } from 'react'
 import { ParticipantImpactRow } from '@/components/decision-surface/ParticipantImpactRow'
 import { TextButton } from '@/components/ui/TextButton'
-import type {
-  ConfirmationTargetSummary,
-  ParticipantImpactViewModel,
-} from '@/features/meeting-decision/view-model/decision-surface.mapper'
+import type { ParticipantImpactViewModel } from '@/features/meeting-decision/view-model/decision-surface.mapper'
 
 type PeopleImpactPanelProps = {
   title: string
@@ -13,7 +10,6 @@ type PeopleImpactPanelProps = {
   blockingRows?: Array<{ label: string; value: string }>
   mobileSummary: string
   mobileConfirmationHint?: string
-  confirmationTarget?: ConfirmationTargetSummary
   collapsibleOnMobile?: boolean
 }
 
@@ -86,23 +82,11 @@ export function PeopleImpactPanel({
   blockingRows,
   mobileSummary,
   mobileConfirmationHint,
-  confirmationTarget,
   collapsibleOnMobile = true,
 }: PeopleImpactPanelProps) {
   const [expanded, setExpanded] = useState(false)
   const requiredHeadingId = useId()
   const optionalHeadingId = useId()
-
-  const confirmationBanner = confirmationTarget ? (
-    <div className="mb-4 rounded-xl bg-meeting-primary-subtle px-3 py-3">
-      <p className="text-[13px] font-semibold text-[color:var(--meeting-primary)]">
-        확인이 필요한 사람 {confirmationTarget.count}명
-      </p>
-      <p className="mt-1 text-[14px] font-medium text-meeting-text">
-        {confirmationTarget.name} · {confirmationTarget.contextLabel}
-      </p>
-    </div>
-  ) : null
 
   const list = blockingRows ? (
     <dl className="divide-y divide-meeting-divider">
@@ -117,15 +101,12 @@ export function PeopleImpactPanel({
       ))}
     </dl>
   ) : (
-    <>
-      {confirmationBanner}
-      <GroupedList
-        requiredRows={requiredRows}
-        optionalRows={optionalRows}
-        requiredHeadingId={requiredHeadingId}
-        optionalHeadingId={optionalHeadingId}
-      />
-    </>
+    <GroupedList
+      requiredRows={requiredRows}
+      optionalRows={optionalRows}
+      requiredHeadingId={requiredHeadingId}
+      optionalHeadingId={optionalHeadingId}
+    />
   )
 
   const mobileSummaryLines = mobileSummary.split('\n')

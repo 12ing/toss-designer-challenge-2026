@@ -64,7 +64,7 @@ export function ParticipantSetup({
       </div>
 
       <section
-        className="mb-3 rounded-3xl border border-meeting-divider bg-meeting-surface px-5 py-2 shadow-[var(--meeting-shadow)]"
+        className="mb-6 rounded-3xl border border-meeting-divider bg-meeting-surface px-5 py-2 shadow-[var(--meeting-shadow)]"
         aria-label="참석자 목록"
       >
         <ul className="divide-y divide-meeting-divider">
@@ -78,13 +78,6 @@ export function ParticipantSetup({
           ))}
         </ul>
       </section>
-
-      <p
-        className="mb-6 text-[13px] leading-5 text-meeting-text-tertiary"
-        style={{ wordBreak: 'keep-all' }}
-      >
-        이번 플로우에서는 주최자가 직접 참석하는 회의를 가정했어요.
-      </p>
 
       <Button onClick={onFindTime} className="min-h-[52px] max-[639px]:min-h-14">
         이 조건으로 시간 찾기

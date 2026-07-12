@@ -75,13 +75,6 @@ export function DecisionSurface({
       blockingRows={vm.blockingRows}
       mobileSummary={vm.mobilePeopleSummary}
       mobileConfirmationHint={vm.mobileConfirmationHint}
-      confirmationTarget={
-        mode === 'need-confirmation' || mode === 'waiting'
-          ? vm.confirmationTarget
-          : mode === 'next-alternative'
-            ? vm.confirmationTarget
-            : undefined
-      }
       collapsibleOnMobile={mode !== 'no-option'}
     />
   )

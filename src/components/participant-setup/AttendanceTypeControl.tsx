@@ -17,6 +17,7 @@ export function AttendanceTypeControl({
     { type: 'optional', label: '선택' },
   ]
   const selectedIndex = value === 'required' ? 0 : 1
+  const isRequired = value === 'required'
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
@@ -33,10 +34,15 @@ export function AttendanceTypeControl({
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-meeting-primary-subtle shadow-sm motion-safe:transition-transform motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+        className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full shadow-sm motion-safe:transition-[transform,background-color,border-color] motion-safe:duration-[180ms] motion-safe:ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
         style={{
           transform: `translateX(${selectedIndex * 100}%)`,
-          border: '1px solid color-mix(in srgb, var(--meeting-primary) 22%, transparent)',
+          backgroundColor: isRequired
+            ? 'var(--meeting-primary-subtle)'
+            : 'var(--meeting-surface)',
+          border: isRequired
+            ? '1px solid color-mix(in srgb, var(--meeting-primary) 22%, transparent)'
+            : '1px solid var(--meeting-divider)',
         }}
       />
 

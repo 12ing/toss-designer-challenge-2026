@@ -1,8 +1,8 @@
-/** Static attendance status for the organizer — not a disabled control. */
+/** Static organizer attendance status — not a control. */
 export function OrganizerFixedStatus() {
   return (
     <span
-      className="inline-flex min-h-11 items-center justify-center rounded-full border border-meeting-divider bg-meeting-panel px-3.5 text-[13px] font-semibold text-meeting-text"
+      className="inline-flex min-h-11 items-center justify-center px-1 text-[13px] font-semibold text-meeting-text-secondary"
       aria-hidden
     >
       필수 고정
