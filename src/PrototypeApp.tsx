@@ -255,17 +255,17 @@ function OrganizerExperience({
           {flow.state === 'meeting-details' &&
             (flow.createdMeeting || flow.meetingCreatedAt ? (
               <FlowRecovery
-                title="이미 만든 회의예요."
-                description="생성 결과 화면으로 이동할 수 있어요."
-                actionLabel="회의 결과 보기"
+                title="이미 만든 회의가 있어요."
+                description="앞서 만든 회의 정보를 다시 확인할 수 있어요."
+                actionLabel="회의 보기"
                 onAction={() => flow.completeMeeting()}
               />
             ) : !flow.canFinalize || !flow.uiView ? (
               <FlowRecovery
-                title="추천 시간이 더 이상 유효하지 않아요."
-                description="조건을 다시 확인해 시간을 찾아주세요."
-                actionLabel="시간 다시 보기"
-                onAction={flow.backToDecision}
+                title="추천한 시간이 더 이상 유효하지 않아요."
+                description="현재 참석 조건으로 시간을 다시 찾아주세요."
+                actionLabel="시간 다시 찾기"
+                onAction={flow.changeConditions}
               />
             ) : (
               <MeetingDetails
@@ -297,14 +297,7 @@ function OrganizerExperience({
                   flow.uiView?.timeLabel ??
                   ''
                 }
-                requiredCount={
-                  flow.createdMeeting?.requiredCount ??
-                  flow.attendanceCounts.requiredCount
-                }
-                optionalCount={
-                  flow.createdMeeting?.optionalCount ??
-                  flow.attendanceCounts.optionalCount
-                }
+                participants={flow.createdMeeting?.participants ?? []}
                 location={flow.createdMeeting?.location}
                 onComplete={() => {
                   if (showReviewNav) {

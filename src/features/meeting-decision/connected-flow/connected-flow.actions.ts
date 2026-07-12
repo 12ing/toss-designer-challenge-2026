@@ -1,7 +1,10 @@
 import { candidateSlots } from '@/features/meeting-decision/data/candidate-slots'
 import { decisionParticipants } from '@/features/meeting-decision/data/participants'
 import { getScenarioPreset } from '@/features/meeting-decision/data/scenario-presets'
-import { recommendMeeting } from '@/features/meeting-decision/engine/decision-engine'
+import {
+  getEffectiveSlotState,
+  recommendMeeting,
+} from '@/features/meeting-decision/engine/decision-engine'
 import type {
   AttendanceType,
   MeetingRecommendation,
@@ -9,10 +12,12 @@ import type {
   ScenarioPresetId,
   TimeSlotId,
 } from '@/features/meeting-decision/engine/decision-engine.types'
+import { sanitizeMeetingDisplayText } from '@/lib/meeting-display'
 import type { MeetingDraft } from '@/types/schedule'
 import type {
   ConnectedFlowPhase,
   MeetingDecisionSession,
+  MeetingParticipantSnapshot,
   MeetingRecord,
   SchedulingRequest,
 } from './connected-flow.types'
@@ -69,6 +74,85 @@ export function countAttendanceByType(
     else optionalCount += 1
   }
   return { requiredCount, optionalCount }
+}
+
+export function countParticipantsByRole(
+  participants: MeetingParticipantSnapshot[],
+): { requiredCount: number; optionalCount: number } {
+  let requiredCount = 0
+  let optionalCount = 0
+  for (const person of participants) {
+    if (person.role === 'required') requiredCount += 1
+    else optionalCount += 1
+  }
+  return { requiredCount, optionalCount }
+}
+
+/**
+ * Meeting attendees at create time.
+ * Optional people marked 참석 어려움 (hard-busy / protected) are excluded.
+ */
+export function buildMeetingParticipantSnapshots(
+  attendanceTypes: Record<string, AttendanceType>,
+  responseOverrides: ResponseOverrides,
+  slotId: TimeSlotId,
+): MeetingParticipantSnapshot[] {
+  const snapshots: MeetingParticipantSnapshot[] = []
+
+  for (const person of decisionParticipants) {
+    const role =
+      attendanceTypes[person.id] ?? person.defaultAttendanceType
+    const state = getEffectiveSlotState(person, slotId, responseOverrides)
+
+    if (role === 'optional') {
+      if (state.type === 'hard-busy' || state.type === 'protected') {
+        continue
+      }
+    }
+
+    snapshots.push({
+      id: person.id,
+      name: person.name,
+      role,
+    })
+  }
+
+  return snapshots
+}
+
+/** Backfill legacy MeetingRecords that predate the participants snapshot. */
+export function ensureMeetingParticipantSnapshots(
+  session: MeetingDecisionSession,
+): MeetingDecisionSession {
+  const created = session.createdMeeting
+  if (!created || Array.isArray(created.participants)) {
+    return session
+  }
+
+  const participants = buildMeetingParticipantSnapshots(
+    session.attendanceTypes,
+    session.responseOverrides,
+    created.slotId,
+  )
+  const counts = countParticipantsByRole(participants)
+  const title = sanitizeMeetingDisplayText(created.title) || created.title.trim()
+  const location = sanitizeMeetingDisplayText(created.location)
+
+  return {
+    ...session,
+    createdMeeting: {
+      ...created,
+      title,
+      location,
+      participants,
+      requiredCount: counts.requiredCount,
+      optionalCount: counts.optionalCount,
+    },
+    meeting: {
+      title,
+      location,
+    },
+  }
 }
 
 export function createId(prefix: string) {
@@ -514,13 +598,18 @@ export function completeMeeting(
     return session
   }
 
-  const title = session.meeting.title.trim()
+  const title = sanitizeMeetingDisplayText(session.meeting.title)
   if (!title) {
     return session
   }
 
-  const location = session.meeting.location.trim()
-  const counts = countAttendanceByType(session.attendanceTypes)
+  const location = sanitizeMeetingDisplayText(session.meeting.location)
+  const participants = buildMeetingParticipantSnapshots(
+    session.attendanceTypes,
+    session.responseOverrides,
+    rec.evaluation.slot.id,
+  )
+  const counts = countParticipantsByRole(participants)
   const slot = rec.evaluation.slot
   const createdAt = new Date().toISOString()
   const record: MeetingRecord = {
@@ -532,6 +621,7 @@ export function completeMeeting(
     timeLabel: slot.timeLabel,
     title,
     location,
+    participants,
     requiredCount: counts.requiredCount,
     optionalCount: counts.optionalCount,
     createdAt,

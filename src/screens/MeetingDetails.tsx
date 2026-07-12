@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { TextButton } from '@/components/ui/TextButton'
 import { TextField } from '@/components/ui/TextField'
 import { PRODUCT_TERMS } from '@/copy/product.copy'
+import { sanitizeMeetingDisplayText } from '@/lib/meeting-display'
 import type { MeetingDraft } from '@/types/schedule'
 
 interface MeetingDetailsProps {
@@ -31,13 +32,16 @@ export function MeetingDetails({
   const [submitting, setSubmitting] = useState(false)
   const [titleError, setTitleError] = useState(false)
   const submittedRef = useRef(false)
-  const titleTrimmed = meeting.title.trim()
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const titleErrorId = useId()
+  const titleTrimmed = sanitizeMeetingDisplayText(meeting.title)
   const busy = submitting || creating
 
   const handleSubmit = () => {
     if (busy || submittedRef.current) return
     if (!titleTrimmed) {
       setTitleError(true)
+      titleInputRef.current?.focus()
       return
     }
     setTitleError(false)
@@ -56,7 +60,7 @@ export function MeetingDetails({
         <h2
           data-page-heading
           tabIndex={-1}
-          className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text outline-none"
+          className="mb-6 text-[20px] font-semibold leading-7 text-meeting-text outline-none focus:outline-none focus-visible:outline-none"
           style={{ wordBreak: 'keep-all' }}
         >
           이 시간으로 회의를 만들까요?
@@ -82,19 +86,26 @@ export function MeetingDetails({
         <div className="mb-6 flex flex-col gap-4">
           <div>
             <TextField
+              ref={titleInputRef}
+              id="meeting-title"
               label="회의 제목"
               value={meeting.title}
               required
               autoComplete="off"
               placeholder="회의 제목을 입력하세요"
-              aria-invalid={titleError || undefined}
+              invalid={titleError}
+              errorId={titleErrorId}
               onChange={(e) => {
                 setTitleError(false)
                 onChange({ title: e.target.value })
               }}
             />
             {titleError ? (
-              <p className="mt-1.5 text-[13px] text-meeting-text-secondary">
+              <p
+                id={titleErrorId}
+                role="alert"
+                className="mt-1.5 text-[13px] font-medium text-[#f04452]"
+              >
                 회의 제목을 입력해 주세요.
               </p>
             ) : null}
@@ -103,7 +114,7 @@ export function MeetingDetails({
             label="장소 또는 화상 회의 링크"
             value={meeting.location}
             autoComplete="off"
-            placeholder="선택 사항"
+            placeholder="예: 4층 A 또는 화상 회의 링크"
             onChange={(e) => onChange({ location: e.target.value })}
           />
         </div>

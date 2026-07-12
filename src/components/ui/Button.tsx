@@ -1,4 +1,8 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import {
+  forwardRef,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+} from 'react'
 import { SpinnerIcon } from '@/components/icons'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
@@ -20,42 +24,48 @@ const variantClass: Record<ButtonVariant, string> = {
     'bg-transparent text-meeting-text-secondary hover:bg-meeting-panel hover:text-meeting-text disabled:opacity-50',
 }
 
-export function Button({
-  children,
-  variant = 'primary',
-  fullWidth = true,
-  loading = false,
-  size = 'desktop',
-  className = '',
-  disabled,
-  type = 'button',
-  ...props
-}: ButtonProps) {
-  const height = size === 'mobile' ? 'min-h-14' : 'min-h-[52px]'
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button(
+    {
+      children,
+      variant = 'primary',
+      fullWidth = true,
+      loading = false,
+      size = 'desktop',
+      className = '',
+      disabled,
+      type = 'button',
+      ...props
+    },
+    ref,
+  ) {
+    const height = size === 'mobile' ? 'min-h-14' : 'min-h-[52px]'
 
-  return (
-    <button
-      type={type}
-      disabled={disabled || loading}
-      className={[
-        'inline-flex items-center justify-center gap-2 rounded-[var(--meeting-radius-button)] px-5 text-[16px] font-semibold leading-6 whitespace-nowrap transition-[background-color,filter,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
-        height,
-        fullWidth ? 'w-full' : '',
-        variantClass[variant],
-        className,
-      ].join(' ')}
-      {...props}
-      aria-busy={loading || undefined}
-      aria-disabled={disabled || loading || undefined}
-    >
-      {loading ? (
-        <>
-          <SpinnerIcon className="h-4 w-4" />
-          요청 보내는 중
-        </>
-      ) : (
-        children
-      )}
-    </button>
-  )
-}
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={disabled || loading}
+        className={[
+          'inline-flex items-center justify-center gap-2 rounded-[var(--meeting-radius-button)] px-5 text-[16px] font-semibold leading-6 whitespace-nowrap transition-[background-color,filter,color] duration-[var(--meeting-motion-quick)] ease-[var(--meeting-ease-standard)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]',
+          height,
+          fullWidth ? 'w-full' : '',
+          variantClass[variant],
+          className,
+        ].join(' ')}
+        {...props}
+        aria-busy={loading || undefined}
+        aria-disabled={disabled || loading || undefined}
+      >
+        {loading ? (
+          <>
+            <SpinnerIcon className="h-4 w-4" />
+            요청 보내는 중
+          </>
+        ) : (
+          children
+        )}
+      </button>
+    )
+  },
+)

@@ -1,4 +1,3 @@
-import { DateTimeBlock } from '@/components/DateTimeBlock'
 import { ATTENDEE_ACTION_COPY } from '@/copy/product.copy'
 
 interface AttendeeRequestProps {
@@ -36,9 +35,8 @@ export function AttendeeRequest({
       <h2
         data-page-heading
         tabIndex={-1}
-        className="mb-3 text-[21px] font-bold leading-[30px] text-meeting-text outline-none"
+        className="mb-3 text-[21px] font-bold leading-[30px] text-meeting-text outline-none focus:outline-none focus-visible:outline-none"
         style={{ wordBreak: 'keep-all' }}
-        aria-label={`회의 시간 확인 요청, ${dateDisplay} ${timeLabel}`}
       >
         이 시간, 괜찮으세요?
       </h2>
@@ -56,19 +54,30 @@ export function AttendeeRequest({
         </p>
       ) : null}
 
-      <div className="mb-5">
-        <DateTimeBlock dateLabel={dateDisplay} timeLabel={timeLabel} compact />
+      <div
+        className="rounded-[20px] bg-meeting-primary-subtle px-5 py-5"
+        aria-label={`${dateDisplay} ${timeLabel}`}
+      >
+        <p className="mb-2 text-[15px] font-medium leading-[22px] text-meeting-text-secondary">
+          {dateDisplay}
+        </p>
+        <p className="text-[32px] font-bold leading-[40px] tracking-tight text-meeting-text whitespace-nowrap max-[360px]:text-[30px] max-[360px]:leading-[38px]">
+          {timeLabel}
+        </p>
       </div>
 
-      <div className="mb-5 rounded-[20px] bg-meeting-panel p-5">
-        <p className="mb-2 text-[16px] font-medium leading-6 text-meeting-text">
+      <div className="mt-7 mb-5 px-5">
+        <p
+          className="mb-2 text-[15px] font-medium leading-[22px] text-meeting-text"
+          style={{ wordBreak: 'keep-all' }}
+        >
           {conflictLabel}과 겹쳐요.
         </p>
-        <p className="text-[14px] leading-[21px] text-meeting-text-secondary">
-          일정 내용과 응답 사유는 공개되지 않아요.
-        </p>
-        <p className="mt-3 text-[13px] leading-5 text-meeting-text-tertiary">
-          응답하면 다른 참석자 일정과 다시 확인할게요.
+        <p
+          className="text-[13px] leading-5 text-meeting-text-secondary"
+          style={{ wordBreak: 'keep-all' }}
+        >
+          일정 내용과 응답 사유는 다른 사람에게 공개되지 않아요.
         </p>
       </div>
 

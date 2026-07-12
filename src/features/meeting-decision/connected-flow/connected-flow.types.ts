@@ -35,6 +35,13 @@ export type SchedulingRequest = {
   response?: 'approved' | 'declined'
 }
 
+/** Immutable snapshot of who was included when the meeting was created. */
+export type MeetingParticipantSnapshot = {
+  id: string
+  name: string
+  role: 'required' | 'optional'
+}
+
 /** Immutable record written once when a meeting is created. */
 export type MeetingRecord = {
   id: string
@@ -45,6 +52,7 @@ export type MeetingRecord = {
   timeLabel: string
   title: string
   location: string
+  participants: MeetingParticipantSnapshot[]
   requiredCount: number
   optionalCount: number
   createdAt: string

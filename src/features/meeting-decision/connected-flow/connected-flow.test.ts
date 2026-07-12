@@ -4,6 +4,7 @@ import {
   applyAnalyzedRecommendation,
   beginAttendeeResponse,
   beginSendingRequest,
+  buildMeetingParticipantSnapshots,
   canFinalizeRecommendation,
   completeAttendeeResponse,
   completeMeeting,
@@ -167,6 +168,17 @@ describe('connected-flow meeting finalize', () => {
     expect(session.createdMeeting?.sessionId).toBe(session.id)
     expect(session.createdMeeting?.slotId).toBe('thu-15')
     expect(session.meeting.title).toBe('킥오프 미팅')
+    expect(session.createdMeeting?.participants).toEqual([
+      { id: 'minji', name: '김민지', role: 'required' },
+      { id: 'seoyeon', name: '박서연', role: 'required' },
+      { id: 'doyoon', name: '최도윤', role: 'required' },
+      { id: 'yujin', name: '정유진', role: 'optional' },
+      { id: 'hyunwoo', name: '한현우', role: 'optional' },
+    ])
+    // jihoon is optional on thu-15 protected time → 참석 어려움, excluded
+    expect(session.createdMeeting?.requiredCount).toBe(3)
+    expect(session.createdMeeting?.optionalCount).toBe(2)
+    expect(session.createdMeeting?.participants).toHaveLength(5)
 
     const again = completeMeeting(session)
     expect(again.phase).toBe('completed')
@@ -204,5 +216,32 @@ describe('connected-flow meeting finalize', () => {
     expect(canFinalizeRecommendation(session)).toBe(true)
     session = goToMeetingDetails(session)
     expect(session.phase).toBe('meeting-details')
+  })
+
+  it('excludes optional attendees marked 참석 어려움 from the meeting snapshot', () => {
+    const attendance = {
+      minji: 'required' as const,
+      jihoon: 'required' as const,
+      seoyeon: 'required' as const,
+      doyoon: 'required' as const,
+      yujin: 'optional' as const,
+      hyunwoo: 'optional' as const,
+    }
+    // tue-13: yujin is hard-busy → excluded; hyunwoo free → included
+    const snapshots = buildMeetingParticipantSnapshots(attendance, {}, 'tue-13')
+    expect(snapshots.map((p) => p.id)).not.toContain('yujin')
+    expect(snapshots.map((p) => p.id)).toContain('hyunwoo')
+    expect(snapshots.filter((p) => p.role === 'optional')).toHaveLength(1)
+  })
+
+  it('rejects incomplete hangul title fragments on create', () => {
+    let session = createSession('ready')
+    const recommendation = runRecommendation(session.attendanceTypes, {})
+    session = applyAnalyzedRecommendation(session, recommendation)
+    session = goToMeetingDetails(session)
+    session = updateMeetingDraft(session, { title: 'ㅇ르', location: 'ㅇㄹ' })
+    const blocked = completeMeeting(session)
+    expect(blocked.createdMeeting).toBeUndefined()
+    expect(blocked.phase).toBe('meeting-details')
   })
 })

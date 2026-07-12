@@ -1,81 +1,120 @@
-import { useEffect } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { OmittedScopeSection } from '@/review/components/OmittedScopeSection'
+import {
+  clearSession,
+  loadSession,
+} from '@/features/meeting-decision/connected-flow/connected-flow.persistence'
+import { SituationPicker } from '@/review/components/SituationPicker'
+import { navigateReviewSituation } from '@/review/navigate-review-situation'
 import { trackReviewEvent } from '@/review/review-analytics'
 import {
-  organizerPath,
-  startDeclineBranchSession,
-  startReadyReviewSession,
-} from '@/review/review-session.factory'
+  isReviewMode,
+  isUserTestMode,
+  withReviewQuery,
+} from '@/review/review-mode'
+import {
+  resolveCurrentReviewSituation,
+  setReviewSituationHint,
+  type ReviewSituationId,
+} from '@/review/review-situations'
 
 export function ReviewCompletion() {
   const { sessionId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const ctaRef = useRef<HTMLButtonElement>(null)
+  const menuId = useId()
+
+  const currentSituation = resolveCurrentReviewSituation(
+    location.pathname,
+    loadSession(),
+  )
 
   useEffect(() => {
     trackReviewEvent('core_flow_completed', { sessionId })
   }, [sessionId])
 
+  if (isUserTestMode(searchParams) || !isReviewMode(searchParams)) {
+    return <Navigate to="/" replace />
+  }
+
+  const closePicker = () => {
+    setPickerOpen(false)
+    ctaRef.current?.focus()
+  }
+
+  const handleSelect = (id: ReviewSituationId) => {
+    if (!navigateReviewSituation(id, currentSituation, navigate)) {
+      closePicker()
+      return
+    }
+    setPickerOpen(false)
+  }
+
+  const goToLanding = () => {
+    clearSession()
+    setReviewSituationHint('landing')
+    navigate(withReviewQuery('/'))
+  }
+
   return (
-    <div className="min-h-screen bg-meeting-bg">
-      <div className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col justify-center px-8 py-16">
-        <p className="mb-3 text-[13px] font-medium text-meeting-text-tertiary">
-          핵심 플로우 완료
+    <div className="flex min-h-[100dvh] flex-col bg-meeting-bg">
+      <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col justify-center px-5 py-10 min-[720px]:px-8 min-[720px]:pb-24 min-[720px]:pt-16">
+        <p className="mb-4 text-[13px] font-medium leading-5 text-meeting-text-tertiary">
+          핵심 흐름 완료
         </p>
         <h1
-          className="mb-4 text-[28px] font-bold leading-[38px] text-meeting-text"
+          className="mb-6 text-[26px] font-bold leading-[36px] text-meeting-text min-[720px]:text-[28px] min-[720px]:leading-[38px]"
           style={{ wordBreak: 'keep-all' }}
         >
           공통 시간이 없어도
           <br />
-          확인과 응답을 연결해 회의 시간을 확정했어요.
+          회의 시간을 확정했어요.
         </h1>
         <p
-          className="mb-10 text-[16px] leading-6 text-meeting-text-secondary"
+          className="mb-9 text-[15px] leading-[23px] text-meeting-text-secondary min-[720px]:mb-10 min-[720px]:text-[16px] min-[720px]:leading-6"
           style={{ wordBreak: 'keep-all' }}
         >
           필수 참석 조건을 먼저 지키고,
           <br />
-          이동 가능한 일정만 당사자에게 확인한 뒤,
+          필요한 사람에게만 확인한 뒤
           <br />
-          응답 결과를 같은 규칙으로 다시 계산했습니다.
+          응답 결과를 같은 기준으로 다시 계산했습니다.
         </p>
 
-        <div className="mb-10 flex flex-col gap-3">
+        <div className="flex flex-col items-stretch gap-4 min-[720px]:items-start">
           <Button
-            onClick={() => {
-              const session = startDeclineBranchSession()
-              navigate(organizerPath(session.id))
-            }}
+            ref={ctaRef}
+            type="button"
+            className="w-full min-[720px]:w-full"
+            aria-haspopup="menu"
+            aria-expanded={pickerOpen}
+            aria-controls={menuId}
+            onClick={() => setPickerOpen((prev) => !prev)}
           >
-            거절 후 재추천 보기
+            다른 상황 살펴보기
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              const session = startReadyReviewSession()
-              navigate(organizerPath(session.id))
-            }}
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center self-center text-[15px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] min-[720px]:self-start"
+            onClick={goToLanding}
           >
-            바로 확정 가능한 경우 보기
-          </Button>
-          <Link
-            to="/lab"
-            className="inline-flex min-h-11 items-center justify-center text-[15px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
-          >
-            결정 규칙 실험하기
-          </Link>
-          <Link
-            to="/"
-            className="inline-flex min-h-11 items-center justify-center text-[15px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
-          >
-            처음으로
-          </Link>
+            과제 소개로 돌아가기
+          </button>
         </div>
-
-        <OmittedScopeSection />
       </div>
+
+      <SituationPicker
+        open={pickerOpen}
+        menuId={menuId}
+        triggerRef={ctaRef}
+        currentSituation={currentSituation}
+        onClose={closePicker}
+        onSelect={handleSelect}
+      />
     </div>
   )
 }

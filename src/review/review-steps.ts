@@ -83,5 +83,5 @@ export function getReviewStepMeta(step: ReviewStep): ReviewStepMeta {
 
 export function formatReviewStepLabel(step: ReviewStep): string {
   const meta = getReviewStepMeta(step)
-  return `핵심 플로우 ${meta.index}/${meta.total} · ${meta.label}`
+  return `핵심 흐름 ${meta.index}/${meta.total} · ${meta.label}`
 }

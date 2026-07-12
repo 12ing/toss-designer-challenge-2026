@@ -18,6 +18,7 @@ import {
   completeMeeting,
   countAttendanceByType,
   createSession,
+  ensureMeetingParticipantSnapshots,
   finishReview,
   goToMeetingDetails,
   markRequestPending,
@@ -83,7 +84,11 @@ export function usePrototypeFlow(
   const [session, setSession] = useState<MeetingDecisionSession>(() => {
     // Prefer an explicitly created review/lab session so fresh runs are not wiped.
     const existing = loadSession()
-    if (existing) return existing
+    if (existing) {
+      const normalized = ensureMeetingParticipantSnapshots(existing)
+      if (normalized !== existing) saveSession(normalized)
+      return normalized
+    }
     // Dead URL with no storage — keep an in-memory shell and do not persist.
     if (expectedSessionId) {
       return createSession(initialScenario)
@@ -278,7 +283,11 @@ export function usePrototypeFlow(
 
   const reloadFromStorage = useCallback(() => {
     const loaded = loadSession()
-    if (loaded) setSession(loaded)
+    if (loaded) {
+      const normalized = ensureMeetingParticipantSnapshots(loaded)
+      if (normalized !== loaded) saveSession(normalized)
+      setSession(normalized)
+    }
   }, [])
 
   const attendanceCounts = useMemo(

@@ -10,6 +10,7 @@ import type { MeetingDecisionSession } from '@/features/meeting-decision/connect
 import type { AttendanceType } from '@/features/meeting-decision/engine/decision-engine.types'
 import { preserveModeQuery, withReviewQuery } from './review-mode'
 import { trackReviewEvent } from './review-analytics'
+import { setReviewSituationHint } from './review-situations'
 
 function persistFresh(session: MeetingDecisionSession): MeetingDecisionSession {
   clearSession()
@@ -18,12 +19,14 @@ function persistFresh(session: MeetingDecisionSession): MeetingDecisionSession {
 }
 
 export function startCoreReviewSession(): MeetingDecisionSession {
+  setReviewSituationHint('core')
   const session = persistFresh(createSession('coordination'))
   trackReviewEvent('core_flow_started', { sessionId: session.id })
   return session
 }
 
 export function startReadyReviewSession(): MeetingDecisionSession {
+  setReviewSituationHint('ready')
   const session = persistFresh(createSession('ready'))
   trackReviewEvent('ready_branch_started', { sessionId: session.id })
   return session
@@ -31,6 +34,7 @@ export function startReadyReviewSession(): MeetingDecisionSession {
 
 /** Starts coordination seed for a real decline path — no hardcoded result. */
 export function startDeclineBranchSession(): MeetingDecisionSession {
+  setReviewSituationHint('decline')
   const session = persistFresh(createSession('coordination'))
   trackReviewEvent('decline_branch_started', { sessionId: session.id })
   return session

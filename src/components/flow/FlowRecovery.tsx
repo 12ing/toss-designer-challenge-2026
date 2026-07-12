@@ -20,7 +20,9 @@ export function FlowRecovery({
   return (
     <div className="mx-auto flex w-full max-w-[560px] flex-col py-10">
       <h2
-        className="mb-3 text-[22px] font-bold leading-8 text-meeting-text"
+        data-page-heading
+        tabIndex={-1}
+        className="mb-3 text-[22px] font-bold leading-8 text-meeting-text outline-none focus:outline-none focus-visible:outline-none"
         style={{ wordBreak: 'keep-all' }}
       >
         {title}

@@ -12,6 +12,10 @@ import {
   isUserTestMode,
 } from '@/review/review-mode'
 import { reviewStepFromPhase } from '@/review/review-steps'
+import {
+  resolveCurrentReviewSituation,
+  setReviewSituationHint,
+} from '@/review/review-situations'
 
 describe('review mode helpers', () => {
   it('separates review, usertest, and debug', () => {
@@ -98,5 +102,38 @@ describe('rule lab presets', () => {
     expect(session.responseOverrides).toEqual({})
     expect(session.currentRecommendation).toBeNull()
     expect(session.phase).toBe('participant-setup')
+  })
+})
+
+describe('review situation resolution', () => {
+  it('maps path and seed to the current situation', () => {
+    expect(resolveCurrentReviewSituation('/lab', null)).toBe('lab')
+    expect(resolveCurrentReviewSituation('/', null)).toBe('landing')
+    expect(
+      resolveCurrentReviewSituation(
+        '/review/session/abc/complete',
+        null,
+      ),
+    ).toBe(null)
+
+    setReviewSituationHint('decline')
+    expect(
+      resolveCurrentReviewSituation('/prototype/session/abc/organizer', {
+        scenarioSeed: 'coordination',
+      } as never),
+    ).toBe('decline')
+
+    setReviewSituationHint('core')
+    expect(
+      resolveCurrentReviewSituation('/prototype/session/abc/organizer', {
+        scenarioSeed: 'coordination',
+      } as never),
+    ).toBe('core')
+
+    expect(
+      resolveCurrentReviewSituation('/prototype/session/abc/organizer', {
+        scenarioSeed: 'ready',
+      } as never),
+    ).toBe('ready')
   })
 })

@@ -236,12 +236,11 @@ export function DecisionSurface({
   )
 
   const reasonPanel = (
-    <ReasonPanel
-      rows={vm.reasonRows}
-      note={vm.reasonNote}
-      onShowPeople={openPeople}
-    />
+    <ReasonPanel rows={vm.reasonRows} note={vm.reasonNote} />
   )
+
+  const panelToggleClass =
+    'inline-flex min-h-11 items-center text-[14px] leading-[21px] text-meeting-text-secondary underline-offset-2 transition-colors hover:text-meeting-text hover:underline focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] focus-visible:underline'
 
   const decisionColumn = (
     <div className="min-w-0">
@@ -257,7 +256,7 @@ export function DecisionSurface({
           <h2
             data-page-heading
             tabIndex={-1}
-            className="text-[32px] font-bold leading-[42px] tracking-tight text-meeting-text outline-none max-[719px]:text-[30px] max-[719px]:leading-[40px]"
+            className="text-[32px] font-bold leading-[42px] tracking-tight text-meeting-text outline-none focus:outline-none focus-visible:outline-none max-[719px]:text-[30px] max-[719px]:leading-[40px]"
           >
             {vm.timeLabel}
           </h2>
@@ -266,7 +265,7 @@ export function DecisionSurface({
         <h2
           data-page-heading
           tabIndex={-1}
-          className="sr-only outline-none"
+          className="sr-only outline-none focus:outline-none focus-visible:outline-none"
         >
           {vm.stateLabel}
         </h2>
@@ -327,11 +326,15 @@ export function DecisionSurface({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1 min-[720px]:hidden">
+      <div
+        className="flex flex-wrap gap-x-4 gap-y-1 min-[720px]:hidden"
+        {...(mobileSheet ? { inert: true } : {})}
+      >
         {mode !== 'no-option' ? (
           <button
             type="button"
-            className="inline-flex min-h-11 items-center text-[14px] text-meeting-text-secondary underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+            className={panelToggleClass}
+            disabled={Boolean(mobileSheet)}
             onClick={() => setMobileSheet('people')}
           >
             6명 상황 보기
@@ -340,7 +343,8 @@ export function DecisionSurface({
         {canShowReason ? (
           <button
             type="button"
-            className="inline-flex min-h-11 items-center text-[14px] text-meeting-text-secondary underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+            className={panelToggleClass}
+            disabled={Boolean(mobileSheet)}
             onClick={() => setMobileSheet('reason')}
           >
             이 시간을 고른 이유
@@ -352,11 +356,12 @@ export function DecisionSurface({
         <button
           ref={reasonTriggerRef}
           type="button"
-          className="mt-0.5 hidden min-h-11 items-center text-[14px] leading-[21px] text-meeting-text-secondary underline underline-offset-2 transition-colors hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)] min-[720px]:inline-flex"
+          className={`${panelToggleClass} mt-0.5 hidden min-[720px]:inline-flex`}
           onClick={() => {
             if (contextView === 'reason') openPeople()
             else openReason()
           }}
+          aria-controls="decision-detail-panel"
           aria-expanded={contextView === 'reason'}
         >
           {contextView === 'reason' ? '참석 상황 보기' : vm.reasonClosedLabel}
@@ -380,6 +385,7 @@ export function DecisionSurface({
 
           <div className="hidden min-w-0 overflow-visible border-l border-meeting-divider pl-6 min-[720px]:block">
             <div
+              id="decision-detail-panel"
               key={contextView}
               className="animate-[panel-fade_160ms_ease] motion-reduce:animate-none"
             >
@@ -396,27 +402,26 @@ export function DecisionSurface({
       </article>
 
       <MobileBottomSheet
-        open={mobileSheet === 'people'}
-        title={vm.peoplePanelTitle}
-        onClose={() => setMobileSheet(null)}
-      >
-        {peopleSheetPanel}
-      </MobileBottomSheet>
-
-      <MobileBottomSheet
-        open={mobileSheet === 'reason'}
-        title="이 시간을 고른 이유"
+        open={mobileSheet === 'people' || mobileSheet === 'reason'}
+        title={
+          mobileSheet === 'reason' ? '이 시간을 고른 이유' : vm.peoplePanelTitle
+        }
         onClose={() => {
+          const wasReason = mobileSheet === 'reason'
           setMobileSheet(null)
-          reasonTriggerRef.current?.focus()
+          if (wasReason) reasonTriggerRef.current?.focus()
         }}
       >
-        <ReasonPanel
-          rows={vm.reasonRows}
-          note={vm.reasonNote}
-          hideTitle
-          onShowPeople={() => setMobileSheet('people')}
-        />
+        {mobileSheet === 'reason' ? (
+          <ReasonPanel
+            rows={vm.reasonRows}
+            note={vm.reasonNote}
+            hideTitle
+            onShowPeople={() => setMobileSheet('people')}
+          />
+        ) : (
+          peopleSheetPanel
+        )}
       </MobileBottomSheet>
     </div>
   )

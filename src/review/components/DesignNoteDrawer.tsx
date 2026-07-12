@@ -45,7 +45,7 @@ export function DesignNoteDrawer({
       <button
         type="button"
         className="absolute inset-0 bg-[rgba(0,27,55,0.28)]"
-        aria-label="설계 의도 닫기"
+        aria-label="설계 근거 닫기"
         onClick={onClose}
       />
       <aside

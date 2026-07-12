@@ -1,7 +1,8 @@
 type ReasonPanelProps = {
   rows: Array<{ label: string; value: string }>
   note?: string
-  onShowPeople: () => void
+  /** Optional — used only when mobile sheet needs an in-sheet switch. */
+  onShowPeople?: () => void
   /** Hide h3 when parent sheet already shows the title. */
   hideTitle?: boolean
 }
@@ -13,7 +14,7 @@ export function ReasonPanel({
   hideTitle = false,
 }: ReasonPanelProps) {
   return (
-    <section className="min-w-0" aria-label="이 시간을 고른 이유" aria-live="polite">
+    <section className="min-w-0" aria-label="이 시간을 고른 이유">
       {hideTitle ? null : (
         <h3 className="mb-2 text-[15px] font-bold leading-[23px] text-meeting-text">
           이 시간을 고른 이유
@@ -48,13 +49,15 @@ export function ReasonPanel({
           {note}
         </p>
       ) : null}
-      <button
-        type="button"
-        className="mt-3 inline-flex min-h-11 items-center text-[14px] font-medium text-meeting-text-secondary underline underline-offset-2 hover:text-meeting-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
-        onClick={onShowPeople}
-      >
-        참석 상황 보기
-      </button>
+      {onShowPeople ? (
+        <button
+          type="button"
+          className="mt-3 inline-flex min-h-11 items-center text-[14px] font-medium text-meeting-text-secondary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--meeting-focus)]"
+          onClick={onShowPeople}
+        >
+          참석 상황 보기
+        </button>
+      ) : null}
     </section>
   )
 }

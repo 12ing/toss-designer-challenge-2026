@@ -60,7 +60,7 @@ export function ReviewLanding() {
           </p>
 
           <div className="w-full min-w-0 max-w-md">
-            <Button onClick={startCoreFlow}>핵심 플로우 시작</Button>
+            <Button onClick={startCoreFlow}>핵심 흐름 시작</Button>
             <p
               className="mt-2.5 text-[13px] leading-5 text-meeting-text-tertiary"
               style={{ wordBreak: 'keep-all' }}
